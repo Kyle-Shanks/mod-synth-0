@@ -9,15 +9,5 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
     }
   },
-  build: {
-    rollupOptions: {
-      input: {
-        main: 'index.html',
-        worklet: 'src/engine/worklet/GraphProcessor.ts',
-      },
-      output: {
-        entryFileNames: '[name].js',
-      }
-    }
-  }
+  // GraphProcessor.js lives in public/ and is served as-is (no bundling needed)
 })

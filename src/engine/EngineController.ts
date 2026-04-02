@@ -1,5 +1,4 @@
 import type { EngineEvent, ModuleDefinition, SerializedCable, SerializedModule } from './types'
-import graphProcessorUrl from './worklet/GraphProcessor.js?url'
 
 // Method shorthand like `process(a, b) { }` is not a valid expression for `new Function('return ...')`.
 // Prefix with `function` to make it a named function expression.
@@ -17,7 +16,8 @@ export class EngineController {
 
   async initialize(): Promise<void> {
     this.context = new AudioContext({ sampleRate: 44100, latencyHint: 'interactive' })
-    await this.context.audioWorklet.addModule(graphProcessorUrl)
+    // Load from public/ so Vite serves it as-is without module transforms
+    await this.context.audioWorklet.addModule('/GraphProcessor.js')
     this.workletNode = new AudioWorkletNode(this.context, 'graph-processor', {
       numberOfOutputs: 1,
       outputChannelCount: [2],

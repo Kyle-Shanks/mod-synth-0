@@ -17,6 +17,7 @@ export interface ParamDefinition {
   options?: string[]   // for 'select' type only
   label: string
   unit?: string        // 'hz', 'db', 'ms', '%', 's' — shown in value display
+  curve?: 'linear' | 'log'  // 'log' for exponential knob scaling (requires min > 0)
 }
 
 // the context object passed to initialize() and process()

@@ -27,7 +27,7 @@ export const VCODefinition: ModuleDefinition<
     pulse: { type: 'audio', default: 0, label: 'pls' },
   },
   params: {
-    frequency:  { type: 'float', min: 20,   max: 20000, default: 440, label: 'freq',  unit: 'hz' },
+    frequency:  { type: 'float', min: 20,   max: 20000, default: 440, label: 'freq',  unit: 'hz', curve: 'log' },
     detune:     { type: 'float', min: -100, max: 100,   default: 0,   label: 'tune',  unit: 'ct' },
     pulseWidth: { type: 'float', min: 0.01, max: 0.99,  default: 0.5, label: 'width' },
   },
@@ -47,8 +47,9 @@ export const VCODefinition: ModuleDefinition<
       const cvFreq = cvValue !== 0
         ? params.frequency * Math.pow(2, cvValue)
         : params.frequency
+      // FM scales by base frequency so ±1 input = ±baseFreq Hz deviation (index = 1)
       const fmAmount = inputs.fm[i] ?? 0
-      const freq = Math.max(0.001, cvFreq * detuneRatio + fmAmount)
+      const freq = Math.max(0.001, cvFreq * detuneRatio + fmAmount * params.frequency)
 
       // advance phase
       state.phase += freq / sampleRate
