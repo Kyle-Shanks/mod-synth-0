@@ -1,6 +1,12 @@
 import type { EngineEvent, ModuleDefinition, SerializedCable, SerializedModule } from './types'
 import graphProcessorUrl from './worklet/GraphProcessor.js?url'
 
+// Method shorthand like `process(a, b) { }` is not a valid expression for `new Function('return ...')`.
+// Prefix with `function` to make it a named function expression.
+function normalizeFnStr(fn: string): string {
+  return /^(function[\s(]|async[\s(]|\(|[\w$]+\s*=>)/.test(fn) ? fn : `function ${fn}`
+}
+
 export class EngineController {
   private context: AudioContext | null = null
   private workletNode: AudioWorkletNode | null = null
@@ -80,7 +86,7 @@ export class EngineController {
       outputPortIds,
       inputPortTypes,
       paramDefaults,
-      processFnStr: definition.process.toString(),
+      processFnStr: normalizeFnStr(definition.process.toString()),
     })
   }
 
@@ -101,6 +107,14 @@ export class EngineController {
 
   setParam(moduleId: string, param: string, value: number): void {
     this.send({ type: 'SET_PARAM', moduleId, param, value })
+  }
+
+  setScopeBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
+    this.send({
+      type: 'SET_SCOPE_BUFFER',
+      moduleId,
+      buffer,
+    })
   }
 
   setGate(moduleId: string, portId: string, value: 0 | 1): void {

@@ -1,5 +1,11 @@
 import type { ModuleDefinition } from '../engine/types'
 import { VCODefinition } from './vco/definition'
+import { VCFDefinition } from './vcf/definition'
+import { VCADefinition } from './vca/definition'
+import { MixerDefinition } from './mixer/definition'
+import { ADSRDefinition } from './adsr/definition'
+import { PushButtonDefinition } from './pushbutton/definition'
+import { ScopeDefinition } from './scope/definition'
 import { OutputDefinition } from './output/definition'
 
 const registry = new Map<string, ModuleDefinition>()
@@ -19,7 +25,14 @@ export function getAllModules(): ModuleDefinition[] {
   return [...registry.values()]
 }
 
-// register core modules
+// register all core modules
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-registerModule(VCODefinition as any as ModuleDefinition)
-registerModule(OutputDefinition)
+const reg = (def: any) => registerModule(def as ModuleDefinition)
+reg(VCODefinition)
+reg(VCFDefinition)
+reg(VCADefinition)
+reg(MixerDefinition)
+reg(ADSRDefinition)
+reg(PushButtonDefinition)
+reg(ScopeDefinition)
+reg(OutputDefinition)
