@@ -30,6 +30,8 @@ import { FlangerDefinition } from './flanger/definition'
 import { ClockDivDefinition } from './clockdiv/definition'
 import { EuclideanDefinition } from './euclidean/definition'
 import { ResonatorDefinition } from './resonator/definition'
+import { TunerDefinition } from './tuner/definition'
+import { XYScopeDefinition } from './xyscope/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -92,3 +94,7 @@ reg(EuclideanDefinition)
 
 // stage 11 modules
 reg(ResonatorDefinition)
+
+// stage 12 modules
+reg(TunerDefinition)
+reg(XYScopeDefinition)

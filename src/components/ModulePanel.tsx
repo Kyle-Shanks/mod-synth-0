@@ -10,6 +10,7 @@ import { PushButton } from './PushButton'
 import { ClockIndicator } from './ClockIndicator'
 import { SequencerIndicator } from './SequencerIndicator'
 import { GainMeter } from './GainMeter'
+import { TunerDisplay } from './TunerDisplay'
 import { CanvasZone } from './CanvasZone'
 import type { CanvasData } from './CanvasZone'
 import { drawScopeTrace, drawGrid } from './canvasPrimitives'
@@ -40,6 +41,49 @@ function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
       moduleParams.timeScale ?? 1,
     )
   }
+}
+
+function renderXY(ctx: CanvasRenderingContext2D, data: CanvasData) {
+  const {
+    width,
+    height,
+    theme,
+    xBuffer,
+    yBuffer,
+    writeIndexBuffer,
+    moduleParams,
+  } = data
+  ctx.fillStyle = theme.shades.shade0
+  ctx.fillRect(0, 0, width, height)
+
+  if (!xBuffer || !yBuffer || !writeIndexBuffer) return
+
+  const scale = moduleParams.scale ?? 1
+  const persist = moduleParams.persist ?? 0.3
+  const alpha = Math.round((0.2 + (1 - persist) * 0.6) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  ctx.fillStyle = theme.shades.shade0 + alpha
+  ctx.fillRect(0, 0, width, height)
+
+  const wIdx = Atomics.load(writeIndexBuffer, 0)
+  const nSamples = 512
+  const bufLen = xBuffer.length
+  const cx = width / 2
+  const cy = height / 2
+  const r = Math.min(width, height) * 0.43
+
+  ctx.strokeStyle = theme.accents.accent1
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  for (let i = 0; i < nSamples; i++) {
+    const idx = (wIdx - nSamples + i + bufLen) % bufLen
+    const px = cx + (xBuffer[idx] ?? 0) * scale * r
+    const py = cy - (yBuffer[idx] ?? 0) * scale * r
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.stroke()
 }
 
 export function ModulePanel({ moduleId }: ModulePanelProps) {
@@ -83,6 +127,49 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
   }, [moduleId, scopeBuffers, def, engineRevision])
+
+  // tuner SharedArrayBuffer setup (only for tuner modules)
+  const tunerBuffer = useMemo(() => {
+    if (!def || def.id !== 'tuner') return null
+    try {
+      const sab = new SharedArrayBuffer(2 * Float32Array.BYTES_PER_ELEMENT)
+      return new Float32Array(sab)
+    } catch {
+      return null
+    }
+  }, [def])
+
+  useEffect(() => {
+    if (!tunerBuffer || !def || def.id !== 'tuner') return
+    engine.setTunerBuffer(moduleId, tunerBuffer.buffer as SharedArrayBuffer)
+  }, [moduleId, tunerBuffer, def, engineRevision])
+
+  // XY scope SharedArrayBuffer setup (only for xyscope modules)
+  const xyScopeBuffers = useMemo(() => {
+    if (!def || def.id !== 'xyscope') return null
+    try {
+      const xSab = new SharedArrayBuffer(2048 * Float32Array.BYTES_PER_ELEMENT)
+      const ySab = new SharedArrayBuffer(2048 * Float32Array.BYTES_PER_ELEMENT)
+      const idxSab = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT)
+      return {
+        xBuffer: new Float32Array(xSab),
+        yBuffer: new Float32Array(ySab),
+        writeIndexBuffer: new Int32Array(idxSab),
+      }
+    } catch {
+      return null
+    }
+  }, [def])
+
+  useEffect(() => {
+    if (!xyScopeBuffers || !def || def.id !== 'xyscope') return
+    engine.setXYScopeBuffers(
+      moduleId,
+      xyScopeBuffers.xBuffer.buffer as SharedArrayBuffer,
+      xyScopeBuffers.yBuffer.buffer as SharedArrayBuffer,
+      xyScopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
+    )
+  }, [moduleId, xyScopeBuffers, def, engineRevision])
 
   // update all port positions after render / position change
   const updatePortPositions = useCallback(() => {
@@ -219,6 +306,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   // determine if this is a special module
   const isPushButton = def.id === 'pushbutton'
   const isScope = def.id === 'scope'
+  const isTuner = def.id === 'tuner'
+  const isXYScope = def.id === 'xyscope'
   const isMixer = def.id === 'mixer'
   const isSequencer = def.id === 'sequencer'
   const isClock = def.id === 'clock'
@@ -310,6 +399,53 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
               value={mod.params[paramId] ?? paramDef.default}
             />
           ))}
+        </div>
+      ) : isTuner ? (
+        <TunerDisplay moduleId={moduleId} tunerBuffer={tunerBuffer} />
+      ) : isXYScope ? (
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            padding: 4,
+            minHeight: 0,
+            overflow: 'hidden',
+          }}
+        >
+          <CanvasZone
+            width={widthPx - 10}
+            height={heightPx - 130}
+            render={renderXY}
+            moduleParams={mod.params}
+            xBuffer={xyScopeBuffers?.xBuffer ?? null}
+            yBuffer={xyScopeBuffers?.yBuffer ?? null}
+            writeIndexBuffer={xyScopeBuffers?.writeIndexBuffer ?? null}
+          />
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '6px 4px',
+              overflow: 'hidden',
+            }}
+          >
+            {Object.entries(def.params).map(([paramId, paramDef]) => (
+              <Knob
+                key={paramId}
+                moduleId={moduleId}
+                paramId={paramId}
+                definition={paramDef}
+                value={mod.params[paramId] ?? paramDef.default}
+              />
+            ))}
+          </div>
         </div>
       ) : isOutput ? (
         // output module body: gain meter + volume knob

@@ -9,12 +9,16 @@ interface CanvasZoneProps {
   moduleParams?: Record<string, number>
   scopeBuffer?: Float32Array | null
   writeIndexBuffer?: Int32Array | null
+  xBuffer?: Float32Array | null
+  yBuffer?: Float32Array | null
 }
 
 export interface CanvasData {
   theme: Theme
   scopeBuffer?: Float32Array | null
   writeIndexBuffer?: Int32Array | null
+  xBuffer?: Float32Array | null
+  yBuffer?: Float32Array | null
   moduleParams: Record<string, number>
   width: number
   height: number
@@ -27,6 +31,8 @@ export function CanvasZone({
   moduleParams = {},
   scopeBuffer = null,
   writeIndexBuffer = null,
+  xBuffer = null,
+  yBuffer = null,
 }: CanvasZoneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
@@ -54,6 +60,8 @@ export function CanvasZone({
         theme: themeRef.current,
         scopeBuffer,
         writeIndexBuffer,
+        xBuffer,
+        yBuffer,
         moduleParams: paramsRef.current,
         width,
         height,
@@ -64,7 +72,7 @@ export function CanvasZone({
 
     rafRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [width, height, scopeBuffer, writeIndexBuffer])
+  }, [width, height, scopeBuffer, writeIndexBuffer, xBuffer, yBuffer])
 
   return (
     <canvas

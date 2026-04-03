@@ -121,6 +121,19 @@ export class EngineController {
     })
   }
 
+  setTunerBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
+    this.sendRaw({ type: 'SET_TUNER_BUFFER', moduleId, buffer })
+  }
+
+  setXYScopeBuffers(
+    moduleId: string,
+    xBuffer: SharedArrayBuffer,
+    yBuffer: SharedArrayBuffer,
+    writeIndexBuffer: SharedArrayBuffer,
+  ): void {
+    this.sendRaw({ type: 'SET_XYSCOPE_BUFFERS', moduleId, xBuffer, yBuffer, writeIndexBuffer })
+  }
+
   setIndicatorBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
     this.send({
       type: 'SET_INDICATOR_BUFFER',

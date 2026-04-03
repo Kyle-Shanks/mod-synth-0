@@ -142,6 +142,21 @@ class GraphProcessorNode extends AudioWorkletProcessor {
         }
         break
       }
+      case 'SET_TUNER_BUFFER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) m.state.tunerBuffer = new Float32Array(cmd.buffer)
+        break
+      }
+      case 'SET_XYSCOPE_BUFFERS': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state.xBuffer          = new Float32Array(cmd.xBuffer)
+          m.state.yBuffer          = new Float32Array(cmd.yBuffer)
+          m.state.writeIndexBuffer = new Int32Array(cmd.writeIndexBuffer)
+          m.state.xyWriteIndex     = 0
+        }
+        break
+      }
       case 'SET_INDICATOR_BUFFER': {
         const m = this.modules.get(cmd.moduleId)
         if (m) {
