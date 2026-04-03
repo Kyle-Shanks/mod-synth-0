@@ -121,6 +121,14 @@ export class EngineController {
     })
   }
 
+  setIndicatorBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
+    this.send({
+      type: 'SET_INDICATOR_BUFFER',
+      moduleId,
+      buffer,
+    })
+  }
+
   setGate(moduleId: string, portId: string, value: 0 | 1): void {
     if (!this.context) return
     this.send({

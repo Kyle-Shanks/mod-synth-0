@@ -7,6 +7,8 @@ import { Knob } from './Knob'
 import { Fader } from './Fader'
 import { ListSelector } from './ListSelector'
 import { PushButton } from './PushButton'
+import { ClockIndicator } from './ClockIndicator'
+import { SequencerIndicator } from './SequencerIndicator'
 import { CanvasZone } from './CanvasZone'
 import type { CanvasData } from './CanvasZone'
 import { drawScopeTrace, drawGrid } from './canvasPrimitives'
@@ -212,6 +214,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   const isPushButton = def.id === 'pushbutton'
   const isScope = def.id === 'scope'
   const isMixer = def.id === 'mixer'
+  const isSequencer = def.id === 'sequencer'
+  const isClock = def.id === 'clock'
 
   return (
     <div
@@ -302,6 +306,15 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         </div>
       ) : (
         <>
+          {/* indicator lights for clock / sequencer */}
+          {isClock && <ClockIndicator moduleId={moduleId} />}
+          {isSequencer && (
+            <SequencerIndicator
+              moduleId={moduleId}
+              stepCount={Math.round(mod.params.steps ?? 8)}
+            />
+          )}
+
           {/* params body */}
           {paramEntries.length > 0 && (
             <div
@@ -340,6 +353,21 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
                       value={mod.params[paramId] ?? paramDef.default}
                       orientation='vertical'
                       length={56}
+                    />
+                  )
+                }
+
+                // use short faders for sequencer step values
+                if (isSequencer && paramId.startsWith('step')) {
+                  return (
+                    <Fader
+                      key={paramId}
+                      moduleId={moduleId}
+                      paramId={paramId}
+                      definition={paramDef}
+                      value={mod.params[paramId] ?? paramDef.default}
+                      orientation='vertical'
+                      length={48}
                     />
                   )
                 }

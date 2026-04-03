@@ -7,6 +7,15 @@ import { ADSRDefinition } from './adsr/definition'
 import { PushButtonDefinition } from './pushbutton/definition'
 import { ScopeDefinition } from './scope/definition'
 import { OutputDefinition } from './output/definition'
+import { LFODefinition } from './lfo/definition'
+import { NoiseDefinition } from './noise/definition'
+import { SampleHoldDefinition } from './samplehold/definition'
+import { ClockDefinition } from './clock/definition'
+import { SequencerDefinition } from './sequencer/definition'
+import { AttenuverterDefinition } from './attenuverter/definition'
+import { QuantizerDefinition } from './quantizer/definition'
+import { ReverbDefinition } from './reverb/definition'
+import { DelayDefinition } from './delay/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -28,6 +37,8 @@ export function getAllModules(): ModuleDefinition[] {
 // register all core modules
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const reg = (def: any) => registerModule(def as ModuleDefinition)
+
+// stage 1-5 modules
 reg(VCODefinition)
 reg(VCFDefinition)
 reg(VCADefinition)
@@ -36,3 +47,14 @@ reg(ADSRDefinition)
 reg(PushButtonDefinition)
 reg(ScopeDefinition)
 reg(OutputDefinition)
+
+// stage 6 modules
+reg(LFODefinition)
+reg(NoiseDefinition)
+reg(SampleHoldDefinition)
+reg(ClockDefinition)
+reg(SequencerDefinition)
+reg(AttenuverterDefinition)
+reg(QuantizerDefinition)
+reg(ReverbDefinition)
+reg(DelayDefinition)

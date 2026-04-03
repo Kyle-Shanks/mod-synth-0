@@ -13,11 +13,10 @@ export function drawScopeTrace(
   const len = buffer.length
   if (len === 0) return
 
-  // clamp to at most half the buffer so the trigger search stays in safe territory
-  const samplesToShow = Math.min(
-    Math.floor(len / 2) - 64,
-    Math.max(64, Math.floor(512 * timeScale)),
-  )
+  // higher timeScale = zoom in (fewer samples shown, more detail)
+  // timeScale 1 = full view (~960 samples), timeScale 10 = zoomed in (~96 samples)
+  const maxSamples = Math.floor(len / 2) - 64
+  const samplesToShow = Math.max(64, Math.floor(maxSamples / timeScale))
 
   // anchor display to the most recent positive-slope zero crossing
   // search backward from the nominal window start so the waveform stays locked
