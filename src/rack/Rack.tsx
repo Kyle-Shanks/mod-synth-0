@@ -4,6 +4,7 @@ import { ModulePanel } from '../components/ModulePanel'
 import { CableLayer } from '../cables/CableLayer'
 import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
+import { useZoom } from './ZoomController'
 
 const RACK_COLS = 64
 const RACK_ROWS = 32
@@ -14,7 +15,9 @@ export function Rack() {
   const setDragState = useStore((s) => s.setDragState)
   const setCommandPaletteOpen = useStore((s) => s.setCommandPaletteOpen)
   const rackRef = useRef<HTMLDivElement>(null)
+  const outerRef = useRef<HTMLDivElement>(null)
   const lastMousePosRef = useRef<{ x: number; y: number } | null>(null)
+  const zoom = useZoom(outerRef)
 
   const rackWidth = RACK_COLS * GRID_UNIT
   const rackHeight = RACK_ROWS * GRID_UNIT
@@ -36,10 +39,10 @@ export function Rack() {
     const rect = rack.getBoundingClientRect()
     setDragState({
       ...dragState,
-      cursorX: e.clientX - rect.left,
-      cursorY: e.clientY - rect.top,
+      cursorX: (e.clientX - rect.left) / zoom,
+      cursorY: (e.clientY - rect.top) / zoom,
     })
-  }, [dragState, setDragState])
+  }, [dragState, setDragState, zoom])
 
   // cancel drag on mouseup over empty space
   const handleMouseUp = useCallback(() => {
@@ -53,10 +56,10 @@ export function Rack() {
     if (!rack) return
     const rect = rack.getBoundingClientRect()
     setCommandPaletteOpen(true, {
-      x: Math.round((e.clientX - rect.left) / GRID_UNIT),
-      y: Math.round((e.clientY - rect.top) / GRID_UNIT),
+      x: Math.round((e.clientX - rect.left) / zoom / GRID_UNIT),
+      y: Math.round((e.clientY - rect.top) / zoom / GRID_UNIT),
     })
-  }, [setCommandPaletteOpen])
+  }, [setCommandPaletteOpen, zoom])
 
   const selectedModuleId = useStore((s) => s.selectedModuleId)
   const removeModule = useStore((s) => s.removeModule)
@@ -73,8 +76,8 @@ export function Rack() {
         const mousePos = lastMousePosRef.current
         if (rack && mousePos) {
           const rect = rack.getBoundingClientRect()
-          const gridX = Math.max(0, Math.round((mousePos.x - rect.left) / GRID_UNIT))
-          const gridY = Math.max(0, Math.round((mousePos.y - rect.top) / GRID_UNIT))
+          const gridX = Math.max(0, Math.round((mousePos.x - rect.left) / zoom / GRID_UNIT))
+          const gridY = Math.max(0, Math.round((mousePos.y - rect.top) / zoom / GRID_UNIT))
           setCommandPaletteOpen(true, { x: gridX, y: gridY })
         } else {
           setCommandPaletteOpen(true, { x: 2, y: 2 })
@@ -88,60 +91,66 @@ export function Rack() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [setCommandPaletteOpen, selectedModuleId, removeModule, setSelectedModule])
+  }, [setCommandPaletteOpen, selectedModuleId, removeModule, setSelectedModule, zoom])
 
   return (
     <div
+      ref={outerRef}
       style={{
         flex: 1,
         overflow: 'auto',
-        background: 'var(--shade0)',
       }}
     >
       <div
-        ref={rackRef}
-        data-rack=""
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onContextMenu={handleContextMenu}
         style={{
-          position: 'relative',
-          width: rackWidth,
-          height: rackHeight,
-          minWidth: rackWidth,
-          minHeight: rackHeight,
-          backgroundImage: `
-            linear-gradient(var(--shade2) 1px, transparent 1px),
-            linear-gradient(90deg, var(--shade2) 1px, transparent 1px)
-          `,
-          backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
-          backgroundPosition: '-1px -1px',
-          opacity: 1,
+          width: rackWidth * zoom,
+          height: rackHeight * zoom,
         }}
       >
-        {/* grid overlay at 0.15 opacity */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(42,42,46,0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(42,42,46,0.3) 1px, transparent 1px)
-          `,
-          backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
-          backgroundPosition: '-1px -1px',
-          pointerEvents: 'none',
-        }} />
+        <div
+          ref={rackRef}
+          data-rack=""
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onContextMenu={handleContextMenu}
+          style={{
+            position: 'relative',
+            width: rackWidth,
+            height: rackHeight,
+            transform: `scale(${zoom})`,
+            transformOrigin: '0 0',
+            backgroundImage: `
+              linear-gradient(var(--shade2) 1px, transparent 1px),
+              linear-gradient(90deg, var(--shade2) 1px, transparent 1px)
+            `,
+            backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
+            backgroundPosition: '-1px -1px',
+          }}
+        >
+          {/* grid overlay at 0.15 opacity */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `
+              linear-gradient(rgba(42,42,46,0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(42,42,46,0.3) 1px, transparent 1px)
+            `,
+            backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
+            backgroundPosition: '-1px -1px',
+            pointerEvents: 'none',
+          }} />
 
-        {/* modules */}
-        {Object.keys(modules).map((moduleId) => (
-          <ModulePanel key={moduleId} moduleId={moduleId} />
-        ))}
+          {/* modules */}
+          {Object.keys(modules).map((moduleId) => (
+            <ModulePanel key={moduleId} moduleId={moduleId} />
+          ))}
 
-        {/* cable overlay */}
-        <CableLayer />
+          {/* cable overlay */}
+          <CableLayer />
 
-        {/* port tooltip */}
-        <Tooltip />
+          {/* port tooltip */}
+          <Tooltip />
+        </div>
       </div>
     </div>
   )

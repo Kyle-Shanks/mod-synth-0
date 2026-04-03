@@ -15,6 +15,7 @@ import {
   deserializePatch,
   validatePatchJson,
 } from './persistence/serialization'
+import { getTheme } from './theme/themeRegistry'
 import './modules/registry' // ensure modules are registered
 
 export default function App() {
@@ -27,7 +28,10 @@ export default function App() {
   const loadPatch = useStore((s) => s.loadPatch)
   const setCableTautness = useStore((s) => s.setCableTautness)
   const setTooltipsEnabled = useStore((s) => s.setTooltipsEnabled)
+  const themeId = useStore((s) => s.themeId)
   const setTheme = useStore((s) => s.setTheme)
+  const zoom = useStore((s) => s.zoom)
+  const setZoom = useStore((s) => s.setZoom)
   // const undo = useStore((s) => s.undo)
   // const redo = useStore((s) => s.redo)
   const pastLength = useStore((s) => s.past.length)
@@ -155,7 +159,7 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
+    <ThemeProvider theme={getTheme(themeId)}>
       {!started ? (
         <div
           style={{
@@ -321,6 +325,27 @@ export default function App() {
             >
               ↪
             </button>
+
+            {/* separator dot */}
+            <span
+              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
+            >
+              ·
+            </span>
+
+            {/* zoom indicator — click to reset */}
+            <span
+              onClick={() => setZoom(1)}
+              style={{
+                fontSize: 'var(--text-xs)',
+                color: 'var(--shade2)',
+                cursor: 'pointer',
+                fontFamily: 'var(--font)',
+              }}
+              title='click to reset zoom'
+            >
+              {Math.round(zoom * 100)}%
+            </span>
 
             {/* spacer */}
             <div style={{ flex: 1 }} />

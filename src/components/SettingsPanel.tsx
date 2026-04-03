@@ -1,4 +1,5 @@
 import { useStore } from '../store'
+import { themes } from '../theme/themeRegistry'
 
 export function SettingsPanel() {
   const open = useStore((s) => s.settingsPanelOpen)
@@ -7,6 +8,8 @@ export function SettingsPanel() {
   const setCableTautness = useStore((s) => s.setCableTautness)
   const tooltipsEnabled = useStore((s) => s.tooltipsEnabled)
   const setTooltipsEnabled = useStore((s) => s.setTooltipsEnabled)
+  const themeId = useStore((s) => s.themeId)
+  const setTheme = useStore((s) => s.setTheme)
 
   if (!open) return null
 
@@ -124,18 +127,35 @@ export function SettingsPanel() {
           </div>
         </div>
 
-        {/* theme placeholder */}
+        {/* theme selector */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: 'var(--text-sm)',
-            color: 'var(--shade2)',
+            color: 'var(--shade3)',
           }}
         >
           <span>theme</span>
-          <span>dark</span>
+          <select
+            value={themeId}
+            onChange={(e) => setTheme(e.target.value)}
+            style={{
+              fontFamily: 'var(--font)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--shade3)',
+              background: 'var(--shade0)',
+              border: '1px solid var(--shade2)',
+              borderRadius: 2,
+              padding: '2px 4px',
+              cursor: 'pointer',
+            }}
+          >
+            {Object.keys(themes).map((id) => (
+              <option key={id} value={id}>{id}</option>
+            ))}
+          </select>
         </div>
       </div>
     </div>
