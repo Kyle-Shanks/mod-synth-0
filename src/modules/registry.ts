@@ -24,6 +24,11 @@ import { ComparatorDefinition } from './comparator/definition'
 import { LogicDefinition } from './logic/definition'
 import { WavefolderDefinition } from './wavefolder/definition'
 import { RingModDefinition } from './ringmod/definition'
+import { BitcrusherDefinition } from './bitcrusher/definition'
+import { DistortionDefinition } from './distortion/definition'
+import { FlangerDefinition } from './flanger/definition'
+import { ClockDivDefinition } from './clockdiv/definition'
+import { EuclideanDefinition } from './euclidean/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -76,3 +81,10 @@ reg(ComparatorDefinition)
 reg(LogicDefinition)
 reg(WavefolderDefinition)
 reg(RingModDefinition)
+
+// stage 10 modules
+reg(BitcrusherDefinition)
+reg(DistortionDefinition)
+reg(FlangerDefinition)
+reg(ClockDivDefinition)
+reg(EuclideanDefinition)
