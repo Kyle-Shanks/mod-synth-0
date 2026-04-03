@@ -137,7 +137,61 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
     }
   }, [moduleId])
 
-  if (!mod || !def) return null
+  if (!mod) return null
+
+  // missing module — definition not in registry, show placeholder
+  if (!def) {
+    const placeholderW = 3 * GRID_UNIT
+    const placeholderH = 4 * GRID_UNIT
+    return (
+      <div
+        ref={panelRef}
+        style={{
+          position: 'absolute',
+          left: mod.position.x * GRID_UNIT,
+          top: mod.position.y * GRID_UNIT,
+          width: placeholderW,
+          height: placeholderH,
+          background: 'var(--shade1)',
+          border: `1px dashed var(--shade2)`,
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          opacity: 0.6,
+        }}
+        onMouseDown={() => setSelectedModule(moduleId)}
+      >
+        <div
+          onMouseDown={handleHeaderMouseDown}
+          style={{
+            padding: '4px 6px',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--shade2)',
+            cursor: 'grab',
+            borderBottom: '1px dashed var(--shade2)',
+            flexShrink: 0,
+          }}
+        >
+          missing
+        </div>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 8,
+            textAlign: 'center',
+          }}
+        >
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
+            {mod.definitionId}
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   const isSelected = selectedModuleId === moduleId
   const widthPx = def.width * GRID_UNIT

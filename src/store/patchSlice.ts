@@ -11,15 +11,23 @@ export interface ModuleInstance {
 }
 
 export interface PatchSlice {
+  patchName: string
   modules: Record<string, ModuleInstance>
   cables: Record<string, SerializedCable>
   feedbackCableIds: Set<string>
+  setPatchName: (name: string) => void
   addModule: (definitionId: string, position: { x: number; y: number }) => string
   removeModule: (moduleId: string) => void
   addCable: (cable: SerializedCable) => void
   removeCable: (cableId: string) => void
   setParam: (moduleId: string, param: string, value: number) => void
   setModulePosition: (moduleId: string, position: { x: number; y: number }) => void
+  loadPatch: (
+    name: string,
+    modules: Record<string, ModuleInstance>,
+    cables: Record<string, SerializedCable>,
+  ) => void
+  clearPatch: () => void
 }
 
 let moduleCounter = 0
@@ -88,9 +96,14 @@ function detectsCycle(cables: Record<string, SerializedCable>, newCable: Seriali
 }
 
 export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (set, get) => ({
+  patchName: 'untitled patch',
   modules: {},
   cables: {},
   feedbackCableIds: new Set<string>(),
+
+  setPatchName(name) {
+    set({ patchName: name })
+  },
 
   addModule(definitionId, position) {
     const def = getModule(definitionId)
@@ -180,5 +193,71 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     set((s) => ({
       modules: { ...s.modules, [moduleId]: { ...s.modules[moduleId]!, position } }
     }))
+  },
+
+  loadPatch(name, modules, cables) {
+    // tear down existing engine state
+    const oldCables = get().cables
+    const oldModules = get().modules
+    for (const cableId of Object.keys(oldCables)) {
+      engine.removeCable(cableId)
+    }
+    for (const moduleId of Object.keys(oldModules)) {
+      engine.removeModule(moduleId)
+    }
+
+    // add new modules to the engine
+    // update moduleCounter to avoid id collisions with restored modules
+    for (const [id, mod] of Object.entries(modules)) {
+      const match = id.match(/-(\d+)$/)
+      if (match) {
+        const num = parseInt(match[1]!, 10)
+        if (num >= moduleCounter) moduleCounter = num
+      }
+      const def = getModule(mod.definitionId)
+      if (!def) continue // missing module — kept in store but not added to engine
+      const state = def.initialize({ sampleRate: engine.sampleRate, bufferSize: 128 })
+      engine.addModule({ id, definitionId: mod.definitionId, params: mod.params, state, position: mod.position }, def)
+    }
+
+    // detect feedback cables and add to engine
+    const feedbackIds = new Set<string>()
+    const cablesSoFar: Record<string, SerializedCable> = {}
+    for (const [cableId, cable] of Object.entries(cables)) {
+      const isFeedback = detectsCycle({ ...cablesSoFar, [cableId]: cable }, cable)
+      if (isFeedback) feedbackIds.add(cableId)
+      // only add cable if both modules exist in the engine (have valid definitions)
+      const fromMod = modules[cable.from.moduleId]
+      const toMod = modules[cable.to.moduleId]
+      if (fromMod && toMod && getModule(fromMod.definitionId) && getModule(toMod.definitionId)) {
+        engine.addCable(cable, isFeedback)
+      }
+      cablesSoFar[cableId] = cable
+    }
+
+    set({
+      patchName: name,
+      modules,
+      cables,
+      feedbackCableIds: feedbackIds,
+    })
+  },
+
+  clearPatch() {
+    const oldCables = get().cables
+    const oldModules = get().modules
+    for (const cableId of Object.keys(oldCables)) {
+      engine.removeCable(cableId)
+    }
+    for (const moduleId of Object.keys(oldModules)) {
+      engine.removeModule(moduleId)
+    }
+    moduleCounter = 0
+    set({
+      patchName: 'untitled patch',
+      modules: {},
+      cables: {},
+      feedbackCableIds: new Set<string>(),
+    })
   },
 })
