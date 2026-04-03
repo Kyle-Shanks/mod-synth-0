@@ -16,6 +16,14 @@ import { AttenuverterDefinition } from './attenuverter/definition'
 import { QuantizerDefinition } from './quantizer/definition'
 import { ReverbDefinition } from './reverb/definition'
 import { DelayDefinition } from './delay/definition'
+import { SlewDefinition } from './slew/definition'
+import { MultDefinition } from './mult/definition'
+import { EnvFollowDefinition } from './envfollow/definition'
+import { ARDefinition } from './ar/definition'
+import { ComparatorDefinition } from './comparator/definition'
+import { LogicDefinition } from './logic/definition'
+import { WavefolderDefinition } from './wavefolder/definition'
+import { RingModDefinition } from './ringmod/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -58,3 +66,13 @@ reg(AttenuverterDefinition)
 reg(QuantizerDefinition)
 reg(ReverbDefinition)
 reg(DelayDefinition)
+
+// stage 9 modules
+reg(SlewDefinition)
+reg(MultDefinition)
+reg(EnvFollowDefinition)
+reg(ARDefinition)
+reg(ComparatorDefinition)
+reg(LogicDefinition)
+reg(WavefolderDefinition)
+reg(RingModDefinition)
