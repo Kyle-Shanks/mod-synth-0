@@ -1,6 +1,8 @@
 import type { ModuleDefinition } from '../../engine/types'
 
 interface QuantizerState {
+  heldNote: number
+  prevTrigLevel: number
   [key: string]: unknown
 }
 
@@ -17,6 +19,7 @@ interface QuantizerState {
 export const QuantizerDefinition: ModuleDefinition<
   {
     input: { type: 'cv'; default: 0; label: 'in' }
+    trig: { type: 'trigger'; default: 0; label: 'trig' }
   },
   {
     out: { type: 'cv'; default: 0; label: 'out' }
@@ -47,6 +50,7 @@ export const QuantizerDefinition: ModuleDefinition<
 
   inputs: {
     input: { type: 'cv', default: 0, label: 'in' },
+    trig: { type: 'trigger', default: 0, label: 'trig' },
   },
   outputs: {
     out: { type: 'cv', default: 0, label: 'out' },
@@ -69,10 +73,10 @@ export const QuantizerDefinition: ModuleDefinition<
   },
 
   initialize(): QuantizerState {
-    return {}
+    return { heldNote: 0, prevTrigLevel: 0 }
   },
 
-  process(inputs, outputs, params) {
+  process(inputs, outputs, params, state) {
     // scale semitone sets — must be inline, no closures
     const scales = [
       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], // chromatic
@@ -90,19 +94,12 @@ export const QuantizerDefinition: ModuleDefinition<
     )
     const scale = scales[scaleIdx]!
 
-    for (let i = 0; i < 128; i++) {
-      // input is v/oct: 0 = root (C4), +1 = octave up, etc.
-      const cv = inputs.input[i] ?? 0
-
-      // convert to semitones from root
+    // find the nearest note in the scale for a given v/oct cv value
+    function quantizeNote(cv: number): number {
       const semitones = cv * 12
       const octave = Math.floor(semitones / 12)
-
-      // search current octave and neighbors for the absolute nearest scale note
-      // this correctly handles boundary cases (e.g. 11.8 semitones → C of next octave)
       let bestNote = 0
       let bestDist = 100
-
       for (let o = -1; o <= 1; o++) {
         for (let s = 0; s < scale.length; s++) {
           const note = (octave + o) * 12 + scale[s]!
@@ -113,9 +110,39 @@ export const QuantizerDefinition: ModuleDefinition<
           }
         }
       }
-
-      // convert back to v/oct
-      outputs.out[i] = bestNote / 12
+      return bestNote / 12
     }
+
+    // detect rising edge in trig input (for sample-and-hold mode)
+    let prevLevel = state.prevTrigLevel
+    let triggered = false
+    let trigSampleIndex = -1
+
+    for (let i = 0; i < 128; i++) {
+      const curr = inputs.trig[i] ?? 0
+      if (curr > 0.5 && prevLevel <= 0.5) {
+        triggered = true
+        trigSampleIndex = i
+      }
+      prevLevel = curr
+    }
+    state.prevTrigLevel = prevLevel
+
+    if (triggered && trigSampleIndex >= 0) {
+      // sample-and-hold mode: quantize the cv value at the trigger point
+      const cv = inputs.input[trigSampleIndex] ?? 0
+      state.heldNote = quantizeNote(cv)
+    } else if (!triggered) {
+      // continuous mode: average input over the buffer, then quantize.
+      // averaging prevents audio-rate signals from wave-shaping the output —
+      // a sine wave averages near zero, so the quantizer outputs a stable
+      // note rather than stepping through scale degrees every sample.
+      let cvSum = 0
+      for (let i = 0; i < 128; i++) cvSum += inputs.input[i] ?? 0
+      state.heldNote = quantizeNote(cvSum / 128)
+    }
+
+    // output a constant quantized note for the entire buffer
+    outputs.out.fill(state.heldNote)
   },
 }

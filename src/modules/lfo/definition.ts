@@ -23,6 +23,7 @@ export const LFODefinition: ModuleDefinition<
       default: 1
       label: 'rate'
       unit: 'hz'
+      curve: 'log'
     }
     shape: {
       type: 'select'

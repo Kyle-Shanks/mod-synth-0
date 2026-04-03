@@ -5,8 +5,8 @@ import { CableLayer } from '../cables/CableLayer'
 import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 
-const RACK_COLS = 20
-const RACK_ROWS = 16
+const RACK_COLS = 64
+const RACK_ROWS = 32
 
 export function Rack() {
   const modules = useStore((s) => s.modules)
@@ -14,9 +14,19 @@ export function Rack() {
   const setDragState = useStore((s) => s.setDragState)
   const setCommandPaletteOpen = useStore((s) => s.setCommandPaletteOpen)
   const rackRef = useRef<HTMLDivElement>(null)
+  const lastMousePosRef = useRef<{ x: number; y: number } | null>(null)
 
   const rackWidth = RACK_COLS * GRID_UNIT
   const rackHeight = RACK_ROWS * GRID_UNIT
+
+  // track cursor position always (for command palette spawn position)
+  useEffect(() => {
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY }
+    }
+    window.addEventListener('mousemove', handleWindowMouseMove)
+    return () => window.removeEventListener('mousemove', handleWindowMouseMove)
+  }, [])
 
   // track cursor for cable drag preview
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -52,14 +62,23 @@ export function Rack() {
   const removeModule = useStore((s) => s.removeModule)
   const setSelectedModule = useStore((s) => s.setSelectedModule)
 
-  // keyboard: space opens command palette, delete removes selected module
+  // keyboard: space opens command palette near mouse, delete removes selected module
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // don't trigger if typing in an input
       if (e.target instanceof HTMLInputElement) return
       if (e.code === 'Space' || e.key === '/') {
         e.preventDefault()
-        setCommandPaletteOpen(true, { x: 2, y: 2 })
+        const rack = rackRef.current
+        const mousePos = lastMousePosRef.current
+        if (rack && mousePos) {
+          const rect = rack.getBoundingClientRect()
+          const gridX = Math.max(0, Math.round((mousePos.x - rect.left) / GRID_UNIT))
+          const gridY = Math.max(0, Math.round((mousePos.y - rect.top) / GRID_UNIT))
+          setCommandPaletteOpen(true, { x: gridX, y: gridY })
+        } else {
+          setCommandPaletteOpen(true, { x: 2, y: 2 })
+        }
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedModuleId) {
         e.preventDefault()

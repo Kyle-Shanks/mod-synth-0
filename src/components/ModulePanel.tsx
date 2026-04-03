@@ -9,6 +9,7 @@ import { ListSelector } from './ListSelector'
 import { PushButton } from './PushButton'
 import { ClockIndicator } from './ClockIndicator'
 import { SequencerIndicator } from './SequencerIndicator'
+import { GainMeter } from './GainMeter'
 import { CanvasZone } from './CanvasZone'
 import type { CanvasData } from './CanvasZone'
 import { drawScopeTrace, drawGrid } from './canvasPrimitives'
@@ -216,6 +217,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   const isMixer = def.id === 'mixer'
   const isSequencer = def.id === 'sequencer'
   const isClock = def.id === 'clock'
+  const isOutput = def.id === 'output'
 
   return (
     <div
@@ -295,6 +297,29 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
             writeIndexBuffer={scopeBuffers?.writeIndexBuffer ?? null}
           />
           {Object.entries(def.params).map(([paramId, paramDef]) => (
+            <Knob
+              key={paramId}
+              moduleId={moduleId}
+              paramId={paramId}
+              definition={paramDef}
+              value={mod.params[paramId] ?? paramDef.default}
+            />
+          ))}
+        </div>
+      ) : isOutput ? (
+        // output module body: gain meter + volume knob
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: '6px 4px',
+          }}
+        >
+          <GainMeter moduleId={moduleId} />
+          {paramEntries.map(([paramId, paramDef]) => (
             <Knob
               key={paramId}
               moduleId={moduleId}

@@ -24,7 +24,7 @@ export const OutputDefinition: ModuleDefinition<
   name: 'output',
   category: 'utility',
   width: 3,
-  height: 3,
+  height: 5,
 
   inputs: {
     left: { type: 'audio', default: 0, label: 'l' },

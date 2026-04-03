@@ -90,6 +90,9 @@ class GraphProcessorNode extends AudioWorkletProcessor {
   private availableBuffers: Float32Array[] = []
   // feedback delay buffers: cableId → Float32Array
   private feedbackBuffers = new Map<string, Float32Array>()
+  // throttle meter events: send every ~15ms (5 buffers at 44100Hz / 128 samples)
+  private meterFrameCounter = 0
+  private readonly METER_INTERVAL = 5
 
   constructor() {
     super()
@@ -312,6 +315,20 @@ class GraphProcessorNode extends AudioWorkletProcessor {
 
     // release all tick buffers back to pool
     for (const buf of acquiredBuffers) this.releaseBuffer(buf)
+
+    // send throttled METER events for output module peak levels
+    this.meterFrameCounter++
+    if (this.meterFrameCounter >= this.METER_INTERVAL) {
+      this.meterFrameCounter = 0
+      for (const [moduleId, m] of this.modules) {
+        if (m.definitionId === 'output') {
+          const peakL = (m.state['peakL'] as number) ?? 0
+          const peakR = (m.state['peakR'] as number) ?? 0
+          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
+          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
+        }
+      }
+    }
 
     return true  // keep processor alive
   }

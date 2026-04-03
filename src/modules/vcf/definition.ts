@@ -22,6 +22,7 @@ export const VCFDefinition: ModuleDefinition<
       default: 1000
       label: 'cutoff'
       unit: 'hz'
+      curve: 'log'
     }
     resonance: { type: 'float'; min: 0; max: 1; default: 0; label: 'res' }
     mode: {

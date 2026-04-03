@@ -31,6 +31,16 @@ export default function App() {
     })
   }, [setEngineReady])
 
+  // subscribe to meter events from worklet and forward to store
+  const setMeterValue = useStore((s) => s.setMeterValue)
+  useEffect(() => {
+    return engine.onEvent((event) => {
+      if (event.type === 'METER') {
+        setMeterValue(`${event.moduleId}:${event.portId}`, event.peak)
+      }
+    })
+  }, [setMeterValue])
+
   // autosave subscription
   useEffect(() => {
     return setupAutosave()

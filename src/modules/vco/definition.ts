@@ -23,6 +23,7 @@ export const VCODefinition: ModuleDefinition<
       default: 440
       label: 'freq'
       unit: 'hz'
+      curve: 'log'
     }
     detune: {
       type: 'float'
