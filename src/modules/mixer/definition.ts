@@ -24,7 +24,7 @@ export const MixerDefinition: ModuleDefinition<
   id: 'mixer',
   name: 'mixer',
   category: 'utility',
-  width: 4,
+  width: 5,
   height: 3,
 
   inputs: {

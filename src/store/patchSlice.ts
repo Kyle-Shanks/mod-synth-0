@@ -106,6 +106,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   addModule(definitionId, position) {
+    get().pushHistory()
     const def = getModule(definitionId)
     if (!def) return ''
 
@@ -127,6 +128,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   removeModule(moduleId) {
+    get().pushHistory()
     engine.removeModule(moduleId)
     // also remove any cables connected to this module
     const cables = get().cables
@@ -149,6 +151,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   addCable(cable) {
+    get().pushHistory()
     // detect if this cable creates a cycle
     const allCables = { ...get().cables, [cable.id]: cable }
     const isFeedback = detectsCycle(allCables, cable)
@@ -161,6 +164,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   removeCable(cableId) {
+    get().pushHistory()
     engine.removeCable(cableId)
     set((s) => {
       const cables = { ...s.cables }
@@ -205,6 +209,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     for (const moduleId of Object.keys(oldModules)) {
       engine.removeModule(moduleId)
     }
+    get().clearHistory()
 
     // add new modules to the engine
     // update moduleCounter to avoid id collisions with restored modules
@@ -241,6 +246,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       cables,
       feedbackCableIds: feedbackIds,
     })
+    get().bumpEngineRevision()
   },
 
   clearPatch() {
@@ -252,6 +258,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     for (const moduleId of Object.keys(oldModules)) {
       engine.removeModule(moduleId)
     }
+    get().clearHistory()
     moduleCounter = 0
     set({
       patchName: 'untitled patch',

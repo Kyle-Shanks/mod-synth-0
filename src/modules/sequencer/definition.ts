@@ -45,7 +45,7 @@ export const SequencerDefinition: ModuleDefinition<
   id: 'sequencer',
   name: 'seq',
   category: 'control',
-  width: 5,
+  width: 9,
   height: 4,
 
   inputs: {
@@ -104,7 +104,10 @@ export const SequencerDefinition: ModuleDefinition<
       params.step8,
     ]
     // gate length in samples (fraction of assumed step duration ~100ms)
-    const gateSamples = Math.max(1, Math.round(params.gateLength * sampleRate * 0.1))
+    const gateSamples = Math.max(
+      1,
+      Math.round(params.gateLength * sampleRate * 0.1),
+    )
 
     for (let i = 0; i < 128; i++) {
       // reset on trigger

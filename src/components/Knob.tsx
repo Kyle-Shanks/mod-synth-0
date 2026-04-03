@@ -41,6 +41,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    useStore.getState().stageHistory()
     // double-click (detail === 2) resets to default before pointer lock can interfere
     if (e.detail === 2) {
       setParam(moduleId, paramId, definition.default)
@@ -74,6 +75,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
     dragRef.current = null
     setDragging(false)
     document.exitPointerLock()
+    useStore.getState().commitHistory()
   }, [])
 
   const displayValue = definition.type === 'int'

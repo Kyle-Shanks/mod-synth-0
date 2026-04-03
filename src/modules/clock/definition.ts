@@ -45,7 +45,7 @@ export const ClockDefinition: ModuleDefinition<
   id: 'clock',
   name: 'clock',
   category: 'control',
-  width: 3,
+  width: 4,
   height: 4,
 
   inputs: {

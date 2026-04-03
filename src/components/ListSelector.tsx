@@ -33,7 +33,9 @@ export function ListSelector({ moduleId, paramId, definition, value }: ListSelec
           key={option}
           onClick={(e) => {
             e.stopPropagation()
+            useStore.getState().stageHistory()
             setParam(moduleId, paramId, i)
+            useStore.getState().commitHistory()
           }}
           style={{
             padding: '2px 6px',

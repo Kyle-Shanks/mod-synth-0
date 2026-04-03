@@ -1,11 +1,13 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { engine } from '../engine/EngineController'
+import { useStore } from '../store'
 
 interface ClockIndicatorProps {
   moduleId: string
 }
 
 export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
+  const engineRevision = useStore((s) => s.engineRevision)
   const gateDotRef = useRef<HTMLDivElement>(null)
   const divDotRef = useRef<HTMLDivElement>(null)
 
@@ -26,7 +28,7 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
       moduleId,
       indicatorBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, indicatorBuffer])
+  }, [moduleId, indicatorBuffer, engineRevision])
 
   // animation loop: read indicator buffer and update DOM directly
   useEffect(() => {

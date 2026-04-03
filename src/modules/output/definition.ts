@@ -23,7 +23,7 @@ export const OutputDefinition: ModuleDefinition<
   id: 'output',
   name: 'output',
   category: 'utility',
-  width: 3,
+  width: 2,
   height: 4,
 
   inputs: {

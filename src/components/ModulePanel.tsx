@@ -44,6 +44,7 @@ function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
 
 export function ModulePanel({ moduleId }: ModulePanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
+  const engineRevision = useStore((s) => s.engineRevision)
   const setModulePosition = useStore((s) => s.setModulePosition)
   const setSelectedModule = useStore((s) => s.setSelectedModule)
   const selectedModuleId = useStore((s) => s.selectedModuleId)
@@ -81,7 +82,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, scopeBuffers, def])
+  }, [moduleId, scopeBuffers, def, engineRevision])
 
   // update all port positions after render / position change
   const updatePortPositions = useCallback(() => {
@@ -111,6 +112,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         origY: mod.position.y,
       }
 
+      useStore.getState().stageHistory()
+
       const handleMouseMove = (ev: MouseEvent) => {
         if (!dragRef.current) return
         const dx = ev.clientX - dragRef.current.startX
@@ -126,6 +129,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         dragRef.current = null
         window.removeEventListener('mousemove', handleMouseMove)
         window.removeEventListener('mouseup', handleMouseUp)
+        useStore.getState().commitHistory()
       }
 
       window.addEventListener('mousemove', handleMouseMove)
@@ -348,9 +352,9 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
                 flex: 1,
                 display: 'flex',
                 flexWrap: 'wrap',
-                alignItems: isMixer ? 'flex-end' : 'flex-start',
+                alignItems: isMixer ? 'flex-end' : 'center',
                 justifyContent: 'center',
-                gap: 4,
+                gap: 8,
                 padding: '6px 4px',
                 overflow: 'hidden',
               }}

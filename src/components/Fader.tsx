@@ -39,6 +39,7 @@ export function Fader({
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    useStore.getState().stageHistory()
     // double-click resets to default before pointer lock can interfere
     if (e.detail === 2) {
       setParam(moduleId, paramId, definition.default)
@@ -64,6 +65,7 @@ export function Fader({
     dragRef.current = null
     setDragging(false)
     document.exitPointerLock()
+    useStore.getState().commitHistory()
   }, [])
 
   const displayValue = definition.type === 'int'
@@ -91,7 +93,7 @@ export function Fader({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onDoubleClick={(e) => { e.stopPropagation(); setParam(moduleId, paramId, definition.default) }}
+      onDoubleClick={(e) => { e.stopPropagation(); useStore.getState().stageHistory(); setParam(moduleId, paramId, definition.default); useStore.getState().commitHistory() }}
     >
       <div
         ref={elRef}
