@@ -41,11 +41,16 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    // double-click (detail === 2) resets to default before pointer lock can interfere
+    if (e.detail === 2) {
+      setParam(moduleId, paramId, definition.default)
+      return
+    }
     dragRef.current = { currentValue: value }
     setDragging(true)
     // lock pointer so cursor stays hidden and in place
     svgRef.current?.requestPointerLock()
-  }, [value])
+  }, [value, moduleId, paramId, definition.default, setParam])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return

@@ -17,7 +17,7 @@ export const ScopeDefinition: ModuleDefinition<
   name: 'scope',
   category: 'display',
   width: 4,
-  height: 4,
+  height: 5,
 
   inputs: {
     in: { type: 'audio', default: 0, label: 'in' },
@@ -53,5 +53,5 @@ export const ScopeDefinition: ModuleDefinition<
     state.writeIndex = writeIndex % bufferLength
     // store write index atomically so main thread can read it
     Atomics.store(writeIndexBuffer, 0, state.writeIndex as number)
-  }
+  },
 }

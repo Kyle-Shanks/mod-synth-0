@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from 'react'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
 import { CableLayer } from '../cables/CableLayer'
+import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 
 const RACK_COLS = 20
@@ -119,6 +120,9 @@ export function Rack() {
 
         {/* cable overlay */}
         <CableLayer />
+
+        {/* port tooltip */}
+        <Tooltip />
       </div>
     </div>
   )

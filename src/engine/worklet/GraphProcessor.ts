@@ -188,6 +188,14 @@ class GraphProcessorNode extends AudioWorkletProcessor {
         }
         break
       }
+      case 'SET_SCOPE_BUFFERS': {
+        const m = this.modules.get(cmd.moduleId as string)
+        if (m) {
+          m.state['scopeBuffer'] = new Float32Array(cmd.scopeBuffer as SharedArrayBuffer)
+          m.state['writeIndexBuffer'] = new Int32Array(cmd.writeIndexBuffer as SharedArrayBuffer)
+        }
+        break
+      }
     }
   }
 

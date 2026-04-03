@@ -1,9 +1,12 @@
-import { useRef, useLayoutEffect, useCallback } from 'react'
+import { useRef, useLayoutEffect, useCallback, useState } from 'react'
 import { useStore } from '../store'
 import { portPositionCache } from './PortPositionCache'
 import { cablePath } from './CableBezier'
 import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
+
+// Wider invisible stroke used purely for hit detection — makes cables much easier to hover
+const HIT_STROKE_WIDTH = 14
 
 const CABLE_COLORS: Record<PortType, string> = {
   audio:   'var(--cable-audio)',
@@ -18,24 +21,38 @@ export function CableLayer() {
   const modules = useStore((s) => s.modules)
   const tautness = useStore((s) => s.cableTautness)
   const dragState = useStore((s) => s.dragState)
+  const hoveredCableId = useStore((s) => s.hoveredCableId)
+  const setHoveredCable = useStore((s) => s.setHoveredCable)
+  const removeCable = useStore((s) => s.removeCable)
+  const feedbackCableIds = useStore((s) => s.feedbackCableIds)
+  // ports take precedence — suppress cable pointer events while a port is hovered
+  const hoveredPortKey = useStore((s) => s.hoveredPortKey)
+
+  const [contextMenu, setContextMenu] = useState<{
+    cableId: string
+    x: number
+    y: number
+  } | null>(null)
 
   const updatePaths = useCallback(() => {
     const svg = svgRef.current
     if (!svg) return
 
-    // update all cable paths
+    // update all cable paths (both hit area and visual path share the same bezier)
     for (const cable of Object.values(cables)) {
-      const path = svg.querySelector(`[data-cable-id="${cable.id}"]`) as SVGPathElement | null
-      if (!path) continue
-
       const fromPos = portPositionCache.get(cable.from.moduleId, cable.from.portId)
       const toPos = portPositionCache.get(cable.to.moduleId, cable.to.portId)
       if (!fromPos || !toPos) continue
 
-      path.setAttribute('d', cablePath({
+      const d = cablePath({
         x1: fromPos.x, y1: fromPos.y,
         x2: toPos.x, y2: toPos.y,
-      }, tautness))
+      }, tautness)
+
+      const hitPath = svg.querySelector(`[data-cable-id="${cable.id}"]`) as SVGPathElement | null
+      hitPath?.setAttribute('d', d)
+      const visualPath = svg.querySelector(`[data-cable-visual="${cable.id}"]`) as SVGPathElement | null
+      visualPath?.setAttribute('d', d)
     }
 
     // update drag preview cable
@@ -70,44 +87,130 @@ export function CableLayer() {
     return port ? CABLE_COLORS[port.type] : 'var(--shade2)'
   }
 
+  const handleCableContextMenu = useCallback((e: React.MouseEvent, cableId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ cableId, x: e.clientX, y: e.clientY })
+  }, [])
+
+  const handleDisconnect = useCallback(() => {
+    if (contextMenu) {
+      removeCable(contextMenu.cableId)
+      setContextMenu(null)
+    }
+  }, [contextMenu, removeCable])
+
   return (
-    <svg
-      ref={svgRef}
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        overflow: 'visible',
-      }}
-    >
-      {Object.values(cables).map((cable) => (
+    <>
+      <svg
+        ref={svgRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          overflow: 'visible',
+        }}
+      >
+        {Object.values(cables).map((cable) => {
+          const isHovered = hoveredCableId === cable.id
+          const isFeedback = feedbackCableIds.has(cable.id)
+          const hasHover = hoveredCableId !== null
+          // suppress cable hit detection while the user hovers a port — port wins
+          const cablePointerEvents = hoveredPortKey ? 'none' : 'stroke'
+          return (
+            <g key={cable.id}>
+              {/* wide transparent hit area — easier to grab than the thin visible stroke */}
+              <path
+                data-cable-id={cable.id}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={HIT_STROKE_WIDTH}
+                strokeLinecap="round"
+                style={{ pointerEvents: cablePointerEvents, cursor: 'pointer' }}
+                onMouseEnter={() => setHoveredCable(cable.id)}
+                onMouseLeave={() => setHoveredCable(null)}
+                onContextMenu={(e) => handleCableContextMenu(e, cable.id)}
+              />
+              {/* visible cable */}
+              <path
+                data-cable-visual={cable.id}
+                fill="none"
+                stroke={getCableColor(cable.from.moduleId, cable.from.portId)}
+                strokeWidth={isHovered ? 3 : 1.5}
+                strokeLinecap="round"
+                strokeDasharray={isFeedback ? '8 4' : undefined}
+                opacity={hasHover && !isHovered ? 0.25 : 0.9}
+                style={{
+                  pointerEvents: 'none',
+                  transition: 'opacity 100ms, stroke-width 80ms',
+                }}
+              />
+            </g>
+          )
+        })}
+        {/* drag preview cable */}
         <path
-          key={cable.id}
-          data-cable-id={cable.id}
+          data-cable-preview=""
           fill="none"
-          stroke={getCableColor(cable.from.moduleId, cable.from.portId)}
+          stroke={dragState
+            ? CABLE_COLORS[dragState.portType]
+            : 'var(--shade2)'
+          }
           strokeWidth={2}
           strokeLinecap="round"
-          opacity={0.85}
+          strokeDasharray="6 4"
+          opacity={0.6}
+          style={{ display: 'none' }}
         />
-      ))}
-      {/* drag preview cable */}
-      <path
-        data-cable-preview=""
-        fill="none"
-        stroke={dragState
-          ? CABLE_COLORS[dragState.portType]
-          : 'var(--shade2)'
-        }
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeDasharray="6 4"
-        opacity={0.6}
-        style={{ display: 'none' }}
-      />
-    </svg>
+      </svg>
+
+      {/* cable context menu */}
+      {contextMenu && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+          }}
+          onMouseDown={() => setContextMenu(null)}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: contextMenu.x,
+              top: contextMenu.y,
+              background: 'var(--shade1)',
+              border: '1px solid var(--shade2)',
+              borderRadius: 3,
+              padding: '2px 0',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              zIndex: 201,
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div
+              onClick={handleDisconnect}
+              style={{
+                padding: '4px 16px',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--accent2)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLDivElement).style.background = 'var(--shade2)'
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLDivElement).style.background = 'transparent'
+              }}
+            >
+              disconnect
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

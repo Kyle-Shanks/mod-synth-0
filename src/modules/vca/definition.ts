@@ -16,12 +16,13 @@ export const VCADefinition: ModuleDefinition<
   id: 'vca',
   name: 'vca',
   category: 'dynamics',
-  width: 2,
-  height: 4,
+  // width: 2,
+  width: 3,
+  height: 3,
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    cv:    { type: 'cv',    default: 0, label: 'cv' },
+    cv: { type: 'cv', default: 0, label: 'cv' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },
@@ -30,7 +31,9 @@ export const VCADefinition: ModuleDefinition<
     gain: { type: 'float', min: 0, max: 1, default: 1, label: 'gain' },
   },
 
-  initialize(): VCAState { return {} },
+  initialize(): VCAState {
+    return {}
+  },
 
   process(inputs, outputs, params) {
     for (let i = 0; i < 128; i++) {
@@ -39,5 +42,5 @@ export const VCADefinition: ModuleDefinition<
       const cv = cvVal !== 0 ? Math.max(0, cvVal) : params.gain
       outputs.out[i] = (inputs.audio[i] ?? 0) * cv
     }
-  }
+  },
 }

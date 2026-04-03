@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Major+Mono+Display&display=swap');
+
 :root {
   --font: 'Major Mono Display', monospace;
   --text-xs: 10px;
@@ -15,6 +17,10 @@
   --accent1: #3dd9a4;
   --accent2: #f25f5c;
   --accent3: #f5c842;
+  --cable-audio: #7c6af7;
+  --cable-cv: #3dd9a4;
+  --cable-gate: #f25f5c;
+  --cable-trigger: #f5c842;
 }
 
 *, *::before, *::after {

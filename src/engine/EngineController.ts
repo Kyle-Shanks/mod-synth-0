@@ -10,7 +10,6 @@ export class EngineController {
   private context: AudioContext | null = null
   private workletNode: AudioWorkletNode | null = null
   private ready = false
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private commandQueue: Record<string, unknown>[] = []
   private eventListeners: Array<(event: EngineEvent) => void> = []
 
@@ -109,11 +108,16 @@ export class EngineController {
     this.send({ type: 'SET_PARAM', moduleId, param, value })
   }
 
-  setScopeBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
+  sendRaw(msg: Record<string, unknown>): void {
+    this.send(msg)
+  }
+
+  setScopeBuffers(moduleId: string, scopeBuffer: SharedArrayBuffer, writeIndexBuffer: SharedArrayBuffer): void {
     this.send({
-      type: 'SET_SCOPE_BUFFER',
+      type: 'SET_SCOPE_BUFFERS',
       moduleId,
-      buffer,
+      scopeBuffer,
+      writeIndexBuffer,
     })
   }
 

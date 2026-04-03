@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { Rack } from './rack/Rack'
 import { CommandPalette } from './components/CommandPalette'
+import { SettingsPanel } from './components/SettingsPanel'
 import { engine } from './engine/EngineController'
 import { useStore } from './store'
 import './modules/registry' // ensure modules are registered
@@ -9,6 +10,7 @@ import './modules/registry' // ensure modules are registered
 export default function App() {
   const [started, setStarted] = useState(false)
   const setEngineReady = useStore((s) => s.setEngineReady)
+  const setSettingsPanelOpen = useStore((s) => s.setSettingsPanelOpen)
 
   useEffect(() => {
     engine.initialize().then(() => {
@@ -66,20 +68,74 @@ export default function App() {
               background: 'var(--shade1)',
             }}
           >
-            <span
-              style={{ fontSize: 'var(--text-sm)', color: 'var(--shade3)' }}
-            >
-              modular synth
+            {/* patch name */}
+            <span style={{
+              fontSize: 'var(--text-sm)',
+              color: 'var(--shade3)',
+              fontWeight: 600,
+            }}>
+              untitled patch
             </span>
-            <span
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
+
+            {/* separator dot */}
+            <span style={{
+              fontSize: 'var(--text-xs)',
+              color: 'var(--shade2)',
+            }}>
+              ·
+            </span>
+
+            {/* save placeholder */}
+            <button
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--shade2)',
+                cursor: 'pointer',
+                fontFamily: 'var(--font)',
+                textTransform: 'lowercase',
+                padding: '2px 4px',
+              }}
+              onClick={() => {
+                // placeholder — persistence is stage 5
+              }}
             >
+              save
+            </button>
+
+            {/* spacer */}
+            <div style={{ flex: 1 }} />
+
+            {/* hint */}
+            <span style={{
+              fontSize: 'var(--text-xs)',
+              color: 'var(--shade2)',
+            }}>
               space / right-click to add modules
             </span>
+
+            {/* settings gear */}
+            <button
+              onClick={() => setSettingsPanelOpen(true)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: 'var(--text-md)',
+                color: 'var(--shade2)',
+                cursor: 'pointer',
+                padding: '2px 4px',
+                lineHeight: 1,
+              }}
+              title="settings"
+            >
+              &#9881;
+            </button>
           </div>
 
           <Rack />
           <CommandPalette />
+          <SettingsPanel />
         </>
       )}
     </ThemeProvider>

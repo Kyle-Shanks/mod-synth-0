@@ -6,30 +6,82 @@ interface VCOState {
 }
 
 export const VCODefinition: ModuleDefinition<
-  { frequency: { type: 'cv'; default: 0; label: 'v/oct' }; fm: { type: 'cv'; default: 0; label: 'fm' } },
-  { sine: { type: 'audio'; default: 0; label: 'sin' }; saw: { type: 'audio'; default: 0; label: 'saw' }; pulse: { type: 'audio'; default: 0; label: 'pls' } },
-  { frequency: { type: 'float'; min: 20; max: 20000; default: 440; label: 'freq'; unit: 'hz' }; detune: { type: 'float'; min: -100; max: 100; default: 0; label: 'tune'; unit: 'ct' }; pulseWidth: { type: 'float'; min: 0.01; max: 0.99; default: 0.5; label: 'width' } },
+  {
+    frequency: { type: 'cv'; default: 0; label: 'v/oct' }
+    fm: { type: 'cv'; default: 0; label: 'fm' }
+  },
+  {
+    sine: { type: 'audio'; default: 0; label: 'sin' }
+    saw: { type: 'audio'; default: 0; label: 'saw' }
+    pulse: { type: 'audio'; default: 0; label: 'pls' }
+  },
+  {
+    frequency: {
+      type: 'float'
+      min: 20
+      max: 20000
+      default: 440
+      label: 'freq'
+      unit: 'hz'
+    }
+    detune: {
+      type: 'float'
+      min: -100
+      max: 100
+      default: 0
+      label: 'tune'
+      unit: 'ct'
+    }
+    pulseWidth: {
+      type: 'float'
+      min: 0.01
+      max: 0.99
+      default: 0.5
+      label: 'width'
+    }
+  },
   VCOState
 > = {
   id: 'vco',
   name: 'vco',
   category: 'source',
-  width: 3,
-  height: 5,
+  width: 4,
+  height: 3,
 
   inputs: {
-    frequency: { type: 'cv',   default: 0, label: 'v/oct' },
-    fm:        { type: 'cv',   default: 0, label: 'fm' },
+    frequency: { type: 'cv', default: 0, label: 'v/oct' },
+    fm: { type: 'cv', default: 0, label: 'fm' },
   },
   outputs: {
-    sine:  { type: 'audio', default: 0, label: 'sin' },
-    saw:   { type: 'audio', default: 0, label: 'saw' },
+    sine: { type: 'audio', default: 0, label: 'sin' },
+    saw: { type: 'audio', default: 0, label: 'saw' },
     pulse: { type: 'audio', default: 0, label: 'pls' },
   },
   params: {
-    frequency:  { type: 'float', min: 20,   max: 20000, default: 440, label: 'freq',  unit: 'hz', curve: 'log' },
-    detune:     { type: 'float', min: -100, max: 100,   default: 0,   label: 'tune',  unit: 'ct' },
-    pulseWidth: { type: 'float', min: 0.01, max: 0.99,  default: 0.5, label: 'width' },
+    frequency: {
+      type: 'float',
+      min: 20,
+      max: 20000,
+      default: 440,
+      label: 'freq',
+      unit: 'hz',
+      curve: 'log',
+    },
+    detune: {
+      type: 'float',
+      min: -100,
+      max: 100,
+      default: 0,
+      label: 'tune',
+      unit: 'ct',
+    },
+    pulseWidth: {
+      type: 'float',
+      min: 0.01,
+      max: 0.99,
+      default: 0.5,
+      label: 'width',
+    },
   },
 
   initialize(): VCOState {
@@ -44,21 +96,25 @@ export const VCODefinition: ModuleDefinition<
     for (let i = 0; i < 128; i++) {
       // cv input is v/oct: 0v = base freq, +1v = octave up, -1v = octave down
       const cvValue = inputs.frequency[i] ?? 0
-      const cvFreq = cvValue !== 0
-        ? params.frequency * Math.pow(2, cvValue)
-        : params.frequency
+      const cvFreq =
+        cvValue !== 0
+          ? params.frequency * Math.pow(2, cvValue)
+          : params.frequency
       // FM scales by base frequency so ±1 input = ±baseFreq Hz deviation (index = 1)
       const fmAmount = inputs.fm[i] ?? 0
-      const freq = Math.max(0.001, cvFreq * detuneRatio + fmAmount * params.frequency)
+      const freq = Math.max(
+        0.001,
+        cvFreq * detuneRatio + fmAmount * params.frequency,
+      )
 
       // advance phase
       state.phase += freq / sampleRate
       if (state.phase >= 1) state.phase -= 1
 
       // generate waveforms
-      outputs.sine[i]  = Math.sin(state.phase * twoPi)
-      outputs.saw[i]   = 2 * state.phase - 1
+      outputs.sine[i] = Math.sin(state.phase * twoPi)
+      outputs.saw[i] = 2 * state.phase - 1
       outputs.pulse[i] = state.phase < params.pulseWidth ? 1 : -1
     }
-  }
+  },
 }

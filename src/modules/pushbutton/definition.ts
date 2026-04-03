@@ -25,12 +25,13 @@ export const PushButtonDefinition: ModuleDefinition<
   id: 'pushbutton',
   name: 'button',
   category: 'control',
-  width: 2,
+  // width: 2,
+  width: 3,
   height: 3,
 
   inputs: {},
   outputs: {
-    gate:    { type: 'gate',    default: 0, label: 'gate' },
+    gate: { type: 'gate', default: 0, label: 'gate' },
     trigger: { type: 'trigger', default: 0, label: 'trig' },
   },
   params: {},
@@ -45,7 +46,7 @@ export const PushButtonDefinition: ModuleDefinition<
   },
 
   process(_inputs, outputs, _params, state, context) {
-    const triggerDuration = Math.round(context.sampleRate * 0.001)  // 1ms pulse
+    const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse
     const events = state._gateEvents as GateEvent[]
 
     // sort events by offset for correct sample-accurate ordering
@@ -82,5 +83,5 @@ export const PushButtonDefinition: ModuleDefinition<
 
     // clear processed events
     state._gateEvents = []
-  }
+  },
 }

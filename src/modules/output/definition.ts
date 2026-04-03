@@ -4,19 +4,21 @@ export const OutputDefinition: ModuleDefinition = {
   id: 'output',
   name: 'output',
   category: 'utility',
-  width: 2,
+  width: 3,
   height: 3,
 
   inputs: {
-    left:   { type: 'audio', default: 0, label: 'l' },
-    right:  { type: 'audio', default: 0, label: 'r' },
+    left: { type: 'audio', default: 0, label: 'l' },
+    right: { type: 'audio', default: 0, label: 'r' },
   },
   outputs: {},
   params: {
     gain: { type: 'float', min: 0, max: 1, default: 0.8, label: 'vol' },
   },
 
-  initialize() { return {} },
+  initialize() {
+    return {}
+  },
 
   process(inputs, _outputs, params, state) {
     // the output module stores processed audio in state for the worklet to read
@@ -33,5 +35,5 @@ export const OutputDefinition: ModuleDefinition = {
       leftOut[i] = left
       rightOut[i] = right
     }
-  }
+  },
 }

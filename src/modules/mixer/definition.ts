@@ -24,8 +24,8 @@ export const MixerDefinition: ModuleDefinition<
   id: 'mixer',
   name: 'mixer',
   category: 'utility',
-  width: 3,
-  height: 5,
+  width: 4,
+  height: 3,
 
   inputs: {
     in1: { type: 'audio', default: 0, label: 'in 1' },
@@ -41,10 +41,12 @@ export const MixerDefinition: ModuleDefinition<
     level2: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 2' },
     level3: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 3' },
     level4: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 4' },
-    master: { type: 'float', min: 0, max: 1, default: 1,   label: 'mstr' },
+    master: { type: 'float', min: 0, max: 1, default: 1, label: 'mstr' },
   },
 
-  initialize(): MixerState { return {} },
+  initialize(): MixerState {
+    return {}
+  },
 
   process(inputs, outputs, params) {
     for (let i = 0; i < 128; i++) {
@@ -55,5 +57,5 @@ export const MixerDefinition: ModuleDefinition<
         (inputs.in4[i] ?? 0) * params.level4
       outputs.out[i] = sum * params.master
     }
-  }
+  },
 }

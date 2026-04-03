@@ -14,18 +14,39 @@ export const ADSRDefinition: ModuleDefinition<
   { gate: { type: 'gate'; default: 0; label: 'gate' } },
   { envelope: { type: 'cv'; default: 0; label: 'env' } },
   {
-    attack: { type: 'float'; min: 0.001; max: 10; default: 0.01; label: 'atk'; unit: 's' }
-    decay: { type: 'float'; min: 0.001; max: 10; default: 0.2; label: 'dec'; unit: 's' }
+    attack: {
+      type: 'float'
+      min: 0.001
+      max: 10
+      default: 0.01
+      label: 'atk'
+      unit: 's'
+    }
+    decay: {
+      type: 'float'
+      min: 0.001
+      max: 10
+      default: 0.2
+      label: 'dec'
+      unit: 's'
+    }
     sustain: { type: 'float'; min: 0; max: 1; default: 0.5; label: 'sus' }
-    release: { type: 'float'; min: 0.001; max: 20; default: 0.5; label: 'rel'; unit: 's' }
+    release: {
+      type: 'float'
+      min: 0.001
+      max: 20
+      default: 0.5
+      label: 'rel'
+      unit: 's'
+    }
   },
   ADSRState
 > = {
   id: 'adsr',
   name: 'adsr',
   category: 'envelope',
-  width: 3,
-  height: 5,
+  width: 4,
+  height: 3,
 
   inputs: {
     gate: { type: 'gate', default: 0, label: 'gate' },
@@ -34,10 +55,31 @@ export const ADSRDefinition: ModuleDefinition<
     envelope: { type: 'cv', default: 0, label: 'env' },
   },
   params: {
-    attack:  { type: 'float', min: 0.001, max: 10, default: 0.01, label: 'atk', unit: 's' },
-    decay:   { type: 'float', min: 0.001, max: 10, default: 0.2,  label: 'dec', unit: 's' },
-    sustain: { type: 'float', min: 0,     max: 1,  default: 0.5,  label: 'sus' },
-    release: { type: 'float', min: 0.001, max: 20, default: 0.5,  label: 'rel', unit: 's' },
+    attack: {
+      type: 'float',
+      min: 0.001,
+      max: 10,
+      default: 0.01,
+      label: 'atk',
+      unit: 's',
+    },
+    decay: {
+      type: 'float',
+      min: 0.001,
+      max: 10,
+      default: 0.2,
+      label: 'dec',
+      unit: 's',
+    },
+    sustain: { type: 'float', min: 0, max: 1, default: 0.5, label: 'sus' },
+    release: {
+      type: 'float',
+      min: 0.001,
+      max: 20,
+      default: 0.5,
+      label: 'rel',
+      unit: 's',
+    },
   },
 
   initialize(): ADSRState {
@@ -66,7 +108,7 @@ export const ADSRDefinition: ModuleDefinition<
         state.stage = 'attack'
         state.samplesInStage = 0
       } else if (!gateHigh && state.gateWasHigh) {
-        // falling edge — start release from current level
+        // falling edge — immediately start release from wherever we are
         state.stage = 'release'
         state.samplesInStage = 0
       }
@@ -92,8 +134,9 @@ export const ADSRDefinition: ModuleDefinition<
 
         case 'decay': {
           // exponential decay toward sustain level
-          const decayRate = Math.exp(-Math.log(1000) / decaySamples)  // -60dB in decaySamples
-          state.currentLevel = sustainLevel + (state.currentLevel - sustainLevel) * decayRate
+          const decayRate = Math.exp(-Math.log(1000) / decaySamples) // -60dB in decaySamples
+          state.currentLevel =
+            sustainLevel + (state.currentLevel - sustainLevel) * decayRate
           state.samplesInStage++
           // snap to sustain when close enough
           if (Math.abs(state.currentLevel - sustainLevel) < 0.0001) {
@@ -110,7 +153,7 @@ export const ADSRDefinition: ModuleDefinition<
 
         case 'release': {
           // exponential release toward zero
-          const releaseRate = Math.exp(-Math.log(1000) / releaseSamples)  // -60dB in releaseSamples
+          const releaseRate = Math.exp(-Math.log(1000) / releaseSamples) // -60dB in releaseSamples
           state.currentLevel *= releaseRate
           state.samplesInStage++
           if (state.currentLevel < 0.0001) {
@@ -124,5 +167,5 @@ export const ADSRDefinition: ModuleDefinition<
 
       outputs.envelope[i] = state.currentLevel
     }
-  }
+  },
 }

@@ -1,13 +1,41 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
+import { engine } from '../engine/EngineController'
 import { Port } from './Port'
 import { Knob } from './Knob'
+import { Fader } from './Fader'
+import { ListSelector } from './ListSelector'
+import { PushButton } from './PushButton'
+import { CanvasZone } from './CanvasZone'
+import type { CanvasData } from './CanvasZone'
+import { drawScopeTrace, drawGrid } from './canvasPrimitives'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 
 interface ModulePanelProps {
   moduleId: string
+}
+
+// scope rendering function — defined outside component to avoid re-creation
+function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
+  const { width, height, theme, scopeBuffer, writeIndexBuffer, moduleParams } = data
+
+  drawGrid(ctx, theme.shades.shade2, width, height, 0.2)
+
+  if (scopeBuffer && writeIndexBuffer) {
+    const writeIndex = Atomics.load(writeIndexBuffer, 0)
+    drawScopeTrace(
+      ctx,
+      scopeBuffer,
+      writeIndex,
+      theme.accents.accent1,
+      width,
+      height,
+      1.5,
+      moduleParams.timeScale ?? 1,
+    )
+  }
 }
 
 export function ModulePanel({ moduleId }: ModulePanelProps) {
@@ -25,6 +53,31 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   } | null>(null)
 
   const def = mod ? getModule(mod.definitionId) : undefined
+
+  // scope SharedArrayBuffer setup (only for scope modules)
+  const scopeBuffers = useMemo(() => {
+    if (!def || def.id !== 'scope') return null
+    try {
+      const sab = new SharedArrayBuffer(2048 * Float32Array.BYTES_PER_ELEMENT)
+      const idxSab = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT)
+      return {
+        scopeBuffer: new Float32Array(sab),
+        writeIndexBuffer: new Int32Array(idxSab),
+      }
+    } catch {
+      return null
+    }
+  }, [def])
+
+  // inject scope buffers into engine module state
+  useEffect(() => {
+    if (!scopeBuffers || !def || def.id !== 'scope') return
+    engine.setScopeBuffers(
+      moduleId,
+      scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
+      scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
+    )
+  }, [moduleId, scopeBuffers, def])
 
   // update all port positions after render / position change
   const updatePortPositions = useCallback(() => {
@@ -101,6 +154,11 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
     if (cable.to.moduleId === moduleId) connectedPorts.add(cable.to.portId)
   }
 
+  // determine if this is a special module
+  const isPushButton = def.id === 'pushbutton'
+  const isScope = def.id === 'scope'
+  const isMixer = def.id === 'mixer'
+
   return (
     <div
       ref={panelRef}
@@ -140,21 +198,45 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         </span>
       </div>
 
-      {/* params body */}
-      {paramEntries.length > 0 && (
+      {/* body — special rendering per module type */}
+      {isPushButton ? (
         <div
           style={{
             flex: 1,
             display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             justifyContent: 'center',
+          }}
+        >
+          <PushButton moduleId={moduleId} />
+        </div>
+      ) : isScope ? (
+        // scope body: canvas + timeScale knob below it
+        // body available = heightPx - header(29) - portSection(44) - padding(8) = heightPx - 81
+        // knob area: 32px svg + 2px gap + 11px label = 45px, plus 4px gap from canvas = 49px
+        // canvas height = heightPx - 81 - 49 = heightPx - 130
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            padding: 4,
             gap: 4,
-            padding: '6px 4px',
+            minHeight: 0,
             overflow: 'hidden',
           }}
         >
-          {paramEntries.map(([paramId, paramDef]) => (
+          <CanvasZone
+            width={widthPx - 10}
+            height={heightPx - 130}
+            render={renderScope}
+            moduleParams={mod.params}
+            scopeBuffer={scopeBuffers?.scopeBuffer ?? null}
+            writeIndexBuffer={scopeBuffers?.writeIndexBuffer ?? null}
+          />
+          {Object.entries(def.params).map(([paramId, paramDef]) => (
             <Knob
               key={paramId}
               moduleId={moduleId}
@@ -164,10 +246,67 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
             />
           ))}
         </div>
-      )}
+      ) : (
+        <>
+          {/* params body */}
+          {paramEntries.length > 0 && (
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: isMixer ? 'flex-end' : 'flex-start',
+                justifyContent: 'center',
+                gap: 4,
+                padding: '6px 4px',
+                overflow: 'hidden',
+              }}
+            >
+              {paramEntries.map(([paramId, paramDef]) => {
+                if (paramDef.type === 'select') {
+                  return (
+                    <ListSelector
+                      key={paramId}
+                      moduleId={moduleId}
+                      paramId={paramId}
+                      definition={paramDef}
+                      value={mod.params[paramId] ?? paramDef.default}
+                    />
+                  )
+                }
 
-      {/* spacer if no params */}
-      {paramEntries.length === 0 && <div style={{ flex: 1 }} />}
+                // use faders for mixer levels
+                if (isMixer && paramId !== 'master') {
+                  return (
+                    <Fader
+                      key={paramId}
+                      moduleId={moduleId}
+                      paramId={paramId}
+                      definition={paramDef}
+                      value={mod.params[paramId] ?? paramDef.default}
+                      orientation='vertical'
+                      length={56}
+                    />
+                  )
+                }
+
+                return (
+                  <Knob
+                    key={paramId}
+                    moduleId={moduleId}
+                    paramId={paramId}
+                    definition={paramDef}
+                    value={mod.params[paramId] ?? paramDef.default}
+                  />
+                )
+              })}
+            </div>
+          )}
+
+          {/* spacer if no params */}
+          {paramEntries.length === 0 && <div style={{ flex: 1 }} />}
+        </>
+      )}
 
       {/* ports section */}
       {(inputPorts.length > 0 || outputPorts.length > 0) && (

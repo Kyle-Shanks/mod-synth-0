@@ -13,6 +13,7 @@ export interface ModuleInstance {
 export interface PatchSlice {
   modules: Record<string, ModuleInstance>
   cables: Record<string, SerializedCable>
+  feedbackCableIds: Set<string>
   addModule: (definitionId: string, position: { x: number; y: number }) => string
   removeModule: (moduleId: string) => void
   addCable: (cable: SerializedCable) => void
@@ -66,9 +67,30 @@ function findFreePosition(
   return pos // give up after 20 grid units
 }
 
+// detect if adding a cable creates a cycle in the patch graph
+function detectsCycle(cables: Record<string, SerializedCable>, newCable: SerializedCable): boolean {
+  // check if there's a path from newCable.to.moduleId back to newCable.from.moduleId
+  const visited = new Set<string>()
+  const queue = [newCable.to.moduleId]
+  while (queue.length > 0) {
+    const current = queue.pop()!
+    if (current === newCable.from.moduleId) return true
+    if (visited.has(current)) continue
+    visited.add(current)
+    // find all modules that this module feeds into
+    for (const c of Object.values(cables)) {
+      if (c.from.moduleId === current && !visited.has(c.to.moduleId)) {
+        queue.push(c.to.moduleId)
+      }
+    }
+  }
+  return false
+}
+
 export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (set, get) => ({
   modules: {},
   cables: {},
+  feedbackCableIds: new Set<string>(),
 
   addModule(definitionId, position) {
     const def = getModule(definitionId)
@@ -114,8 +136,15 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   addCable(cable) {
-    engine.addCable(cable)
-    set((s) => ({ cables: { ...s.cables, [cable.id]: cable } }))
+    // detect if this cable creates a cycle
+    const allCables = { ...get().cables, [cable.id]: cable }
+    const isFeedback = detectsCycle(allCables, cable)
+    engine.addCable(cable, isFeedback)
+    set((s) => {
+      const newFeedback = new Set(s.feedbackCableIds)
+      if (isFeedback) newFeedback.add(cable.id)
+      return { cables: { ...s.cables, [cable.id]: cable }, feedbackCableIds: newFeedback }
+    })
   },
 
   removeCable(cableId) {

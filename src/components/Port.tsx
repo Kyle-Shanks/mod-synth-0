@@ -155,9 +155,20 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
   const isOutput = direction === 'output'
   const validTarget = isValidTarget()
 
+  // determine if this port is an invalid drag target
+  const isInvalidTarget = !!dragState
+    && dragState.fromModuleId !== moduleId
+    && dragState.fromDirection !== direction
+    && !validTarget
+
   let ringColor = 'var(--shade2)'
   if (isHovered || validTarget) ringColor = 'var(--accent0)'
-  if (isOutput) ringColor = isHovered ? 'var(--accent0)' : 'var(--shade0)'
+  if (dragState && isInvalidTarget && isHovered) ringColor = 'var(--accent2)'
+  if (isOutput) {
+    ringColor = isHovered
+      ? (dragState && isInvalidTarget ? 'var(--accent2)' : 'var(--accent0)')
+      : 'var(--shade0)'
+  }
 
   return (
     <div
