@@ -26,7 +26,7 @@ export const NoiseDefinition: ModuleDefinition<
   id: 'noise',
   name: 'noise',
   category: 'source',
-  width: 3,
+  width: 2,
   height: 3,
 
   inputs: {},
@@ -55,12 +55,20 @@ export const NoiseDefinition: ModuleDefinition<
       // approximates -3dB/octave rolloff
       state.b0 = 0.99886 * state.b0 + white * 0.0555179
       state.b1 = 0.99332 * state.b1 + white * 0.0750759
-      state.b2 = 0.96900 * state.b2 + white * 0.1538520
-      state.b3 = 0.86650 * state.b3 + white * 0.3104856
-      state.b4 = 0.55000 * state.b4 + white * 0.5329522
-      state.b5 = -0.7616 * state.b5 - white * 0.0168980
+      state.b2 = 0.969 * state.b2 + white * 0.153852
+      state.b3 = 0.8665 * state.b3 + white * 0.3104856
+      state.b4 = 0.55 * state.b4 + white * 0.5329522
+      state.b5 = -0.7616 * state.b5 - white * 0.016898
       const pink =
-        (state.b0 + state.b1 + state.b2 + state.b3 + state.b4 + state.b5 + state.b6 + white * 0.5362) * 0.11
+        (state.b0 +
+          state.b1 +
+          state.b2 +
+          state.b3 +
+          state.b4 +
+          state.b5 +
+          state.b6 +
+          white * 0.5362) *
+        0.11
       state.b6 = white * 0.115926
 
       outputs.pink[i] = pink * level

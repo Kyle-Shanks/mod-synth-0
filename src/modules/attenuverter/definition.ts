@@ -32,7 +32,7 @@ export const AttenuverterDefinition: ModuleDefinition<
   id: 'attenuverter',
   name: 'atten',
   category: 'utility',
-  width: 3,
+  width: 2,
   height: 3,
 
   inputs: {

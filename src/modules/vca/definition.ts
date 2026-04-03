@@ -16,8 +16,7 @@ export const VCADefinition: ModuleDefinition<
   id: 'vca',
   name: 'vca',
   category: 'dynamics',
-  // width: 2,
-  width: 3,
+  width: 2,
   height: 3,
 
   inputs: {

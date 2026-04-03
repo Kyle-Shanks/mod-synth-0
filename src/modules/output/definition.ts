@@ -24,7 +24,7 @@ export const OutputDefinition: ModuleDefinition<
   name: 'output',
   category: 'utility',
   width: 3,
-  height: 5,
+  height: 4,
 
   inputs: {
     left: { type: 'audio', default: 0, label: 'l' },
@@ -55,7 +55,7 @@ export const OutputDefinition: ModuleDefinition<
     const gain = params.gain ?? 0.8
 
     // peak decay coefficient: ~300ms to fall from 1 to ~0
-    const decayCoeff = 1 - (1 / (0.3 * context.sampleRate / 128))
+    const decayCoeff = 1 - 1 / ((0.3 * context.sampleRate) / 128)
     let peakL = (state.peakL as number) * decayCoeff
     let peakR = (state.peakR as number) * decayCoeff
 

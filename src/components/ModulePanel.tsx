@@ -22,7 +22,8 @@ interface ModulePanelProps {
 
 // scope rendering function — defined outside component to avoid re-creation
 function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
-  const { width, height, theme, scopeBuffer, writeIndexBuffer, moduleParams } = data
+  const { width, height, theme, scopeBuffer, writeIndexBuffer, moduleParams } =
+    data
 
   drawGrid(ctx, theme.shades.shade2, width, height, 0.2)
 
@@ -253,9 +254,9 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         }}
       >
         <span>{def.name}</span>
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
+        {/* <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
           {def.category}
-        </span>
+        </span> */}
       </div>
 
       {/* body — special rendering per module type */}

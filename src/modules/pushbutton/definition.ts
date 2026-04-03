@@ -25,8 +25,7 @@ export const PushButtonDefinition: ModuleDefinition<
   id: 'pushbutton',
   name: 'button',
   category: 'control',
-  // width: 2,
-  width: 3,
+  width: 2,
   height: 3,
 
   inputs: {},

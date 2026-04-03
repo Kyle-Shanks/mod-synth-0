@@ -20,7 +20,7 @@ export const SampleHoldDefinition: ModuleDefinition<
   id: 'samplehold',
   name: 's&h',
   category: 'utility',
-  width: 3,
+  width: 2,
   height: 3,
 
   inputs: {
