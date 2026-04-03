@@ -29,6 +29,7 @@ import { DistortionDefinition } from './distortion/definition'
 import { FlangerDefinition } from './flanger/definition'
 import { ClockDivDefinition } from './clockdiv/definition'
 import { EuclideanDefinition } from './euclidean/definition'
+import { ResonatorDefinition } from './resonator/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -88,3 +89,6 @@ reg(DistortionDefinition)
 reg(FlangerDefinition)
 reg(ClockDivDefinition)
 reg(EuclideanDefinition)
+
+// stage 11 modules
+reg(ResonatorDefinition)

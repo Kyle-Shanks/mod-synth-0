@@ -21,7 +21,19 @@ export const ClockDivDefinition: ModuleDefinition<
     ratio: {
       type: 'select'
       default: 3
-      options: ['/8', '/6', '/5', '/4', '/3', '/2', '×2', '×3', '×4', '×6', '×8']
+      options: [
+        '/8',
+        '/6',
+        '/5',
+        '/4',
+        '/3',
+        '/2',
+        '×2',
+        '×3',
+        '×4',
+        '×6',
+        '×8',
+      ]
       label: 'ratio'
     }
   },
@@ -44,7 +56,19 @@ export const ClockDivDefinition: ModuleDefinition<
     ratio: {
       type: 'select',
       default: 3,
-      options: ['/8', '/6', '/5', '/4', '/3', '/2', '×2', '×3', '×4', '×6', '×8'],
+      options: [
+        '/8',
+        '/6',
+        '/5',
+        '/4',
+        '/3',
+        '/2',
+        '×2',
+        '×3',
+        '×4',
+        '×6',
+        '×8',
+      ],
       label: 'ratio',
     },
   },
@@ -62,7 +86,10 @@ export const ClockDivDefinition: ModuleDefinition<
   process(inputs, outputs, params, state) {
     // ratioTable: positive = divide, negative = multiply
     const ratioTable = [8, 6, 5, 4, 3, 2, -2, -3, -4, -6, -8]
-    const ratioIdx = Math.max(0, Math.min(ratioTable.length - 1, Math.round(params.ratio)))
+    const ratioIdx = Math.max(
+      0,
+      Math.min(ratioTable.length - 1, Math.round(params.ratio)),
+    )
     const ratio = ratioTable[ratioIdx] ?? 2
 
     for (let i = 0; i < 128; i++) {
@@ -88,11 +115,17 @@ export const ClockDivDefinition: ModuleDefinition<
         const mul = -ratio
         state.samplesSinceRising = (state.samplesSinceRising as number) + 1
         if (risingEdge) {
-          state.mulSamplesPerBeat = Math.max(1, state.samplesSinceRising as number)
+          state.mulSamplesPerBeat = Math.max(
+            1,
+            state.samplesSinceRising as number,
+          )
           state.samplesSinceRising = 0
           state.mulPhase = 0
         }
-        state.mulPhase = ((state.mulPhase as number) + mul / (state.mulSamplesPerBeat as number)) % 1
+        state.mulPhase =
+          ((state.mulPhase as number) +
+            mul / (state.mulSamplesPerBeat as number)) %
+          1
         outputs.out[i] = (state.mulPhase as number) < 0.5 ? 1 : 0
       }
 

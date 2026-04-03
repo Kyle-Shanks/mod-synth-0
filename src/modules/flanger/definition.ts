@@ -50,8 +50,20 @@ export const FlangerDefinition: ModuleDefinition<
     out: { type: 'audio', default: 0, label: 'out' },
   },
   params: {
-    mode: { type: 'select', default: 0, options: ['flanger', 'chorus'], label: 'mode' },
-    rate: { type: 'float', min: 0.01, max: 10, default: 0.5, label: 'rate', unit: 'hz' },
+    mode: {
+      type: 'select',
+      default: 0,
+      options: ['flanger', 'chorus'],
+      label: 'mode',
+    },
+    rate: {
+      type: 'float',
+      min: 0.01,
+      max: 10,
+      default: 0.5,
+      label: 'rate',
+      unit: 'hz',
+    },
     depth: { type: 'float', min: 0, max: 1, default: 0.5, label: 'depth' },
     feedback: { type: 'float', min: 0, max: 0.95, default: 0.5, label: 'fdbk' },
     mix: { type: 'float', min: 0, max: 1, default: 0.5, label: 'mix' },
@@ -69,7 +81,9 @@ export const FlangerDefinition: ModuleDefinition<
 
   process(inputs, outputs, params, state, context) {
     if (!state.initialized) {
-      state.buffer = new Float32Array(Math.round(context.sampleRate * 0.05) + 128)
+      state.buffer = new Float32Array(
+        Math.round(context.sampleRate * 0.05) + 128,
+      )
       state.initialized = true
     }
 
@@ -79,12 +93,10 @@ export const FlangerDefinition: ModuleDefinition<
     const twoPi = 2 * Math.PI
 
     // flanger: base 3ms ± 6ms; chorus: base 20ms ± 15ms
-    const baseDelay = mode === 0
-      ? context.sampleRate * 0.003
-      : context.sampleRate * 0.020
-    const modRange = mode === 0
-      ? context.sampleRate * 0.006
-      : context.sampleRate * 0.015
+    const baseDelay =
+      mode === 0 ? context.sampleRate * 0.003 : context.sampleRate * 0.02
+    const modRange =
+      mode === 0 ? context.sampleRate * 0.006 : context.sampleRate * 0.015
 
     const lfoInc = params.rate / context.sampleRate
 
@@ -95,7 +107,8 @@ export const FlangerDefinition: ModuleDefinition<
       const delaySamples = baseDelay + lfo * modRange * params.depth
 
       // linear interpolation read
-      const readPos = ((state.writeIdx as number) - delaySamples + bufLen) % bufLen
+      const readPos =
+        ((state.writeIdx as number) - delaySamples + bufLen) % bufLen
       const readFloor = Math.floor(readPos)
       const readFrac = readPos - readFloor
       const s0 = buf[readFloor % bufLen] ?? 0
@@ -103,7 +116,8 @@ export const FlangerDefinition: ModuleDefinition<
       const delayed = s0 + (s1 - s0) * readFrac
 
       const dry = inputs.in[i] ?? 0
-      buf[state.writeIdx as number] = dry + (state.fbSample as number) * params.feedback
+      buf[state.writeIdx as number] =
+        dry + (state.fbSample as number) * params.feedback
       state.writeIdx = ((state.writeIdx as number) + 1) % bufLen
       state.fbSample = delayed
 

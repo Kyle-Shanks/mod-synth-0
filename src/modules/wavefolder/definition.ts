@@ -6,14 +6,14 @@ interface WavefolderState {
 
 export const WavefolderDefinition: ModuleDefinition<
   {
-    in:     { type: 'audio'; default: 0; label: 'in' }
-    foldCv: { type: 'cv';    default: 0; label: 'fold' }
+    in: { type: 'audio'; default: 0; label: 'in' }
+    foldCv: { type: 'cv'; default: 0; label: 'fold' }
   },
   {
     out: { type: 'audio'; default: 0; label: 'out' }
   },
   {
-    gain:     { type: 'float'; min: 1; max: 8; default: 2; label: 'gain' }
+    gain: { type: 'float'; min: 1; max: 8; default: 2; label: 'gain' }
     symmetry: { type: 'float'; min: -1; max: 1; default: 0; label: 'sym' }
   },
   WavefolderState
@@ -25,14 +25,14 @@ export const WavefolderDefinition: ModuleDefinition<
   height: 3,
 
   inputs: {
-    in:     { type: 'audio', default: 0, label: 'in' },
-    foldCv: { type: 'cv',    default: 0, label: 'fold' },
+    in: { type: 'audio', default: 0, label: 'in' },
+    foldCv: { type: 'cv', default: 0, label: 'fold' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },
   },
   params: {
-    gain:     { type: 'float', min: 1, max: 8, default: 2, label: 'gain' },
+    gain: { type: 'float', min: 1, max: 8, default: 2, label: 'gain' },
     symmetry: { type: 'float', min: -1, max: 1, default: 0, label: 'sym' },
   },
 

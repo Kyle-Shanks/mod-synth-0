@@ -144,7 +144,8 @@ export const ReverbDefinition: ModuleDefinition<
       // comb 0
       idx = state.combIdx0 as number
       delayed = c0[idx]!
-      filtered = delayed * (1 - damp) + (c0[(idx - 1 + c0.length) % c0.length]!) * damp
+      filtered =
+        delayed * (1 - damp) + c0[(idx - 1 + c0.length) % c0.length]! * damp
       c0[idx] = input + filtered * feedback
       state.combIdx0 = (idx + 1) % c0.length
       let combOut = delayed
@@ -152,7 +153,8 @@ export const ReverbDefinition: ModuleDefinition<
       // comb 1
       idx = state.combIdx1 as number
       delayed = c1[idx]!
-      filtered = delayed * (1 - damp) + (c1[(idx - 1 + c1.length) % c1.length]!) * damp
+      filtered =
+        delayed * (1 - damp) + c1[(idx - 1 + c1.length) % c1.length]! * damp
       c1[idx] = input + filtered * feedback
       state.combIdx1 = (idx + 1) % c1.length
       combOut += delayed
@@ -160,7 +162,8 @@ export const ReverbDefinition: ModuleDefinition<
       // comb 2
       idx = state.combIdx2 as number
       delayed = c2[idx]!
-      filtered = delayed * (1 - damp) + (c2[(idx - 1 + c2.length) % c2.length]!) * damp
+      filtered =
+        delayed * (1 - damp) + c2[(idx - 1 + c2.length) % c2.length]! * damp
       c2[idx] = input + filtered * feedback
       state.combIdx2 = (idx + 1) % c2.length
       combOut += delayed
@@ -168,7 +171,8 @@ export const ReverbDefinition: ModuleDefinition<
       // comb 3
       idx = state.combIdx3 as number
       delayed = c3[idx]!
-      filtered = delayed * (1 - damp) + (c3[(idx - 1 + c3.length) % c3.length]!) * damp
+      filtered =
+        delayed * (1 - damp) + c3[(idx - 1 + c3.length) % c3.length]! * damp
       c3[idx] = input + filtered * feedback
       state.combIdx3 = (idx + 1) % c3.length
       combOut += delayed

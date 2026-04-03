@@ -43,7 +43,7 @@ export const RingModDefinition: ModuleDefinition<
     for (let i = 0; i < 128; i++) {
       const a = inputs.a[i] ?? 0
       const b = inputs.b[i] ?? 0
-      outputs.out[i] = a * (1 - mix) + (a * b) * mix
+      outputs.out[i] = a * (1 - mix) + a * b * mix
     }
   },
 }
