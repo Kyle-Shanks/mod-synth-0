@@ -75,12 +75,46 @@ export interface SerializedCable {
 
 // commands sent from main thread to worklet
 export type EngineCommand =
-  | { type: 'ADD_MODULE';    module: SerializedModule; definition: ModuleDefinition }
+  | {
+      type: 'ADD_MODULE'
+      moduleId: string
+      definitionId: string
+      params: Record<string, number>
+      state: Record<string, unknown>
+      inputPortIds: string[]
+      outputPortIds: string[]
+      inputPortTypes: Record<string, string>
+      paramDefaults: Record<string, number>
+      processFnStr: string
+    }
   | { type: 'REMOVE_MODULE'; moduleId: string }
-  | { type: 'ADD_CABLE';     cable: SerializedCable }
+  | { type: 'ADD_CABLE'; cable: SerializedCable & { isFeedback?: boolean } }
   | { type: 'REMOVE_CABLE';  cableId: string }
   | { type: 'SET_PARAM';     moduleId: string; param: string; value: number }
   | { type: 'SET_GATE';      moduleId: string; portId: string; value: 0 | 1; scheduledAt: number }
+  | {
+      type: 'SET_SCOPE_BUFFERS'
+      moduleId: string
+      scopeBuffer: SharedArrayBuffer
+      writeIndexBuffer: SharedArrayBuffer
+    }
+  | {
+      type: 'SET_TUNER_BUFFER'
+      moduleId: string
+      buffer: SharedArrayBuffer
+    }
+  | {
+      type: 'SET_XYSCOPE_BUFFERS'
+      moduleId: string
+      xBuffer: SharedArrayBuffer
+      yBuffer: SharedArrayBuffer
+      writeIndexBuffer: SharedArrayBuffer
+    }
+  | {
+      type: 'SET_INDICATOR_BUFFER'
+      moduleId: string
+      buffer: SharedArrayBuffer
+    }
 
 // events sent from worklet to main thread
 export type EngineEvent =

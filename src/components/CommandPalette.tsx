@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store'
 import { getAllModules } from '../modules/registry'
 import type { ModuleDefinition } from '../engine/types'
@@ -10,7 +10,6 @@ type DisplayItem =
   | { kind: 'module'; mod: ModuleDefinition; flatIndex: number }
 
 export function CommandPalette() {
-  const open = useStore((s) => s.commandPaletteOpen)
   const position = useStore((s) => s.commandPalettePosition)
   const setOpen = useStore((s) => s.setCommandPaletteOpen)
   const addModule = useStore((s) => s.addModule)
@@ -53,56 +52,41 @@ export function CommandPalette() {
         return items
       })()
 
-  // focus input when opened
+  // focus input on mount
   useEffect(() => {
-    if (open) {
-      setQuery('')
-      setSelectedIndex(0)
-      requestAnimationFrame(() => inputRef.current?.focus())
-    }
-  }, [open])
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }, [])
 
-  // clamp selection
-  useEffect(() => {
-    if (selectedIndex >= selectableModules.length)
-      setSelectedIndex(Math.max(0, selectableModules.length - 1))
-  }, [selectableModules.length, selectedIndex])
+  const maxIndex = Math.max(0, selectableModules.length - 1)
+  const clampedSelectedIndex = Math.min(selectedIndex, maxIndex)
 
-  const handleSelect = useCallback(
-    (definitionId: string) => {
-      addModule(definitionId, position ?? { x: 2, y: 2 })
-      setOpen(false)
-    },
-    [addModule, position, setOpen],
-  )
+  function handleSelect(definitionId: string) {
+    addModule(definitionId, position ?? { x: 2, y: 2 })
+    setOpen(false)
+  }
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          setSelectedIndex((i) => Math.min(i + 1, selectableModules.length - 1))
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setSelectedIndex((i) => Math.max(i - 1, 0))
-          break
-        case 'Enter': {
-          e.preventDefault()
-          const sel = selectableModules[selectedIndex]
-          if (sel) handleSelect(sel.id)
-          break
-        }
-        case 'Escape':
-          e.preventDefault()
-          setOpen(false)
-          break
+  function handleKeyDown(e: React.KeyboardEvent) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedIndex((i) => Math.min(i + 1, maxIndex))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedIndex((i) => Math.max(i - 1, 0))
+        break
+      case 'Enter': {
+        e.preventDefault()
+        const sel = selectableModules[clampedSelectedIndex]
+        if (sel) handleSelect(sel.id)
+        break
       }
-    },
-    [selectableModules, selectedIndex, handleSelect, setOpen],
-  )
-
-  if (!open) return null
+      case 'Escape':
+        e.preventDefault()
+        setOpen(false)
+        break
+    }
+  }
 
   return (
     <div
@@ -182,9 +166,13 @@ export function CommandPalette() {
                   alignItems: 'center',
                   cursor: 'pointer',
                   background:
-                    item.flatIndex === selectedIndex ? 'var(--accent0)' : 'transparent',
+                    item.flatIndex === clampedSelectedIndex
+                      ? 'var(--accent0)'
+                      : 'transparent',
                   color:
-                    item.flatIndex === selectedIndex ? 'var(--shade0)' : 'var(--shade3)',
+                    item.flatIndex === clampedSelectedIndex
+                      ? 'var(--shade0)'
+                      : 'var(--shade3)',
                   fontSize: 'var(--text-sm)',
                 }}
               >

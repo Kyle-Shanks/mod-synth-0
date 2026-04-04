@@ -1,5 +1,4 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { engine } from '../engine/EngineController'
 import { useStore } from '../store'
 
 interface SequencerIndicatorProps {
@@ -12,6 +11,7 @@ export function SequencerIndicator({
   stepCount,
 }: SequencerIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
+  const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
   const dotsRef = useRef<(HTMLDivElement | null)[]>([])
 
   // create SharedArrayBuffer for 1 Int32 value: [currentStep]
@@ -27,11 +27,11 @@ export function SequencerIndicator({
   // inject buffer into worklet module state
   useEffect(() => {
     if (!indicatorBuffer) return
-    engine.setIndicatorBuffer(
+    setIndicatorBuffer(
       moduleId,
       indicatorBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, indicatorBuffer, engineRevision])
+  }, [moduleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
 
   // animation loop: read current step and update DOM directly
   useEffect(() => {

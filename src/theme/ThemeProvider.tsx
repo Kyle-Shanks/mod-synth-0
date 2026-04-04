@@ -1,12 +1,7 @@
-import { useEffect, createContext, useContext, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import type { Theme } from './tokens'
 import { darkTheme } from './darkTheme'
-
-const ThemeContext = createContext<Theme>(darkTheme)
-
-export function useTheme(): Theme {
-  return useContext(ThemeContext)
-}
+import { ThemeContext } from './themeContext'
 
 export function ThemeProvider({ theme = darkTheme, children }: { theme?: Theme; children: ReactNode }) {
   useEffect(() => {

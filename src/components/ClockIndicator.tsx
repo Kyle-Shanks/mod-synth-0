@@ -1,5 +1,4 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { engine } from '../engine/EngineController'
 import { useStore } from '../store'
 
 interface ClockIndicatorProps {
@@ -8,6 +7,7 @@ interface ClockIndicatorProps {
 
 export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
+  const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
   const gateDotRef = useRef<HTMLDivElement>(null)
   const divDotRef = useRef<HTMLDivElement>(null)
 
@@ -24,11 +24,11 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
   // inject buffer into worklet module state
   useEffect(() => {
     if (!indicatorBuffer) return
-    engine.setIndicatorBuffer(
+    setIndicatorBuffer(
       moduleId,
       indicatorBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, indicatorBuffer, engineRevision])
+  }, [moduleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
 
   // animation loop: read indicator buffer and update DOM directly
   useEffect(() => {

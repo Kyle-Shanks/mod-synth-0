@@ -13,11 +13,12 @@ export function useZoom(outerRef: RefObject<HTMLDivElement | null>) {
       // ctrlKey: trackpad pinch gesture; metaKey: cmd+scroll
       if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
-      setZoom(zoom + -e.deltaY * 0.001)
+      const currentZoom = useStore.getState().zoom
+      setZoom(currentZoom + -e.deltaY * 0.001)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [outerRef, zoom, setZoom])
+  }, [outerRef, setZoom])
 
   return zoom
 }

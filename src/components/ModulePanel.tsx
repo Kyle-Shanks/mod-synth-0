@@ -1,7 +1,6 @@
 import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
-import { engine } from '../engine/EngineController'
 import { Port } from './Port'
 import { Knob } from './Knob'
 import { Fader } from './Fader'
@@ -60,6 +59,9 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
   const engineRevision = useStore((s) => s.engineRevision)
   const setModulePosition = useStore((s) => s.setModulePosition)
+  const setScopeBuffers = useStore((s) => s.setScopeBuffers)
+  const setTunerBuffer = useStore((s) => s.setTunerBuffer)
+  const setXYScopeBuffers = useStore((s) => s.setXYScopeBuffers)
   const setSelectedModule = useStore((s) => s.setSelectedModule)
   const selectedModuleId = useStore((s) => s.selectedModuleId)
   const cables = useStore((s) => s.cables)
@@ -91,12 +93,12 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   // inject scope buffers into engine module state
   useEffect(() => {
     if (!scopeBuffers || !def || def.id !== 'scope') return
-    engine.setScopeBuffers(
+    setScopeBuffers(
       moduleId,
       scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, scopeBuffers, def, engineRevision])
+  }, [moduleId, scopeBuffers, def, engineRevision, setScopeBuffers])
 
   // tuner SharedArrayBuffer setup (only for tuner modules)
   const tunerBuffer = useMemo(() => {
@@ -111,8 +113,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
 
   useEffect(() => {
     if (!tunerBuffer || !def || def.id !== 'tuner') return
-    engine.setTunerBuffer(moduleId, tunerBuffer.buffer as SharedArrayBuffer)
-  }, [moduleId, tunerBuffer, def, engineRevision])
+    setTunerBuffer(moduleId, tunerBuffer.buffer as SharedArrayBuffer)
+  }, [moduleId, tunerBuffer, def, engineRevision, setTunerBuffer])
 
   // XY scope SharedArrayBuffer setup (only for xyscope modules)
   const xyScopeBuffers = useMemo(() => {
@@ -133,13 +135,13 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
 
   useEffect(() => {
     if (!xyScopeBuffers || !def || def.id !== 'xyscope') return
-    engine.setXYScopeBuffers(
+    setXYScopeBuffers(
       moduleId,
       xyScopeBuffers.xBuffer.buffer as SharedArrayBuffer,
       xyScopeBuffers.yBuffer.buffer as SharedArrayBuffer,
       xyScopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, xyScopeBuffers, def, engineRevision])
+  }, [moduleId, xyScopeBuffers, def, engineRevision, setXYScopeBuffers])
 
   // update all port positions after render / position change
   const updatePortPositions = useCallback(() => {

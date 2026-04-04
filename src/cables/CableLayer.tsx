@@ -18,6 +18,9 @@ const CABLE_COLORS: Record<PortType, string> = {
 
 export function CableLayer() {
   const svgRef = useRef<SVGSVGElement>(null)
+  const hitPathRefs = useRef<Record<string, SVGPathElement | null>>({})
+  const visualPathRefs = useRef<Record<string, SVGPathElement | null>>({})
+  const previewPathRef = useRef<SVGPathElement | null>(null)
   const cables = useStore((s) => s.cables)
   const modules = useStore((s) => s.modules)
   const tautness = useStore((s) => s.cableTautness)
@@ -50,14 +53,14 @@ export function CableLayer() {
         x2: toPos.x, y2: toPos.y,
       }, tautness)
 
-      const hitPath = svg.querySelector(`[data-cable-id="${cable.id}"]`) as SVGPathElement | null
+      const hitPath = hitPathRefs.current[cable.id]
       hitPath?.setAttribute('d', d)
-      const visualPath = svg.querySelector(`[data-cable-visual="${cable.id}"]`) as SVGPathElement | null
+      const visualPath = visualPathRefs.current[cable.id]
       visualPath?.setAttribute('d', d)
     }
 
     // update drag preview cable
-    const preview = svg.querySelector('[data-cable-preview]') as SVGPathElement | null
+    const preview = previewPathRef.current
     if (preview && dragState) {
       const fromPos = portPositionCache.get(dragState.fromModuleId, dragState.fromPortId)
       if (fromPos) {
@@ -126,6 +129,9 @@ export function CableLayer() {
               {/* wide transparent hit area — easier to grab than the thin visible stroke */}
               <path
                 data-cable-id={cable.id}
+                ref={(el) => {
+                  hitPathRefs.current[cable.id] = el
+                }}
                 fill="none"
                 stroke="transparent"
                 strokeWidth={HIT_STROKE_WIDTH}
@@ -138,6 +144,9 @@ export function CableLayer() {
               {/* visible cable */}
               <path
                 data-cable-visual={cable.id}
+                ref={(el) => {
+                  visualPathRefs.current[cable.id] = el
+                }}
                 fill="none"
                 stroke={getCableColor(cable.from.moduleId, cable.from.portId)}
                 strokeWidth={isHovered ? 3 : 1.5}
@@ -155,6 +164,7 @@ export function CableLayer() {
         {/* drag preview cable */}
         <path
           data-cable-preview=""
+          ref={previewPathRef}
           fill="none"
           stroke={dragState
             ? CABLE_COLORS[dragState.portType]

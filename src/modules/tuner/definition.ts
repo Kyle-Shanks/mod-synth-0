@@ -61,7 +61,7 @@ export const TunerDefinition: ModuleDefinition<
     if (samplesSinceDetect >= 512 && tunerBuffer) {
       samplesSinceDetect = 0
 
-      function yinDetect(buf, sampleRate) {
+      function yinDetect(buf: Float32Array, sampleRate: number): [number, number] {
         const bufLen = buf.length
         const tauMin = Math.max(1, Math.floor(sampleRate / 4000))
         const tauMax = Math.floor(sampleRate / 40)
@@ -77,7 +77,7 @@ export const TunerDefinition: ModuleDefinition<
         for (let tau = 1; tau <= tauMax; tau++) {
           let d = 0
           for (let j = 0; j < searchLen; j++) {
-            const diff = buf[j] - buf[(j + tau) % bufLen]
+            const diff = (buf[j] ?? 0) - (buf[(j + tau) % bufLen] ?? 0)
             d += diff * diff
           }
           runningSum += d
@@ -93,10 +93,10 @@ export const TunerDefinition: ModuleDefinition<
         if (foundTau < 0) { return [0, 0] }
 
         // parabolic interpolation using d values
-        function dAt(tau) {
+        function dAt(tau: number): number {
           let d = 0
           for (let j = 0; j < searchLen; j++) {
-            const diff = buf[j] - buf[(j + tau) % bufLen]
+            const diff = (buf[j] ?? 0) - (buf[(j + tau) % bufLen] ?? 0)
             d += diff * diff
           }
           return d
@@ -116,9 +116,9 @@ export const TunerDefinition: ModuleDefinition<
         return [freq, clarity]
       }
 
-      const result = yinDetect(accumBuffer, sr)
-      tunerBuffer[0] = result[0]
-      tunerBuffer[1] = result[1]
+      const [freq, clarity] = yinDetect(accumBuffer, sr)
+      tunerBuffer[0] = freq
+      tunerBuffer[1] = clarity
     }
 
     state.accumPos = accumPos % 2048

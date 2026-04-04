@@ -1,51 +1,12 @@
-// src/engine/worklet/GraphProcessor.ts
+/* eslint-disable */
+// reference-only mirror of /public/GraphProcessor.js
+// src/engine/worklet/GraphProcessor.js
 // runs in AudioWorkletGlobalScope — no DOM, no imports from main thread
-
-// AudioWorkletGlobalScope globals
-declare const sampleRate: number
-declare const currentTime: number
-declare function registerProcessor(name: string, processorCtor: typeof AudioWorkletProcessor): void
-declare class AudioWorkletProcessor {
-  readonly port: MessagePort
-  constructor()
-  process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean
-}
 
 const BUFFER_SIZE = 128
 
-interface GateEvent {
-  offset: number
-  value: number
-  portId: string
-}
-
 class WorkletModule {
-  definitionId: string
-  params: Record<string, number>
-  smoothers: Record<string, { smoothed: number; coeff: number }>
-  state: Record<string, unknown>
-  process!: (
-    inputs: Record<string, Float32Array>,
-    outputs: Record<string, Float32Array>,
-    params: Record<string, number>,
-    state: Record<string, unknown>,
-    context: { sampleRate: number; bufferSize: number }
-  ) => void
-  inputPortTypes: Record<string, string>
-  outputPortIds: string[]
-  inputPortIds: string[]
-  paramDefaults: Record<string, number>
-
-  constructor(
-    definitionId: string,
-    params: Record<string, number>,
-    state: Record<string, unknown>,
-    inputPortIds: string[],
-    outputPortIds: string[],
-    inputPortTypes: Record<string, string>,
-    paramDefaults: Record<string, number>,
-    sr: number
-  ) {
+  constructor(definitionId, params, state, inputPortIds, outputPortIds, inputPortTypes, paramDefaults, sr) {
     this.definitionId = definitionId
     this.params = { ...params }
     this.state = state
@@ -56,82 +17,108 @@ class WorkletModule {
 
     // initialize smoothers for each param
     this.smoothers = {}
-    const coeff = 1 - Math.exp(-2 * Math.PI * 100 / sr)  // ~10ms at 44100
+    this.smoothedParams = {}
+    const coeff = 1 - Math.exp(-2 * Math.PI * 300 / sr) // ~3ms at 44100
     for (const [key, value] of Object.entries(params)) {
       this.smoothers[key] = { smoothed: value, coeff }
+      this.smoothedParams[key] = value
     }
+
+    // stable per-module objects reused every tick
+    this.inputBuffers = {}
+    this.outputBuffers = {}
+    for (const portId of inputPortIds) this.inputBuffers[portId] = null
+    for (const portId of outputPortIds) this.outputBuffers[portId] = null
   }
 
-  getSmoothedParams(): Record<string, number> {
-    const result: Record<string, number> = {}
+  getSmoothedParams() {
     for (const [key, smoother] of Object.entries(this.smoothers)) {
       const target = this.params[key] ?? this.paramDefaults[key] ?? 0
       smoother.smoothed += (target - smoother.smoothed) * smoother.coeff
-      result[key] = smoother.smoothed
+      this.smoothedParams[key] = smoother.smoothed
     }
-    return result
+    return this.smoothedParams
   }
-}
-
-interface CableRecord {
-  id: string
-  from: { moduleId: string; portId: string }
-  to: { moduleId: string; portId: string }
-  isFeedback?: boolean
 }
 
 class GraphProcessorNode extends AudioWorkletProcessor {
-  private modules = new Map<string, WorkletModule>()
-  private cables: CableRecord[] = []
-  private evaluationOrder: string[] = []
-  private pendingCommands: unknown[] = []
-  // pre-allocated buffer pool
-  private pool: Float32Array[] = Array.from({ length: 256 }, () => new Float32Array(BUFFER_SIZE))
-  private availableBuffers: Float32Array[] = []
-  // feedback delay buffers: cableId → Float32Array
-  private feedbackBuffers = new Map<string, Float32Array>()
-  // throttle meter events: send every ~15ms (5 buffers at 44100Hz / 128 samples)
-  private meterFrameCounter = 0
-  private readonly METER_INTERVAL = 5
-
   constructor() {
     super()
+    this.modules = new Map()
+    this.cables = []
+    this.evaluationOrder = []
+    this.pendingCommands = []
+
+    // topology caches rebuilt on topology change
+    this.incomingByModule = new Map() // moduleId -> Map<portId, cable[]>
+    this.outgoingByModule = new Map() // moduleId -> cable[]
+
+    // pre-allocated buffer pool
+    this.pool = Array.from({ length: 256 }, () => new Float32Array(BUFFER_SIZE))
     this.availableBuffers = [...this.pool]
-    this.port.onmessage = (e: MessageEvent) => this.pendingCommands.push(e.data)
+
+    // per-tick scratch reused every process() call
+    this.tickBuffers = new Map() // moduleId:portId -> Float32Array
+    this.acquiredBuffers = []
+
+    // feedback delay buffers: cableId -> Float32Array
+    this.feedbackBuffers = new Map()
+
+    // throttle meter events: send every ~15ms (5 buffers at 44100Hz / 128 samples)
+    this.meterFrameCounter = 0
+    this.METER_INTERVAL = 5
+
+    this.poolExhaustedReported = false
+
+    this.port.onmessage = (e) => this.pendingCommands.push(e.data)
     this.port.postMessage({ type: 'READY' })
   }
 
-  private acquireBuffer(): Float32Array {
-    return this.availableBuffers.pop() ?? new Float32Array(BUFFER_SIZE)
+  acquireBuffer() {
+    const buf = this.availableBuffers.pop()
+    if (buf) return buf
+
+    if (!this.poolExhaustedReported) {
+      this.poolExhaustedReported = true
+      this.port.postMessage({
+        type: 'ERROR',
+        message: 'buffer pool exhausted - consider increasing pool size',
+      })
+    }
+
+    // fallback to preserve audio continuity
+    return new Float32Array(BUFFER_SIZE)
   }
 
-  private releaseBuffer(buf: Float32Array): void {
+  releaseBuffer(buf) {
     buf.fill(0)
     this.availableBuffers.push(buf)
   }
 
-  private applyCommands(): void {
-    while (this.pendingCommands.length > 0) {
-      const cmd = this.pendingCommands.shift() as Record<string, unknown>
-      this.handleCommand(cmd)
+  applyCommands() {
+    const commands = this.pendingCommands
+    for (let i = 0; i < commands.length; i++) {
+      this.handleCommand(commands[i])
     }
+    commands.length = 0
   }
 
-  private handleCommand(cmd: Record<string, unknown>): void {
+  handleCommand(cmd) {
     switch (cmd.type) {
       case 'ADD_MODULE': {
-        const moduleId = cmd.moduleId as string
-        const definitionId = cmd.definitionId as string
-        const params = cmd.params as Record<string, number>
-        const state = cmd.state as Record<string, unknown>
-        const inputPortIds = cmd.inputPortIds as string[]
-        const outputPortIds = cmd.outputPortIds as string[]
-        const inputPortTypes = cmd.inputPortTypes as Record<string, string>
-        const paramDefaults = cmd.paramDefaults as Record<string, number>
-        const processFnStr = cmd.processFnStr as string
+        const {
+          moduleId,
+          definitionId,
+          params,
+          state,
+          inputPortIds,
+          outputPortIds,
+          inputPortTypes,
+          paramDefaults,
+          processFnStr,
+        } = cmd
 
         // reconstruct process function from serialized string
-        // eslint-disable-next-line no-new-func
         const processFn = new Function('return ' + processFnStr)()
         const m = new WorkletModule(
           definitionId,
@@ -141,82 +128,162 @@ class GraphProcessorNode extends AudioWorkletProcessor {
           outputPortIds,
           inputPortTypes,
           paramDefaults,
-          sampleRate
+          sampleRate,
         )
         m.process = processFn
         this.modules.set(moduleId, m)
         this.rebuildEvaluationOrder()
         break
       }
+
       case 'REMOVE_MODULE': {
-        this.modules.delete(cmd.moduleId as string)
+        this.modules.delete(cmd.moduleId)
         this.cables = this.cables.filter(
-          c => c.from.moduleId !== cmd.moduleId && c.to.moduleId !== cmd.moduleId
+          (c) => c.from.moduleId !== cmd.moduleId && c.to.moduleId !== cmd.moduleId,
         )
         this.rebuildEvaluationOrder()
         break
       }
+
       case 'ADD_CABLE': {
-        const cable = cmd.cable as CableRecord
-        this.cables.push(cable)
-        if (cable.isFeedback) {
-          this.feedbackBuffers.set(cable.id, new Float32Array(BUFFER_SIZE))
-        }
+        this.cables.push(cmd.cable)
         this.rebuildEvaluationOrder()
         break
       }
+
       case 'REMOVE_CABLE': {
-        this.cables = this.cables.filter(c => c.id !== cmd.cableId)
-        this.feedbackBuffers.delete(cmd.cableId as string)
+        this.cables = this.cables.filter((c) => c.id !== cmd.cableId)
+        this.feedbackBuffers.delete(cmd.cableId)
         this.rebuildEvaluationOrder()
         break
       }
+
       case 'SET_PARAM': {
-        const m = this.modules.get(cmd.moduleId as string)
-        if (m) m.params[cmd.param as string] = cmd.value as number
+        const m = this.modules.get(cmd.moduleId)
+        if (m) m.params[cmd.param] = cmd.value
         break
       }
+
       case 'SET_GATE': {
-        const m = this.modules.get(cmd.moduleId as string)
+        const m = this.modules.get(cmd.moduleId)
         if (m) {
-          const offset = Math.max(0, Math.min(BUFFER_SIZE - 1,
-            Math.round(((cmd.scheduledAt as number) - currentTime) * sampleRate)
-          ))
-          if (!m.state['_gateEvents']) m.state['_gateEvents'] = []
-          ;(m.state['_gateEvents'] as GateEvent[]).push({
+          const offset = Math.max(
+            0,
+            Math.min(
+              BUFFER_SIZE - 1,
+              Math.round((cmd.scheduledAt - currentTime) * sampleRate),
+            ),
+          )
+          if (!m.state._gateEvents) m.state._gateEvents = []
+          m.state._gateEvents.push({
             offset,
-            value: cmd.value as number,
-            portId: cmd.portId as string
+            value: cmd.value,
+            portId: cmd.portId,
           })
         }
         break
       }
+
       case 'SET_SCOPE_BUFFERS': {
-        const m = this.modules.get(cmd.moduleId as string)
+        const m = this.modules.get(cmd.moduleId)
         if (m) {
-          m.state['scopeBuffer'] = new Float32Array(cmd.scopeBuffer as SharedArrayBuffer)
-          m.state['writeIndexBuffer'] = new Int32Array(cmd.writeIndexBuffer as SharedArrayBuffer)
+          m.state.scopeBuffer = new Float32Array(cmd.scopeBuffer)
+          m.state.writeIndexBuffer = new Int32Array(cmd.writeIndexBuffer)
+          m.state.writeIndex = 0
+        }
+        break
+      }
+
+      case 'SET_TUNER_BUFFER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) m.state.tunerBuffer = new Float32Array(cmd.buffer)
+        break
+      }
+
+      case 'SET_XYSCOPE_BUFFERS': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state.xBuffer = new Float32Array(cmd.xBuffer)
+          m.state.yBuffer = new Float32Array(cmd.yBuffer)
+          m.state.writeIndexBuffer = new Int32Array(cmd.writeIndexBuffer)
+          m.state.xyWriteIndex = 0
+        }
+        break
+      }
+
+      case 'SET_INDICATOR_BUFFER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state._indicatorBuffer = new Int32Array(cmd.buffer)
         }
         break
       }
     }
   }
 
-  private rebuildEvaluationOrder(): void {
-    const visited = new Set<string>()
-    const order: string[] = []
+  rebuildTopologyCaches() {
+    const incomingByModule = new Map()
+    const outgoingByModule = new Map()
 
-    const getInputModuleIds = (moduleId: string): string[] => {
-      return this.cables
-        .filter(c => c.to.moduleId === moduleId && !this.feedbackBuffers.has(c.id))
-        .map(c => c.from.moduleId)
+    for (const cable of this.cables) {
+      let incomingPorts = incomingByModule.get(cable.to.moduleId)
+      if (!incomingPorts) {
+        incomingPorts = new Map()
+        incomingByModule.set(cable.to.moduleId, incomingPorts)
+      }
+
+      let portCables = incomingPorts.get(cable.to.portId)
+      if (!portCables) {
+        portCables = []
+        incomingPorts.set(cable.to.portId, portCables)
+      }
+      portCables.push(cable)
+
+      let outgoing = outgoingByModule.get(cable.from.moduleId)
+      if (!outgoing) {
+        outgoing = []
+        outgoingByModule.set(cable.from.moduleId, outgoing)
+      }
+      outgoing.push(cable)
     }
 
-    const visit = (id: string, stack: Set<string>): void => {
+    this.incomingByModule = incomingByModule
+    this.outgoingByModule = outgoingByModule
+  }
+
+  rebuildEvaluationOrder() {
+    this.rebuildTopologyCaches()
+
+    // Re-detect feedback cables from scratch on every topology change.
+    // Preserve existing delay buffer data for cables that remain feedback edges.
+    const prevFeedbackBuffers = this.feedbackBuffers
+    this.feedbackBuffers = new Map()
+
+    const visited = new Set()
+    const order = []
+
+    const visit = (id, stack) => {
       if (visited.has(id)) return
-      if (stack.has(id)) return  // cycle — handled by feedback buffers
+      if (stack.has(id)) return
       stack.add(id)
-      for (const dep of getInputModuleIds(id)) visit(dep, stack)
+
+      const incomingPorts = this.incomingByModule.get(id)
+      if (incomingPorts) {
+        for (const cablesForPort of incomingPorts.values()) {
+          for (const cable of cablesForPort) {
+            const depId = cable.from.moduleId
+            if (stack.has(depId)) {
+              this.feedbackBuffers.set(
+                cable.id,
+                prevFeedbackBuffers.get(cable.id) ?? new Float32Array(BUFFER_SIZE),
+              )
+            } else {
+              visit(depId, stack)
+            }
+          }
+        }
+      }
+
       stack.delete(id)
       visited.add(id)
       order.push(id)
@@ -226,19 +293,18 @@ class GraphProcessorNode extends AudioWorkletProcessor {
     this.evaluationOrder = order
   }
 
-  process(_inputs: Float32Array[][], outputs: Float32Array[][], _parameters: Record<string, Float32Array>): boolean {
+  process(_inputs, outputs, _parameters) {
     this.applyCommands()
 
-    // per-module output buffers for this tick: moduleId:portId → Float32Array
-    const tickBuffers = new Map<string, Float32Array>()
-    const acquiredBuffers: Float32Array[] = []
+    this.tickBuffers.clear()
+    this.acquiredBuffers.length = 0
 
-    const getBuffer = (key: string): Float32Array => {
-      let buf = tickBuffers.get(key)
+    const getBuffer = (key) => {
+      let buf = this.tickBuffers.get(key)
       if (!buf) {
         buf = this.acquireBuffer()
-        acquiredBuffers.push(buf)
-        tickBuffers.set(key, buf)
+        this.acquiredBuffers.push(buf)
+        this.tickBuffers.set(key, buf)
       }
       return buf
     }
@@ -248,89 +314,94 @@ class GraphProcessorNode extends AudioWorkletProcessor {
       const m = this.modules.get(moduleId)
       if (!m) continue
 
+      const inputBuffers = m.inputBuffers
+      const outputBuffers = m.outputBuffers
+      const incomingPorts = this.incomingByModule.get(moduleId)
+
       // build inputs: gather connected cables, sum multiple connections
-      const inputBuffers: Record<string, Float32Array> = {}
       for (const portId of m.inputPortIds) {
         const buf = this.acquireBuffer()
-        acquiredBuffers.push(buf)
-        // find all cables connected to this input port
-        const connected = this.cables.filter(c => c.to.moduleId === moduleId && c.to.portId === portId)
-        for (const cable of connected) {
-          // use feedback buffer if this is a feedback cable
-          const srcBuf = this.feedbackBuffers.has(cable.id)
-            ? this.feedbackBuffers.get(cable.id)!
-            : tickBuffers.get(`${cable.from.moduleId}:${cable.from.portId}`)
-          if (srcBuf) {
-            for (let i = 0; i < BUFFER_SIZE; i++) buf[i]! += srcBuf[i]!
+        this.acquiredBuffers.push(buf)
+
+        const connected = incomingPorts?.get(portId)
+        if (connected) {
+          for (const cable of connected) {
+            const srcBuf = this.feedbackBuffers.has(cable.id)
+              ? this.feedbackBuffers.get(cable.id)
+              : this.tickBuffers.get(`${cable.from.moduleId}:${cable.from.portId}`)
+            if (srcBuf) {
+              for (let i = 0; i < BUFFER_SIZE; i++) buf[i] += srcBuf[i]
+            }
           }
+        } else {
+          // defaults handled by modules themselves
+          buf.fill(0)
         }
-        // if no connection, fill with port default
-        if (connected.length === 0) {
-          buf.fill(0)  // defaults handled by module itself
-        }
+
         inputBuffers[portId] = buf
       }
 
-      // build output buffers
-      const outputBuffers: Record<string, Float32Array> = {}
+      // build outputs
       for (const portId of m.outputPortIds) {
-        const buf = getBuffer(`${moduleId}:${portId}`)
-        outputBuffers[portId] = buf
+        outputBuffers[portId] = getBuffer(`${moduleId}:${portId}`)
       }
 
-      // run the module
+      // run module DSP
       try {
-        m.process(inputBuffers, outputBuffers, m.getSmoothedParams(), m.state, { sampleRate, bufferSize: BUFFER_SIZE })
+        m.process(inputBuffers, outputBuffers, m.getSmoothedParams(), m.state, {
+          sampleRate,
+          bufferSize: BUFFER_SIZE,
+        })
       } catch (e) {
         this.port.postMessage({ type: 'ERROR', message: String(e) })
       }
 
-      // update feedback buffers (copy output into feedback delay line)
-      for (const cable of this.cables) {
-        if (cable.from.moduleId === moduleId && this.feedbackBuffers.has(cable.id)) {
+      // update feedback buffers for this module's outgoing feedback cables
+      const outgoing = this.outgoingByModule.get(moduleId)
+      if (outgoing) {
+        for (const cable of outgoing) {
+          const feedbackBuf = this.feedbackBuffers.get(cable.id)
+          if (!feedbackBuf) continue
           const srcBuf = outputBuffers[cable.from.portId]
-          if (srcBuf) this.feedbackBuffers.get(cable.id)!.set(srcBuf)
+          if (srcBuf) feedbackBuf.set(srcBuf)
         }
       }
     }
 
-    // write to web audio output — the output module writes to its input buffers,
-    // the worklet copies them to the actual audio output
+    // write to web audio output
     for (const [, m] of this.modules) {
-      if (m.definitionId === 'output') {
-        // output module writes processed audio to state._outputLeft / _outputRight
-        const leftBuf = m.state['_outputLeft'] as Float32Array | undefined
-        const rightBuf = m.state['_outputRight'] as Float32Array | undefined
+      if (m.definitionId !== 'output') continue
 
-        if (outputs[0]?.[0] && leftBuf) outputs[0][0].set(leftBuf)
-        if (outputs[0]?.[1]) {
-          if (rightBuf) {
-            outputs[0][1].set(rightBuf)
-          } else if (leftBuf) {
-            outputs[0][1].set(leftBuf)
-          }
+      const leftBuf = m.state._outputLeft
+      const rightBuf = m.state._outputRight
+
+      if (outputs[0]?.[0] && leftBuf) outputs[0][0].set(leftBuf)
+      if (outputs[0]?.[1]) {
+        if (rightBuf) {
+          outputs[0][1].set(rightBuf)
+        } else if (leftBuf) {
+          outputs[0][1].set(leftBuf)
         }
       }
     }
 
     // release all tick buffers back to pool
-    for (const buf of acquiredBuffers) this.releaseBuffer(buf)
+    for (const buf of this.acquiredBuffers) this.releaseBuffer(buf)
 
     // send throttled METER events for output module peak levels
     this.meterFrameCounter++
     if (this.meterFrameCounter >= this.METER_INTERVAL) {
       this.meterFrameCounter = 0
       for (const [moduleId, m] of this.modules) {
-        if (m.definitionId === 'output') {
-          const peakL = (m.state['peakL'] as number) ?? 0
-          const peakR = (m.state['peakR'] as number) ?? 0
-          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
-          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
-        }
+        if (m.definitionId !== 'output') continue
+        const peakL = m.state.peakL ?? 0
+        const peakR = m.state.peakR ?? 0
+        this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
+        this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
       }
     }
 
-    return true  // keep processor alive
+    return true // keep processor alive
   }
 }
 

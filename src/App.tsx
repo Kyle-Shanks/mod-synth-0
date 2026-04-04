@@ -32,15 +32,19 @@ export default function App() {
   const setTheme = useStore((s) => s.setTheme)
   const zoom = useStore((s) => s.zoom)
   const setZoom = useStore((s) => s.setZoom)
+  const commandPaletteOpen = useStore((s) => s.commandPaletteOpen)
   // const undo = useStore((s) => s.undo)
   // const redo = useStore((s) => s.redo)
   const pastLength = useStore((s) => s.past.length)
   const futureLength = useStore((s) => s.future.length)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const initStartedRef = useRef(false)
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
 
   useEffect(() => {
+    if (initStartedRef.current) return
+    initStartedRef.current = true
     engine.initialize().then(() => {
       setEngineReady(true)
       restoreSavedPatch()
@@ -304,7 +308,7 @@ export default function App() {
               disabled={pastLength === 0}
               style={{
                 ...topBarBtnStyle,
-                fontSize: 'var(--text-m)',
+                fontSize: 'var(--text-md)',
                 opacity: pastLength === 0 ? 0.3 : 1,
               }}
               title='undo (cmd+z)'
@@ -318,7 +322,7 @@ export default function App() {
               disabled={futureLength === 0}
               style={{
                 ...topBarBtnStyle,
-                fontSize: 'var(--text-m)',
+                fontSize: 'var(--text-md)',
                 opacity: futureLength === 0 ? 0.3 : 1,
               }}
               title='redo (cmd+shift+z)'
@@ -379,7 +383,7 @@ export default function App() {
           </div>
 
           <Rack />
-          <CommandPalette />
+          {commandPaletteOpen && <CommandPalette />}
           <SettingsPanel />
         </>
       )}

@@ -83,17 +83,17 @@ this opens a command palette. type to search by name or category, then press `en
 
 ### sequencing and timing
 
-**clock** — generates regular gate pulses at a bpm-derived rate. set tempo by knob or cv. outputs include the main clock and a divided clock (÷2, ÷4, ÷8).
+**clock** — generates regular gate pulses at a bpm-derived rate. includes reset input, swing amount, a trigger output, and a selectable divided gate output.
 
 **sequencer** — 8-step cv + gate sequencer. advances one step per clock pulse. each step has its own pitch value (set by fader) and a configurable gate length.
 
-**push button** — a manual trigger. hold for a sustained gate output; each press also fires a 1ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
+**push button** — a manual trigger. hold for a sustained gate output; each press also fires a 10ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
 
 ### effects
 
 **reverb** — convolution reverb. mix control blends the dry signal with the reverberated signal.
 
-**delay** — delay line with feedback and mix controls.
+**delay** — delay line with time control and cv modulation input.
 
 ### utility and display
 
@@ -125,7 +125,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 - **cable tautness** — controls how much cables sag between ports (0 = taut, 1 = loose)
 - **tooltips** — toggle port tooltips on hover
-- **theme** — dark theme only in the current build
+- **theme** — dark, light, and synthwave themes
 
 ---
 

@@ -141,12 +141,15 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       const modules = { ...s.modules }
       delete modules[moduleId]
       const remainingCables: Record<string, SerializedCable> = {}
+      const nextFeedback = new Set(s.feedbackCableIds)
       for (const [cid, c] of Object.entries(s.cables)) {
         if (c.from.moduleId !== moduleId && c.to.moduleId !== moduleId) {
           remainingCables[cid] = c
+        } else {
+          nextFeedback.delete(cid)
         }
       }
-      return { modules, cables: remainingCables }
+      return { modules, cables: remainingCables, feedbackCableIds: nextFeedback }
     })
   },
 
@@ -168,8 +171,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     engine.removeCable(cableId)
     set((s) => {
       const cables = { ...s.cables }
+      const feedbackCableIds = new Set(s.feedbackCableIds)
       delete cables[cableId]
-      return { cables }
+      feedbackCableIds.delete(cableId)
+      return { cables, feedbackCableIds }
     })
   },
 

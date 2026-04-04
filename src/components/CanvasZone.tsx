@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import { useTheme } from '../theme/ThemeProvider'
+import { useTheme } from '../theme/themeContext'
 import type { Theme } from '../theme/tokens'
 
 interface CanvasZoneProps {

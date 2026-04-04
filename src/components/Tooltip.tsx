@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { portPositionCache } from '../cables/PortPositionCache'
@@ -65,26 +65,16 @@ export function Tooltip() {
   const tooltipsEnabled = useStore((s) => s.tooltipsEnabled)
   const [activeKey, setActiveKey] = useState<string | null>(null)
 
-  const handlePortHover = useCallback((key: string | null) => {
-    if (!key || !tooltipsEnabled) {
-      setActiveKey(null)
-      return
-    }
-    const timer = setTimeout(() => setActiveKey(key), TOOLTIP_DELAY)
-    return () => clearTimeout(timer)
-  }, [tooltipsEnabled])
+  useEffect(() => {
+    if (!hoveredPortKey || !tooltipsEnabled) return
+    const timer = window.setTimeout(
+      () => setActiveKey(hoveredPortKey),
+      TOOLTIP_DELAY,
+    )
+    return () => window.clearTimeout(timer)
+  }, [hoveredPortKey, tooltipsEnabled])
 
-  const [prevKey, setPrevKey] = useState<string | null>(null)
-  if (hoveredPortKey !== prevKey) {
-    setPrevKey(hoveredPortKey)
-    handlePortHover(hoveredPortKey)
-  }
-
-  if (activeKey && hoveredPortKey === null) {
-    setActiveKey(null)
-  }
-
-  if (!activeKey || !tooltipsEnabled) return null
+  if (!activeKey || !tooltipsEnabled || activeKey !== hoveredPortKey) return null
 
   const parts = activeKey.split(':')
   const moduleId = parts[0]

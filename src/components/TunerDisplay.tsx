@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useTheme } from '../theme/ThemeProvider'
+import { useTheme } from '../theme/themeContext'
 import { drawTunerCents } from './canvasPrimitives'
 
 const NOTE_NAMES = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']

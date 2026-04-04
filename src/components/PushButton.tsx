@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { engine } from '../engine/EngineController'
+import { useStore } from '../store'
 
 interface PushButtonProps {
   moduleId: string
@@ -7,18 +7,19 @@ interface PushButtonProps {
 
 export function PushButton({ moduleId }: PushButtonProps) {
   const [pressed, setPressed] = useState(false)
+  const setGate = useStore((s) => s.setGate)
 
   const handleDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setPressed(true)
-    engine.setGate(moduleId, 'gate', 1)
-  }, [moduleId])
+    setGate(moduleId, 'gate', 1)
+  }, [moduleId, setGate])
 
   const handleUp = useCallback(() => {
     setPressed(false)
-    engine.setGate(moduleId, 'gate', 0)
-  }, [moduleId])
+    setGate(moduleId, 'gate', 0)
+  }, [moduleId, setGate])
 
   return (
     <div
@@ -27,7 +28,7 @@ export function PushButton({ moduleId }: PushButtonProps) {
       onPointerLeave={() => {
         if (pressed) {
           setPressed(false)
-          engine.setGate(moduleId, 'gate', 0)
+          setGate(moduleId, 'gate', 0)
         }
       }}
       style={{

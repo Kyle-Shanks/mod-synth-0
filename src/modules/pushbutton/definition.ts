@@ -71,7 +71,7 @@ export const PushButtonDefinition: ModuleDefinition<
       // write gate output
       outputs.gate[i] = state.gateHigh ? 1.0 : 0.0
 
-      // write trigger output (1ms pulse on rising edge)
+      // write trigger output (10ms pulse on rising edge)
       if (state.triggerSamplesRemaining > 0) {
         outputs.trigger[i] = 1.0
         state.triggerSamplesRemaining--

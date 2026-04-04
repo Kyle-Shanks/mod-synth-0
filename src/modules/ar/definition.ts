@@ -4,7 +4,7 @@ interface ARState {
   stage: string
   level: number
   gateWasHigh: boolean
-  prevStage: string
+  eocTimer: number
   [key: string]: unknown
 }
 
@@ -81,12 +81,13 @@ export const ARDefinition: ModuleDefinition<
   },
 
   initialize(): ARState {
-    return { stage: 'idle', level: 0, gateWasHigh: false, prevStage: 'idle' }
+    return { stage: 'idle', level: 0, gateWasHigh: false, eocTimer: 0 }
   },
 
   process(inputs, outputs, params, state, context) {
     const attackSamples = Math.max(1, params.attack * context.sampleRate)
     const releaseSamples = Math.max(1, params.release * context.sampleRate)
+    const triggerDuration = Math.max(1, Math.round(context.sampleRate * 0.01))
     const triggerMode = Math.round(params.mode) === 1
     const releaseDecay = Math.exp(-Math.log(1000) / releaseSamples)
 
@@ -109,7 +110,6 @@ export const ARDefinition: ModuleDefinition<
       }
 
       state.gateWasHigh = gateHigh
-      state.prevStage = state.stage
 
       // advance envelope
       if (state.stage === 'attack') {
@@ -126,15 +126,19 @@ export const ARDefinition: ModuleDefinition<
         if (state.level < 0.001) {
           state.level = 0
           state.stage = 'idle'
+          state.eocTimer = triggerDuration
         }
       } else {
         state.level = 0
       }
 
       outputs.out[i] = state.level
-      // eoc fires on the sample where stage just became 'idle' from 'release'
-      outputs.eoc[i] =
-        state.prevStage === 'release' && state.stage === 'idle' ? 1 : 0
+      if (state.eocTimer > 0) {
+        outputs.eoc[i] = 1
+        state.eocTimer--
+      } else {
+        outputs.eoc[i] = 0
+      }
     }
   },
 }
