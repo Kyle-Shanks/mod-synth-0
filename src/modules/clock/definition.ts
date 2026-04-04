@@ -5,6 +5,7 @@ interface ClockState {
   divCount: number
   gateHigh: boolean
   divGateHigh: boolean
+  triggerTimer: number
   [key: string]: unknown
 }
 
@@ -21,7 +22,7 @@ export const ClockDefinition: ModuleDefinition<
     bpm: {
       type: 'float'
       min: 20
-      max: 300
+      max: 600
       default: 120
       label: 'bpm'
       unit: 'bpm'
@@ -60,7 +61,7 @@ export const ClockDefinition: ModuleDefinition<
     bpm: {
       type: 'float',
       min: 20,
-      max: 300,
+      max: 600,
       default: 120,
       label: 'bpm',
       unit: 'bpm',
@@ -86,6 +87,7 @@ export const ClockDefinition: ModuleDefinition<
       divCount: 0,
       gateHigh: false,
       divGateHigh: false,
+      triggerTimer: 0,
     }
   },
 
@@ -99,6 +101,8 @@ export const ClockDefinition: ModuleDefinition<
     const divRatio = divRatios[Math.round(params.division)] ?? 4
     // gate duration: 50% duty cycle (adjusted by swing on even beats)
     const gateDuty = 0.5
+    // 10ms trigger pulse duration (matches pushbutton behavior)
+    const triggerDuration = Math.round(sampleRate * 0.01)
 
     for (let i = 0; i < 128; i++) {
       // reset on trigger
@@ -128,9 +132,13 @@ export const ClockDefinition: ModuleDefinition<
       const newGateHigh = effectivePhase >= 0 && effectivePhase < gateDuty
       outputs.gate[i] = newGateHigh ? 1 : 0
 
-      // trigger: 1-sample pulse on rising edge
+      // trigger: 10ms pulse on rising edge (matches pushbutton trigger width)
       if (wrapped || (prevPhase < swingOffset && state.phase >= swingOffset)) {
+        state.triggerTimer = triggerDuration
+      }
+      if (state.triggerTimer > 0) {
         outputs.trigger[i] = 1
+        state.triggerTimer--
       } else {
         outputs.trigger[i] = 0
       }

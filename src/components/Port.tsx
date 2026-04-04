@@ -28,7 +28,11 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
   const portKey = `${moduleId}:${portId}`
   const isHovered = hoveredPortKey === portKey
 
+  const zoom = useStore((s) => s.zoom)
+
   // update port position cache
+  // getBoundingClientRect() returns viewport (scaled) coords; divide by zoom to get
+  // logical coords matching the SVG/Tooltip coordinate space inside the CSS-scaled rack
   const updatePosition = useCallback(() => {
     const el = ref.current
     if (!el) return
@@ -37,10 +41,10 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
     if (!rackEl) return
     const rackRect = rackEl.getBoundingClientRect()
     portPositionCache.set(moduleId, portId, {
-      x: rect.left - rackRect.left + rect.width / 2,
-      y: rect.top - rackRect.top + rect.height / 2,
+      x: (rect.left - rackRect.left + rect.width / 2) / zoom,
+      y: (rect.top - rackRect.top + rect.height / 2) / zoom,
     })
-  }, [moduleId, portId])
+  }, [moduleId, portId, zoom])
 
   useEffect(() => {
     updatePosition()
@@ -155,19 +159,26 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
   const isOutput = direction === 'output'
   const validTarget = isValidTarget()
 
-  // determine if this port is an invalid drag target
+  // a port is an invalid drag target if: there's a drag, it's the opposite direction,
+  // it's not self, and the signal types are incompatible
   const isInvalidTarget = !!dragState
     && dragState.fromModuleId !== moduleId
     && dragState.fromDirection !== direction
     && !validTarget
 
-  let ringColor = 'var(--shade2)'
-  if (isHovered || validTarget) ringColor = 'var(--accent0)'
-  if (dragState && isInvalidTarget && isHovered) ringColor = 'var(--accent2)'
+  // ring color: during a drag, show accent0 for valid targets and accent2 for invalid
+  // targets regardless of hover; outside of a drag, accent0 only on hover
+  let ringColor: string
   if (isOutput) {
-    ringColor = isHovered
-      ? (dragState && isInvalidTarget ? 'var(--accent2)' : 'var(--accent0)')
-      : 'var(--shade0)'
+    if (dragState && isInvalidTarget) ringColor = 'var(--accent2)'
+    else if (dragState && validTarget) ringColor = 'var(--accent0)'
+    else if (isHovered) ringColor = 'var(--accent0)'
+    else ringColor = 'var(--shade0)'
+  } else {
+    if (dragState && isInvalidTarget) ringColor = 'var(--accent2)'
+    else if (dragState && validTarget) ringColor = 'var(--accent0)'
+    else if (isHovered) ringColor = 'var(--accent0)'
+    else ringColor = 'var(--shade2)'
   }
 
   return (

@@ -15,7 +15,7 @@ class WorkletModule {
 
     // initialize smoothers for each param
     this.smoothers = {}
-    const coeff = 1 - Math.exp(-2 * Math.PI * 100 / sr)  // ~10ms at 44100
+    const coeff = 1 - Math.exp(-2 * Math.PI * 300 / sr)  // ~3ms at 44100
     for (const [key, value] of Object.entries(params)) {
       this.smoothers[key] = { smoothed: value, coeff }
     }

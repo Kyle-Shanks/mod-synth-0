@@ -13,7 +13,7 @@ import { GainMeter } from './GainMeter'
 import { TunerDisplay } from './TunerDisplay'
 import { CanvasZone } from './CanvasZone'
 import type { CanvasData } from './CanvasZone'
-import { drawScopeTrace, drawGrid } from './canvasPrimitives'
+import { drawScopeTrace, drawGrid, drawXYTrace } from './canvasPrimitives'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 
@@ -44,15 +44,7 @@ function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
 }
 
 function renderXY(ctx: CanvasRenderingContext2D, data: CanvasData) {
-  const {
-    width,
-    height,
-    theme,
-    xBuffer,
-    yBuffer,
-    writeIndexBuffer,
-    moduleParams,
-  } = data
+  const { width, height, theme, xBuffer, yBuffer, writeIndexBuffer, moduleParams } = data
   ctx.fillStyle = theme.shades.shade0
   ctx.fillRect(0, 0, width, height)
 
@@ -60,30 +52,8 @@ function renderXY(ctx: CanvasRenderingContext2D, data: CanvasData) {
 
   const scale = moduleParams.scale ?? 1
   const persist = moduleParams.persist ?? 0.3
-  const alpha = Math.round((0.2 + (1 - persist) * 0.6) * 255)
-    .toString(16)
-    .padStart(2, '0')
-  ctx.fillStyle = theme.shades.shade0 + alpha
-  ctx.fillRect(0, 0, width, height)
-
   const wIdx = Atomics.load(writeIndexBuffer, 0)
-  const nSamples = 512
-  const bufLen = xBuffer.length
-  const cx = width / 2
-  const cy = height / 2
-  const r = Math.min(width, height) * 0.43
-
-  ctx.strokeStyle = theme.accents.accent1
-  ctx.lineWidth = 1.5
-  ctx.beginPath()
-  for (let i = 0; i < nSamples; i++) {
-    const idx = (wIdx - nSamples + i + bufLen) % bufLen
-    const px = cx + (xBuffer[idx] ?? 0) * scale * r
-    const py = cy - (yBuffer[idx] ?? 0) * scale * r
-    if (i === 0) ctx.moveTo(px, py)
-    else ctx.lineTo(px, py)
-  }
-  ctx.stroke()
+  drawXYTrace(ctx, xBuffer, yBuffer, wIdx, scale, persist, theme.shades.shade0, theme.accents.accent1, width, height)
 }
 
 export function ModulePanel({ moduleId }: ModulePanelProps) {
@@ -205,8 +175,11 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         if (!dragRef.current) return
         const dx = ev.clientX - dragRef.current.startX
         const dy = ev.clientY - dragRef.current.startY
-        const newX = dragRef.current.origX + Math.round(dx / GRID_UNIT)
-        const newY = dragRef.current.origY + Math.round(dy / GRID_UNIT)
+        // mouse deltas are in viewport (scaled) pixels; divide by zoom to get logical pixels,
+        // then divide by GRID_UNIT to convert to grid units
+        const z = useStore.getState().zoom
+        const newX = dragRef.current.origX + Math.round(dx / z / GRID_UNIT)
+        const newY = dragRef.current.origY + Math.round(dy / z / GRID_UNIT)
         setModulePosition(moduleId, { x: newX, y: newY })
         // update port positions on next frame for cable redraw
         requestAnimationFrame(updatePortPositions)

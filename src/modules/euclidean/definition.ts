@@ -4,6 +4,8 @@ interface EuclideanState {
   pattern: null | number[]
   currentStep: number
   clockWasHigh: boolean
+  outTimer: number
+  accentTimer: number
   _prevN: unknown
   _prevK: unknown
   _prevRot: unknown
@@ -51,13 +53,15 @@ export const EuclideanDefinition: ModuleDefinition<
       pattern: null,
       currentStep: 0,
       clockWasHigh: false,
+      outTimer: 0,
+      accentTimer: 0,
       _prevN: null,
       _prevK: null,
       _prevRot: null,
     }
   },
 
-  process(inputs, outputs, params, state) {
+  process(inputs, outputs, params, state, context) {
     function buildPattern(n: number, k: number, rot: number): number[] {
       const pat: number[] = []
       for (let i = 0; i < n; i++) {
@@ -75,6 +79,7 @@ export const EuclideanDefinition: ModuleDefinition<
     const n = Math.max(1, Math.round(params.steps))
     const k = Math.max(0, Math.min(n, Math.round(params.pulses)))
     const rot = Math.round(params.offset) % n
+    const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse
 
     if (state._prevN !== n || state._prevK !== k || state._prevRot !== rot) {
       state.pattern = buildPattern(n, k, rot)
@@ -94,18 +99,29 @@ export const EuclideanDefinition: ModuleDefinition<
         state.currentStep = 0
       }
 
-      outputs.out[i] = 0
-      outputs.accent[i] = 0
-
       if (risingEdge) {
         state.currentStep = ((state.currentStep as number) + 1) % n
         const active = pattern[state.currentStep as number] === 1
         if (active) {
-          outputs.out[i] = 1
+          state.outTimer = triggerDuration
           if ((state.currentStep as number) === 0) {
-            outputs.accent[i] = 1
+            state.accentTimer = triggerDuration
           }
         }
+      }
+
+      // 10ms trigger pulses
+      if (state.outTimer > 0) {
+        outputs.out[i] = 1
+        state.outTimer--
+      } else {
+        outputs.out[i] = 0
+      }
+      if (state.accentTimer > 0) {
+        outputs.accent[i] = 1
+        state.accentTimer--
+      } else {
+        outputs.accent[i] = 0
       }
 
       state.clockWasHigh = clockHigh

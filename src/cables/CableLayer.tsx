@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect, useCallback, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '../store'
 import { portPositionCache } from './PortPositionCache'
 import { cablePath } from './CableBezier'
@@ -167,8 +168,8 @@ export function CableLayer() {
         />
       </svg>
 
-      {/* cable context menu */}
-      {contextMenu && (
+      {/* cable context menu — portalled to document.body to escape the rack's CSS transform */}
+      {contextMenu && createPortal(
         <div
           style={{
             position: 'fixed',
@@ -179,7 +180,7 @@ export function CableLayer() {
         >
           <div
             style={{
-              position: 'absolute',
+              position: 'fixed',
               left: contextMenu.x,
               top: contextMenu.y,
               background: 'var(--shade1)',
@@ -209,7 +210,8 @@ export function CableLayer() {
               disconnect
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

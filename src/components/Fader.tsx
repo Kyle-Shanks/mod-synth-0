@@ -39,12 +39,17 @@ export function Fader({
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    useStore.getState().stageHistory()
-    // double-click resets to default before pointer lock can interfere
     if (e.detail === 2) {
+      // double-click: cancel any active drag, then reset to default
+      dragRef.current = null
+      setDragging(false)
+      document.exitPointerLock()
+      useStore.getState().stageHistory()
       setParam(moduleId, paramId, definition.default)
+      useStore.getState().commitHistory()
       return
     }
+    useStore.getState().stageHistory()
     dragRef.current = { currentValue: value }
     setDragging(true)
     elRef.current?.requestPointerLock()
@@ -93,7 +98,15 @@ export function Fader({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onDoubleClick={(e) => { e.stopPropagation(); useStore.getState().stageHistory(); setParam(moduleId, paramId, definition.default); useStore.getState().commitHistory() }}
+      onDoubleClick={(e) => {
+        e.stopPropagation()
+        dragRef.current = null
+        setDragging(false)
+        document.exitPointerLock()
+        useStore.getState().stageHistory()
+        setParam(moduleId, paramId, definition.default)
+        useStore.getState().commitHistory()
+      }}
     >
       <div
         ref={elRef}

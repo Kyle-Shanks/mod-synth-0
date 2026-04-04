@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { useTheme } from '../theme/ThemeProvider'
+import { drawTunerCents } from './canvasPrimitives'
 
 const NOTE_NAMES = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
 
@@ -16,10 +18,13 @@ const MIN_DISPLAY = 3
 const NEEDLE_ALPHA = 0.35
 
 export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
-  const noteRef  = useRef<HTMLDivElement | null>(null)
-  const centsRef = useRef<HTMLDivElement | null>(null)
-  const freqRef  = useRef<HTMLDivElement | null>(null)
-  const barRef   = useRef<HTMLDivElement | null>(null)
+  const noteRef   = useRef<HTMLDivElement | null>(null)
+  const centsRef  = useRef<HTMLDivElement | null>(null)
+  const freqRef   = useRef<HTMLDivElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const theme = useTheme()
+  const themeRef = useRef(theme)
+  useEffect(() => { themeRef.current = theme }, [theme])
 
   // rolling window of recent semitone readings (only valid detections)
   const semiWindowRef   = useRef<number[]>([])
@@ -76,30 +81,45 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
         const cents   = (semi - Math.round(semi)) * 100
         const freq    = 440 * Math.pow(2, (semi - 69) / 12)
 
-        const noteEl = noteRef.current
+        const noteEl  = noteRef.current
         const centsEl = centsRef.current
-        const freqEl = freqRef.current
-        const barEl  = barRef.current
+        const freqEl  = freqRef.current
 
         if (noteEl)  noteEl.textContent  = note + octave
         if (centsEl) centsEl.textContent = (cents >= 0 ? '+' : '') + cents.toFixed(0) + '¢'
         if (freqEl)  freqEl.textContent  = freq.toFixed(1) + ' hz'
 
-        const barFraction = Math.max(0, Math.min(1, (cents + 50) / 100))
-        if (barEl) {
-          barEl.style.left = `${barFraction * 100}%`
-          barEl.style.background = Math.abs(cents) < 5 ? 'var(--accent1)' : 'var(--accent2)'
+        const canvas = canvasRef.current
+        if (canvas) {
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            const t = themeRef.current
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.strokeStyle = t.shades.shade2
+            ctx.lineWidth = 1
+            ctx.beginPath()
+            ctx.moveTo(canvas.width / 2, 0)
+            ctx.lineTo(canvas.width / 2, canvas.height)
+            ctx.stroke()
+            const absCents = Math.abs(cents)
+            const barColor = absCents < 5 ? t.accents.accent1 : absCents < 20 ? t.accents.accent3 : t.accents.accent2
+            drawTunerCents(ctx, cents, rawClarity, canvas.width, canvas.height, barColor)
+          }
         }
       } else {
         smoothedSemiRef.current = null
-        const noteEl = noteRef.current
+        const noteEl  = noteRef.current
         const centsEl = centsRef.current
-        const freqEl = freqRef.current
-        const barEl  = barRef.current
+        const freqEl  = freqRef.current
         if (noteEl)  noteEl.textContent  = '--'
         if (centsEl) centsEl.textContent = '--'
         if (freqEl)  freqEl.textContent  = '-- hz'
-        if (barEl)   barEl.style.left    = '50%'
+
+        const canvas = canvasRef.current
+        if (canvas) {
+          const ctx = canvas.getContext('2d')
+          ctx?.clearRect(0, 0, canvas.width, canvas.height)
+        }
       }
 
       rafId = requestAnimationFrame(animate)
@@ -146,46 +166,20 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
         --
       </div>
 
-      {/* cents bar track */}
-      <div
+      {/* cents bar canvas */}
+      <canvas
+        ref={canvasRef}
+        width={128}
+        height={8}
         style={{
           width: '100%',
-          height: 6,
+          height: 8,
+          display: 'block',
+          borderRadius: 1,
           background: 'var(--shade0)',
           border: '1px solid var(--shade2)',
-          borderRadius: 1,
-          position: 'relative',
-          overflow: 'hidden',
         }}
-      >
-        {/* center marker */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: 0,
-            bottom: 0,
-            width: 1,
-            background: 'var(--shade3)',
-            transform: 'translateX(-50%)',
-          }}
-        />
-        {/* needle */}
-        <div
-          ref={barRef}
-          style={{
-            position: 'absolute',
-            top: 1,
-            bottom: 1,
-            width: 3,
-            background: 'var(--accent2)',
-            borderRadius: 1,
-            transform: 'translateX(-50%)',
-            left: '50%',
-            transition: 'left 0.05s linear',
-          }}
-        />
-      </div>
+      />
 
       {/* frequency readout */}
       <div

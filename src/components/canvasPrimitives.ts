@@ -50,6 +50,66 @@ export function drawScopeTrace(
   ctx.stroke()
 }
 
+export function drawTunerCents(
+  ctx: CanvasRenderingContext2D,
+  cents: number,
+  clarity: number,
+  width: number,
+  height: number,
+  color: string,
+): void {
+  if (clarity <= 0) return
+  const absCents = Math.abs(cents)
+  const fraction = Math.min(1, absCents / 50)
+  const halfWidth = width / 2
+  const barLen = fraction * halfWidth
+  const barHeight = 3
+  const barY = height / 2 - barHeight / 2
+  const barX = cents >= 0 ? halfWidth : halfWidth - barLen
+
+  ctx.globalAlpha = Math.max(0, Math.min(1, clarity))
+  ctx.fillStyle = color
+  ctx.fillRect(barX, barY, barLen, barHeight)
+  ctx.globalAlpha = 1
+}
+
+export function drawXYTrace(
+  ctx: CanvasRenderingContext2D,
+  xBuffer: Float32Array,
+  yBuffer: Float32Array,
+  writeIndex: number,
+  scale: number,
+  persist: number,
+  trailColor: string,
+  lineColor: string,
+  width: number,
+  height: number,
+): void {
+  const alpha = Math.round((0.2 + (1 - persist) * 0.6) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  ctx.fillStyle = trailColor + alpha
+  ctx.fillRect(0, 0, width, height)
+
+  const nSamples = 512
+  const bufLen = xBuffer.length
+  const cx = width / 2
+  const cy = height / 2
+  const r = Math.min(width, height) * 0.43
+
+  ctx.strokeStyle = lineColor
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  for (let i = 0; i < nSamples; i++) {
+    const idx = (writeIndex - nSamples + i + bufLen) % bufLen
+    const px = cx + (xBuffer[idx] ?? 0) * scale * r
+    const py = cy - (yBuffer[idx] ?? 0) * scale * r
+    if (i === 0) ctx.moveTo(px, py)
+    else ctx.lineTo(px, py)
+  }
+  ctx.stroke()
+}
+
 export function drawGrid(
   ctx: CanvasRenderingContext2D,
   color: string,

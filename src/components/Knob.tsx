@@ -41,12 +41,17 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    useStore.getState().stageHistory()
-    // double-click (detail === 2) resets to default before pointer lock can interfere
     if (e.detail === 2) {
+      // double-click: cancel any active drag, then reset to default
+      dragRef.current = null
+      setDragging(false)
+      document.exitPointerLock()
+      useStore.getState().stageHistory()
       setParam(moduleId, paramId, definition.default)
+      useStore.getState().commitHistory()
       return
     }
+    useStore.getState().stageHistory()
     dragRef.current = { currentValue: value }
     setDragging(true)
     // lock pointer so cursor stays hidden and in place
@@ -84,6 +89,17 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
     ? `${(value / 1000).toFixed(1)}k`
     : value.toFixed(value < 10 ? 2 : 1)
 
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    // cancel any active drag first, then reset — this fires reliably even inside pointer lock
+    dragRef.current = null
+    setDragging(false)
+    document.exitPointerLock()
+    useStore.getState().stageHistory()
+    setParam(moduleId, paramId, definition.default)
+    useStore.getState().commitHistory()
+  }, [moduleId, paramId, definition.default, setParam])
+
   return (
     <div
       style={{
@@ -95,6 +111,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onDoubleClick={handleDoubleClick}
     >
       <svg
         ref={svgRef}

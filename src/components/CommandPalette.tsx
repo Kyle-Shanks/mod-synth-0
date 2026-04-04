@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useStore } from '../store'
 import { getAllModules } from '../modules/registry'
+import type { ModuleDefinition } from '../engine/types'
+
+const CATEGORY_ORDER = ['source', 'control', 'envelope', 'filter', 'dynamics', 'fx', 'utility', 'display'] as const
+
+type DisplayItem =
+  | { kind: 'header'; category: string }
+  | { kind: 'module'; mod: ModuleDefinition; flatIndex: number }
 
 export function CommandPalette() {
   const open = useStore((s) => s.commandPaletteOpen)
@@ -12,55 +19,88 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const allModules = getAllModules()
-  const filtered = query
-    ? allModules.filter((m) => {
-        const q = query.toLowerCase()
-        return m.name.includes(q) || m.category.includes(q) || m.id.includes(q)
-      })
-    : allModules
+
+  // flat list of selectable modules (used for keyboard nav)
+  const selectableModules: ModuleDefinition[] = query
+    ? allModules
+        .filter((m) => {
+          const q = query.toLowerCase()
+          return m.name.includes(q) || m.category.includes(q) || m.id.includes(q)
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : CATEGORY_ORDER.flatMap((cat) =>
+        allModules
+          .filter((m) => m.category === cat)
+          .sort((a, b) => a.name.localeCompare(b.name))
+      )
+
+  // display items — interleave category headers when not filtering
+  const displayItems: DisplayItem[] = query
+    ? selectableModules.map((mod, i) => ({ kind: 'module', mod, flatIndex: i }))
+    : (() => {
+        const items: DisplayItem[] = []
+        let flatIndex = 0
+        for (const cat of CATEGORY_ORDER) {
+          const mods = allModules
+            .filter((m) => m.category === cat)
+            .sort((a, b) => a.name.localeCompare(b.name))
+          if (mods.length === 0) continue
+          items.push({ kind: 'header', category: cat })
+          for (const mod of mods) {
+            items.push({ kind: 'module', mod, flatIndex: flatIndex++ })
+          }
+        }
+        return items
+      })()
 
   // focus input when opened
   useEffect(() => {
     if (open) {
       setQuery('')
       setSelectedIndex(0)
-      // small delay for DOM to render
       requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
 
   // clamp selection
   useEffect(() => {
-    if (selectedIndex >= filtered.length) setSelectedIndex(Math.max(0, filtered.length - 1))
-  }, [filtered.length, selectedIndex])
+    if (selectedIndex >= selectableModules.length)
+      setSelectedIndex(Math.max(0, selectableModules.length - 1))
+  }, [selectableModules.length, selectedIndex])
 
-  const handleSelect = useCallback((definitionId: string) => {
-    addModule(definitionId, position ?? { x: 2, y: 2 })
-    setOpen(false)
-  }, [addModule, position, setOpen])
+  const handleSelect = useCallback(
+    (definitionId: string) => {
+      addModule(definitionId, position ?? { x: 2, y: 2 })
+      setOpen(false)
+    },
+    [addModule, position, setOpen],
+  )
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1))
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setSelectedIndex((i) => Math.max(i - 1, 0))
-        break
-      case 'Enter': {
-        e.preventDefault()
-        const sel = filtered[selectedIndex]
-        if (sel) handleSelect(sel.id)
-        break
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          setSelectedIndex((i) => Math.min(i + 1, selectableModules.length - 1))
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          setSelectedIndex((i) => Math.max(i - 1, 0))
+          break
+        case 'Enter': {
+          e.preventDefault()
+          const sel = selectableModules[selectedIndex]
+          if (sel) handleSelect(sel.id)
+          break
+        }
+        case 'Escape':
+          e.preventDefault()
+          setOpen(false)
+          break
       }
-      case 'Escape':
-        e.preventDefault()
-        setOpen(false)
-        break
-    }
-  }, [filtered, selectedIndex, handleSelect, setOpen])
+    },
+    [selectableModules, selectedIndex, handleSelect, setOpen],
+  )
 
   if (!open) return null
 
@@ -96,7 +136,10 @@ export function CommandPalette() {
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setSelectedIndex(0)
+            }}
             onKeyDown={handleKeyDown}
             placeholder="add module..."
             style={{
@@ -114,32 +157,50 @@ export function CommandPalette() {
 
         {/* results */}
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {filtered.map((mod, i) => (
+          {displayItems.map((item, i) =>
+            item.kind === 'header' ? (
+              <div
+                key={`header-${item.category}`}
+                style={{
+                  padding: '4px 12px 2px',
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--shade2)',
+                  letterSpacing: '0.08em',
+                  marginTop: i === 0 ? 0 : 4,
+                }}
+              >
+                {item.category}
+              </div>
+            ) : (
+              <div
+                key={item.mod.id}
+                onClick={() => handleSelect(item.mod.id)}
+                style={{
+                  padding: '6px 12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  background:
+                    item.flatIndex === selectedIndex ? 'var(--accent0)' : 'transparent',
+                  color:
+                    item.flatIndex === selectedIndex ? 'var(--shade0)' : 'var(--shade3)',
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                <span>{item.mod.name}</span>
+              </div>
+            ),
+          )}
+          {selectableModules.length === 0 && (
             <div
-              key={mod.id}
-              onClick={() => handleSelect(mod.id)}
               style={{
-                padding: '6px 12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-                background: i === selectedIndex ? 'var(--accent0)' : 'transparent',
-                color: i === selectedIndex ? 'var(--shade0)' : 'var(--shade3)',
+                padding: '12px',
+                color: 'var(--shade2)',
                 fontSize: 'var(--text-sm)',
+                textAlign: 'center',
               }}
             >
-              <span>{mod.name}</span>
-              <span style={{
-                fontSize: 'var(--text-xs)',
-                opacity: 0.6,
-              }}>
-                {mod.category}
-              </span>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <div style={{ padding: '12px', color: 'var(--shade2)', fontSize: 'var(--text-sm)', textAlign: 'center' }}>
               no modules found
             </div>
           )}
