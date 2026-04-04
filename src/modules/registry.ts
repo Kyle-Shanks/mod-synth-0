@@ -18,7 +18,7 @@ import { ReverbDefinition } from './reverb/definition'
 import { DelayDefinition } from './delay/definition'
 import { SlewDefinition } from './slew/definition'
 import { MultDefinition } from './mult/definition'
-import { EnvFollowDefinition } from './envfollow/definition'
+import { EnvFollowerDefinition } from './envfollower/definition'
 import { ARDefinition } from './ar/definition'
 import { ComparatorDefinition } from './comparator/definition'
 import { LogicDefinition } from './logic/definition'
@@ -78,7 +78,7 @@ reg(DelayDefinition)
 // stage 9 modules
 reg(SlewDefinition)
 reg(MultDefinition)
-reg(EnvFollowDefinition)
+reg(EnvFollowerDefinition)
 reg(ARDefinition)
 reg(ComparatorDefinition)
 reg(LogicDefinition)

@@ -1,11 +1,11 @@
 import type { ModuleDefinition } from '../../engine/types'
 
-interface EnvFollowState {
+interface EnvFollowerState {
   envelope: number
   [key: string]: unknown
 }
 
-export const EnvFollowDefinition: ModuleDefinition<
+export const EnvFollowerDefinition: ModuleDefinition<
   {
     in: { type: 'audio'; default: 0; label: 'in' }
   },
@@ -30,10 +30,10 @@ export const EnvFollowDefinition: ModuleDefinition<
       unit: 's'
     }
   },
-  EnvFollowState
+  EnvFollowerState
 > = {
-  id: 'envfollow',
-  name: 'env flw',
+  id: 'envfollower',
+  name: 'env flwr',
   category: 'dynamics',
   width: 2,
   height: 3,
@@ -63,7 +63,7 @@ export const EnvFollowDefinition: ModuleDefinition<
     },
   },
 
-  initialize(): EnvFollowState {
+  initialize(): EnvFollowerState {
     return { envelope: 0 }
   },
 
