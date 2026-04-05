@@ -61,7 +61,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 **lfo** — low frequency oscillator. same waveforms as the vco but operates below audio rate (0.01hz–100hz). outputs are cv-typed so they patch naturally to filter cutoffs, vca gains, and other modulation targets.
 
-**noise** — white and pink noise generator. useful for percussion, wind textures, and randomization.
+**noise** — white, pink, and brown noise generator. useful for percussion, wind textures, and randomization.
 
 ### filters and dynamics
 

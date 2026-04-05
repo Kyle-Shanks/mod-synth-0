@@ -97,6 +97,12 @@ export const FlangerDefinition: ModuleDefinition<
       mode === 0 ? context.sampleRate * 0.003 : context.sampleRate * 0.02
     const modRange =
       mode === 0 ? context.sampleRate * 0.006 : context.sampleRate * 0.015
+    // keep delay strictly positive to avoid reading ahead of the write head
+    // (negative/near-zero delay causes zippery clicks at high depth)
+    const minDelaySamples = 2
+    const depth = Math.max(0, Math.min(1, params.depth))
+    const maxModDepth = Math.max(0, baseDelay - minDelaySamples)
+    const modDepth = Math.min(modRange * depth, maxModDepth)
 
     const lfoInc = params.rate / context.sampleRate
 
@@ -104,7 +110,7 @@ export const FlangerDefinition: ModuleDefinition<
       // advance lfo
       state.lfoPhase = ((state.lfoPhase as number) + lfoInc) % 1
       const lfo = Math.sin((state.lfoPhase as number) * twoPi)
-      const delaySamples = baseDelay + lfo * modRange * params.depth
+      const delaySamples = baseDelay + lfo * modDepth
 
       // linear interpolation read
       const readPos =

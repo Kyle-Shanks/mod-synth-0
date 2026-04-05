@@ -15,13 +15,21 @@ interface PortProps {
 
 const PORT_RADIUS = 8
 
-export function Port({ moduleId, portId, direction, type, label, connected }: PortProps) {
+export function Port({
+  moduleId,
+  portId,
+  direction,
+  type,
+  label,
+  connected,
+}: PortProps) {
   const ref = useRef<HTMLDivElement>(null)
   const dragState = useStore((s) => s.dragState)
   const setDragState = useStore((s) => s.setDragState)
   const addCable = useStore((s) => s.addCable)
   const removeCable = useStore((s) => s.removeCable)
   const cables = useStore((s) => s.cables)
+  const modules = useStore((s) => s.modules)
   const hoveredPortKey = useStore((s) => s.hoveredPortKey)
   const setHoveredPort = useStore((s) => s.setHoveredPort)
 
@@ -54,21 +62,26 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    ;(el as HTMLDivElement & { _updatePortPosition?: () => void })._updatePortPosition = updatePosition
+    ;(
+      el as HTMLDivElement & { _updatePortPosition?: () => void }
+    )._updatePortPosition = updatePosition
   }, [updatePosition])
 
   const isValidTarget = useCallback(() => {
     if (!dragState) return false
     // can't connect to self
-    if (dragState.fromModuleId === moduleId && dragState.fromPortId === portId) return false
+    if (dragState.fromModuleId === moduleId && dragState.fromPortId === portId)
+      return false
     // must be opposite direction
     if (dragState.fromDirection === direction) return false
     // check type compatibility: audio↔cv allowed, trigger↔gate allowed
     const a = dragState.portType
     const b = type
     if (a === b) return true
-    if ((a === 'audio' && b === 'cv') || (a === 'cv' && b === 'audio')) return true
-    if ((a === 'trigger' && b === 'gate') || (a === 'gate' && b === 'trigger')) return true
+    if ((a === 'audio' && b === 'cv') || (a === 'cv' && b === 'audio'))
+      return true
+    if ((a === 'trigger' && b === 'gate') || (a === 'gate' && b === 'trigger'))
+      return true
     return false
   }, [dragState, moduleId, portId, direction, type])
 
@@ -100,7 +113,7 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
     } else {
       // input port: if connected, pick up the cable from the other end
       const existingCable = Object.values(cables).find(
-        (c) => c.to.moduleId === moduleId && c.to.portId === portId
+        (c) => c.to.moduleId === moduleId && c.to.portId === portId,
       )
       if (existingCable) {
         // find the type of the source port
@@ -109,7 +122,10 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
         const srcPort = srcDef?.outputs[existingCable.from.portId]
         const srcType = srcPort?.type ?? type
 
-        const srcPos = portPositionCache.get(existingCable.from.moduleId, existingCable.from.portId)
+        const srcPos = portPositionCache.get(
+          existingCable.from.moduleId,
+          existingCable.from.portId,
+        )
         removeCable(existingCable.id)
         setDragState({
           fromModuleId: existingCable.from.moduleId,
@@ -135,12 +151,14 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
 
   function completeCableConnection() {
     if (!dragState) return
-    const from = dragState.fromDirection === 'output'
-      ? { moduleId: dragState.fromModuleId, portId: dragState.fromPortId }
-      : { moduleId, portId }
-    const to = dragState.fromDirection === 'output'
-      ? { moduleId, portId }
-      : { moduleId: dragState.fromModuleId, portId: dragState.fromPortId }
+    const from =
+      dragState.fromDirection === 'output'
+        ? { moduleId: dragState.fromModuleId, portId: dragState.fromPortId }
+        : { moduleId, portId }
+    const to =
+      dragState.fromDirection === 'output'
+        ? { moduleId, portId }
+        : { moduleId: dragState.fromModuleId, portId: dragState.fromPortId }
 
     addCable({
       id: `cable-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -161,29 +179,62 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
 
   // a port is an invalid drag target if: there's a drag, it's the opposite direction,
   // it's not self, and the signal types are incompatible
-  const isInvalidTarget = !!dragState
-    && dragState.fromModuleId !== moduleId
-    && dragState.fromDirection !== direction
-    && !validTarget
+  const isInvalidTarget =
+    !!dragState &&
+    dragState.fromModuleId !== moduleId &&
+    dragState.fromDirection !== direction &&
+    !validTarget
 
-  // ring color: during a drag, show accent0 for valid targets and accent2 for invalid
-  // targets regardless of hover; outside of a drag, accent0 only on hover
+  // For connected ports, match ring color to the actual connected cable source type.
+  let connectedRingColor: string | null = null
+  if (connected) {
+    for (const cable of Object.values(cables)) {
+      const isFrom =
+        cable.from.moduleId === moduleId && cable.from.portId === portId
+      const isTo = cable.to.moduleId === moduleId && cable.to.portId === portId
+      if (!isFrom && !isTo) continue
+
+      if (isFrom) {
+        connectedRingColor = `var(--cable-${type})`
+      } else {
+        const srcMod = modules[cable.from.moduleId]
+        const srcDef = srcMod ? getModule(srcMod.definitionId) : undefined
+        const srcPort =
+          srcDef?.outputs[cable.from.portId] ??
+          srcDef?.inputs[cable.from.portId]
+        connectedRingColor = `var(--cable-${srcPort?.type ?? type})`
+      }
+      break
+    }
+  }
+
+  const typeRingColor = `var(--cable-${type})`
+
   let ringColor: string
-  if (isOutput) {
-    if (dragState && isInvalidTarget) ringColor = 'var(--accent2)'
-    else if (dragState && validTarget) ringColor = 'var(--accent0)'
-    else if (isHovered) ringColor = 'var(--accent0)'
-    else ringColor = 'var(--shade0)'
+  if (dragState && isInvalidTarget) {
+    ringColor = 'var(--shade2)'
+  } else if (dragState && (validTarget || dragState.fromPortId === portId)) {
+    ringColor = typeRingColor
+  } else if (isHovered) {
+    ringColor = typeRingColor
+  } else if (connectedRingColor) {
+    ringColor = connectedRingColor
+  } else if (isOutput) {
+    ringColor = 'var(--shade0)'
   } else {
-    if (dragState && isInvalidTarget) ringColor = 'var(--accent2)'
-    else if (dragState && validTarget) ringColor = 'var(--accent0)'
-    else if (isHovered) ringColor = 'var(--accent0)'
-    else ringColor = 'var(--shade2)'
+    ringColor = 'var(--shade2)'
   }
 
   return (
     <div
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
+        position: 'relative',
+        zIndex: 4,
+      }}
     >
       <div
         ref={ref}
@@ -196,6 +247,7 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
           width: PORT_RADIUS * 2 + 4,
           height: PORT_RADIUS * 2 + 4,
           borderRadius: '50%',
+          opacity: dragState && isInvalidTarget && !isOutput ? 0.5 : 1,
           border: `1.5px solid ${ringColor}`,
           background: isOutput ? 'var(--shade3)' : 'var(--shade1)',
           display: 'flex',
@@ -203,23 +255,29 @@ export function Port({ moduleId, portId, direction, type, label, connected }: Po
           justifyContent: 'center',
           cursor: 'crosshair',
           transition: 'border-color 100ms',
+          position: 'relative',
+          zIndex: 5,
         }}
       >
         {connected && (
-          <div style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: isOutput ? 'var(--shade0)' : `var(--cable-${type})`,
-          }} />
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: isOutput ? 'var(--shade0)' : `var(--cable-${type})`,
+            }}
+          />
         )}
       </div>
-      <span style={{
-        fontSize: 'var(--text-xs)',
-        color: isOutput ? 'var(--shade0)' : 'var(--shade3)',
-        lineHeight: 1,
-        whiteSpace: 'nowrap',
-      }}>
+      <span
+        style={{
+          fontSize: 'var(--text-xs)',
+          color: isOutput ? 'var(--shade0)' : 'var(--shade3)',
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+        }}
+      >
         {label}
       </span>
     </div>

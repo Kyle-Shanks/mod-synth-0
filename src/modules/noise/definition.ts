@@ -9,6 +9,7 @@ interface NoiseState {
   b4: number
   b5: number
   b6: number
+  brown: number
   [key: string]: unknown
 }
 
@@ -17,6 +18,7 @@ export const NoiseDefinition: ModuleDefinition<
   {
     white: { type: 'audio'; default: 0; label: 'wht' }
     pink: { type: 'audio'; default: 0; label: 'pnk' }
+    brown: { type: 'audio'; default: 0; label: 'brn' }
   },
   {
     level: { type: 'float'; min: 0; max: 1; default: 1; label: 'level' }
@@ -33,13 +35,14 @@ export const NoiseDefinition: ModuleDefinition<
   outputs: {
     white: { type: 'audio', default: 0, label: 'wht' },
     pink: { type: 'audio', default: 0, label: 'pnk' },
+    brown: { type: 'audio', default: 0, label: 'brn' },
   },
   params: {
     level: { type: 'float', min: 0, max: 1, default: 1, label: 'level' },
   },
 
   initialize(): NoiseState {
-    return { b0: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0, b6: 0 }
+    return { b0: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0, b6: 0, brown: 0 }
   },
 
   process(_inputs, outputs, params, state) {
@@ -50,6 +53,10 @@ export const NoiseDefinition: ModuleDefinition<
       const white = Math.random() * 2 - 1
 
       outputs.white[i] = white * level
+
+      // brown noise: integrated white noise, lightly damped to prevent drift
+      state.brown = ((state.brown as number) + 0.02 * white) / 1.02
+      outputs.brown[i] = (state.brown as number) * 3.5 * level
 
       // pink noise: Paul Kellet's economy method
       // approximates -3dB/octave rolloff
