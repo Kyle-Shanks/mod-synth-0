@@ -63,6 +63,10 @@ this opens a command palette. type to search by name or category, then press `en
 
 **noise** — white, pink, and brown noise generator. useful for percussion, wind textures, and randomization.
 
+**fm op** — fm operator module. implements a single sinusoidal carrier with phase modulation input, a frequency ratio parameter, modulation index, and operator self-feedback. chain two or more fm ops together to build dx7-style fm synthesis algorithms. the panel displays the ratio as n:1 and previews the resulting waveform shape.
+
+**pluck** — enhanced karplus-strong string synthesizer. position controls where along the string the excitation happens (suppressing different harmonics). brightness shapes the initial spectral content. stiffness adds inharmonicity via an allpass filter in the feedback loop. the panel shows an animated visualization of the harmonic overtones. a custom audio input can replace the noise burst excitation.
+
 ### filters and dynamics
 
 **vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps.
@@ -70,6 +74,8 @@ this opens a command palette. type to search by name or category, then press `en
 **vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
 
 **mixer** — 4-channel audio mixer with individual level faders and a master level control.
+
+**compressor** — dynamic range compressor with threshold, ratio, attack, release, makeup gain, soft knee, and parallel compression mix. a sidechain input enables ducking and pumping effects. the panel displays a live transfer curve and a gain reduction meter. the gr output emits a cv signal tracking the compression amount.
 
 ### envelopes and modulation
 
@@ -80,6 +86,12 @@ this opens a command palette. type to search by name or category, then press `en
 **sample & hold** — captures a cv value when triggered and holds it until the next trigger. use with noise or an lfo to generate random stepped cv.
 
 **quantizer** — snaps a continuous cv pitch signal to the nearest note in a selectable musical scale.
+
+**chord** — takes a single root v/oct input and outputs four v/oct signals tuned to a chord above it. chord type is selectable (maj, min, dom7, maj7, min7, dim, aug, sus2, sus4). octave offset and spread controls adjust voicing. the panel shows a one-octave piano keyboard with the active chord notes highlighted.
+
+**panner** — constant-power stereo panner. mono audio in, pan cv modulation, separate left and right outputs. the panel shows a semicircular arc with a glowing indicator dot.
+
+**prob gate** — probabilistic gate. on each rising gate edge, a random number is checked against the probability knob. gates that pass are forwarded; blocked gates fire the skip output instead. useful for adding variation to sequences without changing the clock grid.
 
 ### sequencing and timing
 
@@ -94,6 +106,10 @@ this opens a command palette. type to search by name or category, then press `en
 **reverb** — convolution reverb. mix control blends the dry signal with the reverberated signal.
 
 **delay** — delay line with time control and cv modulation input.
+
+**feedback delay** — delay with a feedback loop. tone control shapes the frequency of each repeat; soft saturation in the feedback path adds subtle warmth at high settings.
+
+**tape delay** — warm delay with tape character. wow/flutter adds pitch instability to repeats; drive saturates the feedback path for degraded, lo-fi repeats. echo animation shows spinning reels and diminishing echo dots.
 
 ### utility and display
 

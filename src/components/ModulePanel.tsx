@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useMemo } from 'react'
+import type React from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { Port } from './Port'
@@ -15,6 +16,20 @@ import type { CanvasData } from './CanvasZone'
 import { drawScopeTrace, drawGrid, drawXYTrace } from './canvasPrimitives'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
+import { FeedbackDelayPanel } from '../modules/feedbackdelay/panel'
+import { FMOpPanel } from '../modules/fmop/panel'
+import { PluckPanel } from '../modules/pluck/panel'
+import { CompressorPanel } from '../modules/compressor/panel'
+import { ChordGenPanel } from '../modules/chordgen/panel'
+
+// registry of modules with custom panel components
+const CUSTOM_PANELS: Record<string, React.ComponentType<{ moduleId: string }>> = {
+  feedbackdelay: FeedbackDelayPanel,
+  fmop: FMOpPanel,
+  pluck: PluckPanel,
+  compressor: CompressorPanel,
+  chordgen: ChordGenPanel,
+}
 
 interface ModulePanelProps {
   moduleId: string
@@ -278,6 +293,9 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
     if (cable.to.moduleId === moduleId) connectedPorts.add(cable.to.portId)
   }
 
+  // custom panel component for stage-13 modules
+  const CustomBodyPanel = CUSTOM_PANELS[def.id] ?? null
+
   // determine if this is a special module
   const isPushButton = def.id === 'pushbutton'
   const isScope = def.id === 'scope'
@@ -327,8 +345,10 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         </span> */}
       </div>
 
-      {/* body — special rendering per module type */}
-      {isPushButton ? (
+      {/* body — custom panel components for stage-13 modules */}
+      {CustomBodyPanel ? (
+        <CustomBodyPanel moduleId={moduleId} />
+      ) : isPushButton ? (
         <div
           style={{
             flex: 1,

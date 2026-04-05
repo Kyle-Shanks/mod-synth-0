@@ -386,16 +386,24 @@ class GraphProcessorNode extends AudioWorkletProcessor {
     // release all tick buffers back to pool
     for (const buf of this.acquiredBuffers) this.releaseBuffer(buf)
 
-    // send throttled METER events for output module peak levels
+    // send throttled METER events
     this.meterFrameCounter++
     if (this.meterFrameCounter >= this.METER_INTERVAL) {
       this.meterFrameCounter = 0
       for (const [moduleId, m] of this.modules) {
-        if (m.definitionId !== 'output') continue
-        const peakL = m.state.peakL ?? 0
-        const peakR = m.state.peakR ?? 0
-        this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
-        this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
+        // output module peak levels
+        if (m.definitionId === 'output') {
+          const peakL = m.state.peakL ?? 0
+          const peakR = m.state.peakR ?? 0
+          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
+          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
+        }
+        // generic per-module meters: any module can write _meters object to state
+        if (m.state._meters) {
+          for (const [portId, value] of Object.entries(m.state._meters)) {
+            this.port.postMessage({ type: 'METER', moduleId, portId, peak: value })
+          }
+        }
       }
     }
 

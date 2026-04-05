@@ -32,6 +32,14 @@ import { EuclideanDefinition } from './euclidean/definition'
 import { ResonatorDefinition } from './resonator/definition'
 import { TunerDefinition } from './tuner/definition'
 import { XYScopeDefinition } from './xyscope/definition'
+import { FeedbackDelayDefinition } from './feedbackdelay/definition'
+import { FMOpDefinition } from './fmop/definition'
+import { PluckDefinition } from './pluck/definition'
+import { CompressorDefinition } from './compressor/definition'
+import { ProbGateDefinition } from './probgate/definition'
+import { ChordGenDefinition } from './chordgen/definition'
+import { PannerDefinition } from './panner/definition'
+import { TapeDelayDefinition } from './tapedelay/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -98,3 +106,13 @@ reg(ResonatorDefinition)
 // stage 12 modules
 reg(TunerDefinition)
 reg(XYScopeDefinition)
+
+// stage 13 modules — creative/vst-style
+reg(FeedbackDelayDefinition)
+reg(FMOpDefinition)
+reg(PluckDefinition)
+reg(CompressorDefinition)
+reg(ProbGateDefinition)
+reg(ChordGenDefinition)
+reg(PannerDefinition)
+reg(TapeDelayDefinition)
