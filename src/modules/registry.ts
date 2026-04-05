@@ -58,11 +58,11 @@ export function getAllModules(): ModuleDefinition[] {
   return [...registry.values()]
 }
 
-// register all core modules
+// register all modules
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const reg = (def: any) => registerModule(def as ModuleDefinition)
 
-// stage 1-5 modules
+// foundational modules
 reg(VCODefinition)
 reg(VCFDefinition)
 reg(VCADefinition)
@@ -72,7 +72,7 @@ reg(PushButtonDefinition)
 reg(ScopeDefinition)
 reg(OutputDefinition)
 
-// stage 6 modules
+// generators, timing, and modulation
 reg(LFODefinition)
 reg(NoiseDefinition)
 reg(SampleHoldDefinition)
@@ -83,7 +83,7 @@ reg(QuantizerDefinition)
 reg(ReverbDefinition)
 reg(DelayDefinition)
 
-// stage 9 modules
+// utilities and dynamics
 reg(SlewDefinition)
 reg(MultDefinition)
 reg(EnvFollowerDefinition)
@@ -93,21 +93,21 @@ reg(LogicDefinition)
 reg(WavefolderDefinition)
 reg(RingModDefinition)
 
-// stage 10 modules
+// fx and advanced control
 reg(BitcrusherDefinition)
 reg(DistortionDefinition)
 reg(FlangerDefinition)
 reg(ClockDivDefinition)
 reg(EuclideanDefinition)
 
-// stage 11 modules
+// physical modeling
 reg(ResonatorDefinition)
 
-// stage 12 modules
+// display modules
 reg(TunerDefinition)
 reg(XYScopeDefinition)
 
-// stage 13 modules — creative/vst-style
+// expressive voice/fx modules
 reg(FeedbackDelayDefinition)
 reg(FMOpDefinition)
 reg(PluckDefinition)

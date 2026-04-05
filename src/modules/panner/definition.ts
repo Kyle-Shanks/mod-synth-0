@@ -40,7 +40,9 @@ export const PannerDefinition: ModuleDefinition<
     return {}
   },
 
-  process(inputs, outputs, params, _state, _context) {
+  process(inputs, outputs, params, state, context) {
+    void state
+    void context
     const halfPi = Math.PI / 2
 
     for (let i = 0; i < 128; i++) {
