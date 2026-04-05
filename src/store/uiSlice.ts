@@ -4,6 +4,7 @@ import type { StoreState } from './index'
 
 export interface UISlice {
   selectedModuleId: string | null
+  selectedModuleIds: string[]
   hoveredPortKey: string | null  // 'moduleId:portId'
   hoveredCableId: string | null
   dragState: CableDragState | null
@@ -12,6 +13,7 @@ export interface UISlice {
   settingsPanelOpen: boolean
   zoom: number
   setSelectedModule: (id: string | null) => void
+  setSelectedModules: (ids: string[]) => void
   setHoveredPort: (key: string | null) => void
   setHoveredCable: (id: string | null) => void
   setDragState: (state: CableDragState | null) => void
@@ -22,6 +24,7 @@ export interface UISlice {
 
 export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set) => ({
   selectedModuleId: null,
+  selectedModuleIds: [],
   hoveredPortKey: null,
   hoveredCableId: null,
   dragState: null,
@@ -30,7 +33,17 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set) =>
   settingsPanelOpen: false,
   zoom: 1,
 
-  setSelectedModule: (id) => set({ selectedModuleId: id }),
+  setSelectedModule: (id) => set({
+    selectedModuleId: id,
+    selectedModuleIds: id ? [id] : [],
+  }),
+  setSelectedModules: (ids) => {
+    const deduped = [...new Set(ids)]
+    set({
+      selectedModuleId: deduped[0] ?? null,
+      selectedModuleIds: deduped,
+    })
+  },
   setHoveredPort: (key) => set({ hoveredPortKey: key }),
   setHoveredCable: (id) => set({ hoveredCableId: id }),
   setDragState: (state) => set({ dragState: state }),

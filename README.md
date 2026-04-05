@@ -121,19 +121,20 @@ this opens a command palette. type to search by name or category, then press `en
 
 ## controls
 
-| action                 | how                                   |
-| ---------------------- | ------------------------------------- |
-| add module             | `space` or `/` or right-click on rack |
-| delete selected module | `delete` or `backspace`               |
-| select module          | click on it                           |
-| move module            | drag the module header                |
-| drag a cable           | mousedown on any port                 |
-| disconnect a cable     | right-click the cable                 |
-| rename patch           | click the patch name in the top bar   |
-| new patch              | top bar → new                         |
-| export patch           | top bar → export                      |
-| import patch           | top bar → import                      |
-| settings               | gear icon in the top bar              |
+| action                  | how                                   |
+| ----------------------- | ------------------------------------- |
+| add module              | `space` or `/` or right-click on rack |
+| delete selected modules | `delete` or `backspace`               |
+| select module           | click on it                           |
+| select multiple modules | click-drag empty rack area            |
+| move module(s)          | drag selected module header           |
+| drag a cable            | mousedown on any port                 |
+| disconnect a cable      | right-click the cable                 |
+| rename patch            | click the patch name in the top bar   |
+| new patch               | top bar → new                         |
+| export patch            | top bar → export                      |
+| import patch            | top bar → import                      |
+| settings                | gear icon in the top bar              |
 
 ---
 

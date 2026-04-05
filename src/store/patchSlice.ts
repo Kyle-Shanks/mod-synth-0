@@ -18,10 +18,12 @@ export interface PatchSlice {
   setPatchName: (name: string) => void
   addModule: (definitionId: string, position: { x: number; y: number }) => string
   removeModule: (moduleId: string) => void
+  removeModules: (moduleIds: string[]) => void
   addCable: (cable: SerializedCable) => void
   removeCable: (cableId: string) => void
   setParam: (moduleId: string, param: string, value: number) => void
   setModulePosition: (moduleId: string, position: { x: number; y: number }) => void
+  setModulesPositions: (positions: Record<string, { x: number; y: number }>) => void
   loadPatch: (
     name: string,
     modules: Record<string, ModuleInstance>,
@@ -38,10 +40,10 @@ function wouldOverlap(
   pos: { x: number; y: number },
   width: number,
   height: number,
-  excludeId?: string,
+  excludeIds?: Set<string>,
 ): boolean {
   for (const [id, m] of Object.entries(modules)) {
-    if (id === excludeId) continue
+    if (excludeIds?.has(id)) continue
     const mDef = getModule(m.definitionId)
     if (!mDef) continue
     const noOverlap =
@@ -60,15 +62,15 @@ function findFreePosition(
   pos: { x: number; y: number },
   width: number,
   height: number,
-  excludeId?: string,
+  excludeIds?: Set<string>,
 ): { x: number; y: number } {
-  if (!wouldOverlap(modules, pos, width, height, excludeId)) return pos
+  if (!wouldOverlap(modules, pos, width, height, excludeIds)) return pos
   for (let radius = 1; radius <= 20; radius++) {
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dy = -radius; dy <= radius; dy++) {
         if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue
         const candidate = { x: pos.x + dx, y: pos.y + dy }
-        if (!wouldOverlap(modules, candidate, width, height, excludeId)) return candidate
+        if (!wouldOverlap(modules, candidate, width, height, excludeIds)) return candidate
       }
     }
   }
@@ -128,27 +130,41 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   },
 
   removeModule(moduleId) {
+    get().removeModules([moduleId])
+  },
+
+  removeModules(moduleIds) {
+    const existingIds = [...new Set(moduleIds)].filter((id) => !!get().modules[id])
+    if (existingIds.length === 0) return
+
     get().pushHistory()
-    engine.removeModule(moduleId)
-    // also remove any cables connected to this module
-    const cables = get().cables
-    for (const [cableId, cable] of Object.entries(cables)) {
-      if (cable.from.moduleId === moduleId || cable.to.moduleId === moduleId) {
+    const removeSet = new Set(existingIds)
+
+    for (const moduleId of existingIds) {
+      engine.removeModule(moduleId)
+    }
+
+    // remove any cables connected to removed modules
+    for (const [cableId, cable] of Object.entries(get().cables)) {
+      if (removeSet.has(cable.from.moduleId) || removeSet.has(cable.to.moduleId)) {
         engine.removeCable(cableId)
       }
     }
+
     set((s) => {
       const modules = { ...s.modules }
-      delete modules[moduleId]
+      for (const moduleId of existingIds) delete modules[moduleId]
+
       const remainingCables: Record<string, SerializedCable> = {}
       const nextFeedback = new Set(s.feedbackCableIds)
-      for (const [cid, c] of Object.entries(s.cables)) {
-        if (c.from.moduleId !== moduleId && c.to.moduleId !== moduleId) {
-          remainingCables[cid] = c
-        } else {
+      for (const [cid, cable] of Object.entries(s.cables)) {
+        if (removeSet.has(cable.from.moduleId) || removeSet.has(cable.to.moduleId)) {
           nextFeedback.delete(cid)
+        } else {
+          remainingCables[cid] = cable
         }
       }
+
       return { modules, cables: remainingCables, feedbackCableIds: nextFeedback }
     })
   },
@@ -198,10 +214,38 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     const def = getModule(mod.definitionId)
     if (!def) return
     // prevent dragging into an overlapping position
-    if (wouldOverlap(get().modules, position, def.width, def.height, moduleId)) return
+    if (wouldOverlap(get().modules, position, def.width, def.height, new Set([moduleId]))) return
     set((s) => ({
       modules: { ...s.modules, [moduleId]: { ...s.modules[moduleId]!, position } }
     }))
+  },
+
+  setModulesPositions(positions) {
+    const modules = get().modules
+    const movingIds = Object.keys(positions).filter((id) => !!modules[id])
+    if (movingIds.length === 0) return
+
+    const movingSet = new Set(movingIds)
+    for (const moduleId of movingIds) {
+      const mod = modules[moduleId]
+      if (!mod) continue
+      const def = getModule(mod.definitionId)
+      if (!def) continue
+      const position = positions[moduleId]
+      if (!position) continue
+      if (wouldOverlap(modules, position, def.width, def.height, movingSet)) return
+    }
+
+    set((s) => {
+      const nextModules = { ...s.modules }
+      for (const moduleId of movingIds) {
+        const mod = nextModules[moduleId]
+        const position = positions[moduleId]
+        if (!mod || !position) continue
+        nextModules[moduleId] = { ...mod, position }
+      }
+      return { modules: nextModules }
+    })
   },
 
   loadPatch(name, modules, cables) {

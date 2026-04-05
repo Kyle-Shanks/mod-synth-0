@@ -13,46 +13,72 @@ interface ModulePanelProps {
 
 export function ModulePanel({ moduleId }: ModulePanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
-  const setModulePosition = useStore((s) => s.setModulePosition)
+  const setModulesPositions = useStore((s) => s.setModulesPositions)
   const setSelectedModule = useStore((s) => s.setSelectedModule)
-  const selectedModuleId = useStore((s) => s.selectedModuleId)
+  const setSelectedModules = useStore((s) => s.setSelectedModules)
+  const selectedModuleIds = useStore((s) => s.selectedModuleIds)
   const cables = useStore((s) => s.cables)
   const panelRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{
     startX: number
     startY: number
-    origX: number
-    origY: number
+    moduleIds: string[]
+    originalPositions: Record<string, { x: number; y: number }>
   } | null>(null)
 
   const def = mod ? getModule(mod.definitionId) : undefined
 
   // update all port positions after render / position change
-  const updatePortPositions = useCallback(() => {
-    const panel = panelRef.current
-    if (!panel) return
-    panel.querySelectorAll<HTMLDivElement>('[data-port-id]').forEach((el) => {
-      const fn = (el as HTMLDivElement & { _updatePortPosition?: () => void })
-        ._updatePortPosition
-      fn?.()
-    })
+  const updatePortPositions = useCallback((moduleIds: string[]) => {
+    const rack = panelRef.current?.closest('[data-rack]')
+    if (!rack) return
+    for (const id of moduleIds) {
+      const panel = rack.querySelector<HTMLElement>(`[data-module-panel-id="${id}"]`)
+      if (!panel) continue
+      panel.querySelectorAll<HTMLDivElement>('[data-port-id]').forEach((el) => {
+        const fn = (el as HTMLDivElement & { _updatePortPosition?: () => void })
+          ._updatePortPosition
+        fn?.()
+      })
+    }
   }, [])
 
   useEffect(() => {
-    updatePortPositions()
-  }, [mod?.position, updatePortPositions])
+    updatePortPositions([moduleId])
+  }, [mod?.position, moduleId, updatePortPositions])
 
   // --- drag handling ---
   const handleHeaderMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (!mod) return
       e.preventDefault()
-      setSelectedModule(moduleId)
+      e.stopPropagation()
+
+      const state = useStore.getState()
+      const currentSelection = state.selectedModuleIds
+      const draggingSelectedGroup =
+        currentSelection.length > 0 && currentSelection.includes(moduleId)
+      const moduleIds = draggingSelectedGroup ? currentSelection : [moduleId]
+
+      if (!draggingSelectedGroup) {
+        setSelectedModules([moduleId])
+      }
+
+      const originalPositions: Record<string, { x: number; y: number }> = {}
+      for (const id of moduleIds) {
+        const selectedModule = state.modules[id]
+        if (!selectedModule) continue
+        originalPositions[id] = {
+          x: selectedModule.position.x,
+          y: selectedModule.position.y,
+        }
+      }
+
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
-        origX: mod.position.x,
-        origY: mod.position.y,
+        moduleIds: Object.keys(originalPositions),
+        originalPositions,
       }
 
       useStore.getState().stageHistory()
@@ -64,11 +90,25 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         // mouse deltas are in viewport (scaled) pixels; divide by zoom to get logical pixels,
         // then divide by GRID_UNIT to convert to grid units
         const z = useStore.getState().zoom
-        const newX = dragRef.current.origX + Math.round(dx / z / GRID_UNIT)
-        const newY = dragRef.current.origY + Math.round(dy / z / GRID_UNIT)
-        setModulePosition(moduleId, { x: newX, y: newY })
+        const offsetX = Math.round(dx / z / GRID_UNIT)
+        const offsetY = Math.round(dy / z / GRID_UNIT)
+
+        const nextPositions: Record<string, { x: number; y: number }> = {}
+        for (const id of dragRef.current.moduleIds) {
+          const original = dragRef.current.originalPositions[id]
+          if (!original) continue
+          nextPositions[id] = {
+            x: original.x + offsetX,
+            y: original.y + offsetY,
+          }
+        }
+
+        setModulesPositions(nextPositions)
         // update port positions on next frame for cable redraw
-        requestAnimationFrame(updatePortPositions)
+        requestAnimationFrame(() => {
+          if (!dragRef.current) return
+          updatePortPositions(dragRef.current.moduleIds)
+        })
       }
 
       const handleMouseUp = () => {
@@ -81,8 +121,16 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       window.addEventListener('mousemove', handleMouseMove)
       window.addEventListener('mouseup', handleMouseUp)
     },
-    [mod, setSelectedModule, moduleId, setModulePosition, updatePortPositions],
+    [mod, moduleId, setModulesPositions, setSelectedModules, updatePortPositions],
   )
+
+  const handlePanelMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (selectedModuleIds.length > 1 && selectedModuleIds.includes(moduleId)) {
+      return
+    }
+    setSelectedModule(moduleId)
+  }, [moduleId, selectedModuleIds, setSelectedModule])
 
   // clean up port cache on unmount
   useEffect(() => {
@@ -92,6 +140,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   }, [moduleId])
 
   if (!mod) return null
+  const isSelected = selectedModuleIds.includes(moduleId)
 
   // missing module — definition not in registry, show placeholder
   if (!def) {
@@ -100,6 +149,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
     return (
       <div
         ref={panelRef}
+        data-module-panel=''
+        data-module-panel-id={moduleId}
         style={{
           position: 'absolute',
           left: mod.position.x * GRID_UNIT,
@@ -107,23 +158,23 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
           width: placeholderW,
           height: placeholderH,
           background: 'var(--shade1)',
-          border: `1px dashed var(--shade2)`,
+          border: `1px dashed ${isSelected ? 'var(--accent0)' : 'var(--shade2)'}`,
           borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           opacity: 0.6,
         }}
-        onMouseDown={() => setSelectedModule(moduleId)}
+        onMouseDown={handlePanelMouseDown}
       >
         <div
           onMouseDown={handleHeaderMouseDown}
           style={{
             padding: '4px 6px',
             fontSize: 'var(--text-sm)',
-            color: 'var(--shade2)',
+            color: isSelected ? 'var(--accent0)' : 'var(--shade2)',
             cursor: 'grab',
-            borderBottom: '1px dashed var(--shade2)',
+            borderBottom: `1px dashed ${isSelected ? 'var(--accent0)' : 'var(--shade2)'}`,
             flexShrink: 0,
           }}
         >
@@ -147,7 +198,6 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
     )
   }
 
-  const isSelected = selectedModuleId === moduleId
   const widthPx = def.width * GRID_UNIT
   const heightPx = def.height * GRID_UNIT
 
@@ -164,6 +214,8 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   return (
     <div
       ref={panelRef}
+      data-module-panel=''
+      data-module-panel-id={moduleId}
       style={{
         position: 'absolute',
         left: mod.position.x * GRID_UNIT,
@@ -177,7 +229,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         flexDirection: 'column',
         overflow: 'hidden',
       }}
-      onMouseDown={() => setSelectedModule(moduleId)}
+      onMouseDown={handlePanelMouseDown}
     >
       {/* header */}
       <div
