@@ -25,12 +25,6 @@ export const LFODefinition: ModuleDefinition<
       unit: 'hz'
       curve: 'log'
     }
-    shape: {
-      type: 'select'
-      default: 0
-      label: 'shape'
-      options: ['sine', 'saw', 'pulse', 'triangle']
-    }
     pulseWidth: {
       type: 'float'
       min: 0.01
@@ -45,7 +39,7 @@ export const LFODefinition: ModuleDefinition<
   name: 'lfo',
   category: 'source',
   width: 4,
-  height: 4,
+  height: 3,
 
   inputs: {
     rateCv: { type: 'cv', default: 0, label: 'rate cv' },
@@ -72,12 +66,6 @@ export const LFODefinition: ModuleDefinition<
       max: 0.99,
       default: 0.5,
       label: 'width',
-    },
-    shape: {
-      type: 'select',
-      default: 0,
-      label: 'shape',
-      options: ['sine', 'saw', 'pulse', 'triangle'],
     },
   },
 

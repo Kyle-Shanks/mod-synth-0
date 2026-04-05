@@ -151,15 +151,14 @@ export default function App() {
   }, [nameInput, setPatchName])
 
   const topBarBtnStyle: React.CSSProperties = {
-    background: 'transparent',
     border: 'none',
     fontSize: 'var(--text-xs)',
     fontWeight: 600,
-    color: 'var(--shade3)',
     cursor: 'pointer',
     fontFamily: 'var(--font)',
     textTransform: 'lowercase',
     padding: '2px 4px',
+    transition: 'background 120ms, color 120ms',
   }
 
   return (
@@ -256,6 +255,7 @@ export default function App() {
 
             {/* new */}
             <button
+              className='topbar-button'
               onClick={handleNewPatch}
               style={topBarBtnStyle}
               title='new patch'
@@ -272,6 +272,7 @@ export default function App() {
 
             {/* export */}
             <button
+              className='topbar-button'
               onClick={handleExport}
               style={topBarBtnStyle}
               title='export patch as json'
@@ -281,6 +282,7 @@ export default function App() {
 
             {/* import */}
             <button
+              className='topbar-button'
               onClick={() => fileInputRef.current?.click()}
               style={topBarBtnStyle}
               title='import patch from json'
@@ -304,6 +306,7 @@ export default function App() {
 
             {/* undo */}
             <button
+              className='topbar-button'
               onClick={() => useStore.getState().undo()}
               disabled={pastLength === 0}
               style={{
@@ -318,6 +321,7 @@ export default function App() {
 
             {/* redo */}
             <button
+              className='topbar-button'
               onClick={() => useStore.getState().redo()}
               disabled={futureLength === 0}
               style={{
@@ -338,18 +342,14 @@ export default function App() {
             </span>
 
             {/* zoom indicator — click to reset */}
-            <span
+            <button
+              className='topbar-button'
               onClick={() => setZoom(1)}
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--shade2)',
-                cursor: 'pointer',
-                fontFamily: 'var(--font)',
-              }}
+              style={topBarBtnStyle}
               title='click to reset zoom'
             >
               {Math.round(zoom * 100)}%
-            </span>
+            </button>
 
             {/* spacer */}
             <div style={{ flex: 1 }} />
@@ -366,15 +366,15 @@ export default function App() {
 
             {/* settings gear */}
             <button
+              className='topbar-button settings-button'
               onClick={() => setSettingsPanelOpen(true)}
               style={{
-                background: 'transparent',
                 border: 'none',
                 fontSize: 'var(--text-md)',
-                color: 'var(--shade2)',
                 cursor: 'pointer',
                 padding: '2px 4px',
                 lineHeight: 1,
+                transition: 'background 120ms, color 120ms',
               }}
               title='settings'
             >

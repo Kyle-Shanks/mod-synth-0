@@ -6,6 +6,7 @@ interface TapeDelayState {
   filterState: number
   wowPhase: number
   wowPhase2: number
+  flutterPhase: number
   initialized: boolean
   [key: string]: unknown
 }
@@ -79,6 +80,7 @@ export const TapeDelayDefinition: ModuleDefinition<
       filterState: 0,
       wowPhase: 0,
       wowPhase2: 0,
+      flutterPhase: 0,
       initialized: false,
     }
   },
@@ -93,6 +95,7 @@ export const TapeDelayDefinition: ModuleDefinition<
       state.filterState = 0
       state.wowPhase = 0
       state.wowPhase2 = 0
+      state.flutterPhase = 0
       state.initialized = true
     }
 
@@ -103,9 +106,10 @@ export const TapeDelayDefinition: ModuleDefinition<
     const toneFreq = 400 * Math.pow(20, params.tone)
     const toneCoeff = Math.exp((-2 * Math.PI * toneFreq) / sr)
 
-    // wow: two slightly different LFO rates (0.3 Hz and 0.37 Hz) for natural tape flutter
+    // wow/flutter modulation: two slow wow oscillators plus a faster flutter oscillator.
     const wowRate1 = (2 * Math.PI * 0.3) / sr
     const wowRate2 = (2 * Math.PI * 0.37) / sr
+    const flutterRate = (2 * Math.PI * 5.4) / sr
 
     for (let i = 0; i < 128; i++) {
       const input = inputs.audio[i] ?? 0
@@ -114,19 +118,23 @@ export const TapeDelayDefinition: ModuleDefinition<
       // advance wow LFOs
       state.wowPhase = ((state.wowPhase as number) + wowRate1) % (2 * Math.PI)
       state.wowPhase2 = ((state.wowPhase2 as number) + wowRate2) % (2 * Math.PI)
+      state.flutterPhase =
+        ((state.flutterPhase as number) + flutterRate) % (2 * Math.PI)
 
       const wowMod =
         (Math.sin(state.wowPhase as number) * 0.6 +
           Math.sin((state.wowPhase as number) * 3.1) * 0.3 +
           Math.sin(state.wowPhase2 as number) * 0.4) *
         params.wow *
-        0.008
+        0.022
+      const flutterMod =
+        Math.sin(state.flutterPhase as number) * params.wow * 0.003
 
       const baseTime = Math.max(
         0.01,
         Math.min(2.0, params.time * Math.pow(2, timeCv)),
       )
-      const delayTime = Math.max(0.005, baseTime * (1 + wowMod))
+      const delayTime = Math.max(0.005, baseTime * (1 + wowMod + flutterMod))
 
       // fractional delay with linear interpolation
       const delaySamplesF = Math.min(bufLen - 2, delayTime * sr)

@@ -57,7 +57,8 @@ export const LogicDefinition: ModuleDefinition<
       if (mode === 0) result = av & bv
       else if (mode === 1) result = av | bv
       else if (mode === 2) result = av ^ bv
-      else if (mode === 3) result = 1 - av
+      // NOT mode should work with either input jack; treat A/B as a combined source.
+      else if (mode === 3) result = 1 - (av | bv)
       outputs.out[i] = result
     }
   },

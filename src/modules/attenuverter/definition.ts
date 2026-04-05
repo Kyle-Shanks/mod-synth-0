@@ -14,8 +14,8 @@ export const AttenuverterDefinition: ModuleDefinition<
   {
     amount: {
       type: 'float'
-      min: -1
-      max: 1
+      min: -2
+      max: 2
       default: 1
       label: 'amt'
     }
@@ -44,8 +44,8 @@ export const AttenuverterDefinition: ModuleDefinition<
   params: {
     amount: {
       type: 'float',
-      min: -1,
-      max: 1,
+      min: -2,
+      max: 2,
       default: 1,
       label: 'amt',
     },
