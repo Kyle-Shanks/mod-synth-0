@@ -1,7 +1,6 @@
 import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { GainMeter } from '../../components/GainMeter'
-import { Knob } from '../../components/Knob'
 
 interface OutputPanelProps {
   moduleId: string
@@ -13,8 +12,6 @@ export function OutputPanel({ moduleId }: OutputPanelProps) {
 
   if (!mod || !def) return null
 
-  const paramEntries = Object.entries(def.params)
-
   return (
     <div
       style={{
@@ -22,20 +19,11 @@ export function OutputPanel({ moduleId }: OutputPanelProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: 0,
         padding: '6px 4px',
       }}
     >
       <GainMeter moduleId={moduleId} />
-      {paramEntries.map(([paramId, paramDef]) => (
-        <Knob
-          key={paramId}
-          moduleId={moduleId}
-          paramId={paramId}
-          definition={paramDef}
-          value={mod.params[paramId] ?? paramDef.default}
-        />
-      ))}
     </div>
   )
 }

@@ -15,7 +15,14 @@ interface MeterBarProps {
 
 function MeterBar({ label, fillRef }: MeterBarProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+      }}
+    >
       <div
         style={{
           width: 12,
@@ -53,7 +60,13 @@ function MeterBar({ label, fillRef }: MeterBarProps) {
           }}
         />
       </div>
-      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade3)', lineHeight: 1 }}>
+      <span
+        style={{
+          fontSize: 'var(--text-xs)',
+          color: 'var(--shade3)',
+          lineHeight: 1,
+        }}
+      >
         {label}
       </span>
     </div>
@@ -121,11 +134,11 @@ export function GainMeter({ moduleId }: GainMeterProps) {
         display: 'flex',
         gap: 6,
         alignItems: 'flex-end',
-        padding: '4px 6px',
+        padding: '0px 6px',
       }}
     >
-      <MeterBar label="L" fillRef={fillLRef} />
-      <MeterBar label="R" fillRef={fillRRef} />
+      <MeterBar label='L' fillRef={fillLRef} />
+      <MeterBar label='R' fillRef={fillRRef} />
     </div>
   )
 }

@@ -14,6 +14,7 @@ import { PluckPanel } from './pluck/panel'
 import { CompressorPanel } from './compressor/panel'
 import { ChordGenPanel } from './chordgen/panel'
 import { KeyboardPanel } from './keyboard/panel'
+import { VCAPanel } from './vca/panel'
 
 export type ModuleBodyPanelComponent = React.ComponentType<{ moduleId: string }>
 
@@ -32,9 +33,13 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   compressor: CompressorPanel,
   chordgen: ChordGenPanel,
   keyboard: KeyboardPanel,
+  vca: VCAPanel,
 }
 
-export function renderModuleBodyPanel(definitionId: string, moduleId: string): React.ReactElement {
+export function renderModuleBodyPanel(
+  definitionId: string,
+  moduleId: string,
+): React.ReactElement {
   const PanelComponent = PANEL_REGISTRY[definitionId] ?? DefaultModuleBodyPanel
   return React.createElement(PanelComponent, { moduleId })
 }
