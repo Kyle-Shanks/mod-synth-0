@@ -61,6 +61,8 @@ this opens a command palette. type to search by name or category, then press `en
 
 **lfo** — low frequency oscillator. same waveforms as the vco but operates below audio rate (0.01hz–100hz). outputs are cv-typed so they patch naturally to filter cutoffs, vca gains, and other modulation targets.
 
+**chaos** — lorenz-attractor chaotic cv source. emits three correlated outputs (`x`, `y`, `z`) with controls for integration speed and the classic attractor constants (`sigma`, `rho`, `beta`) plus output scaling.
+
 **noise** — white, pink, and brown noise generator. useful for percussion, wind textures, and randomization.
 
 **fm op** — fm operator module. implements a single sinusoidal carrier with phase modulation input, a frequency ratio parameter, modulation index, and operator self-feedback. chain two or more fm ops together to build dx7-style fm synthesis algorithms. the panel displays the ratio as n:1 and previews the resulting waveform shape.
@@ -123,6 +125,8 @@ this opens a command palette. type to search by name or category, then press `en
 
 **cv** — constant control-voltage source with a single knob outputting from -1 to 1.
 
+**note** — text note module for writing patch ideas, reminders, and performance cues directly on the rack. notes are saved with the patch.
+
 **scope** — waveform display. connects to any signal port and displays the last few milliseconds of signal in real time. a timescale knob zooms the display.
 
 **freq spectrum** — real-time spectral display. connects to any signal port and shows a continuously updated frequency-energy curve, with a panel toggle for `normal`/`high` quality analysis.
@@ -139,6 +143,8 @@ this opens a command palette. type to search by name or category, then press `en
 | delete selected modules | `delete` or `backspace`               |
 | select module           | click on it                           |
 | select multiple modules | click-drag empty rack area            |
+| copy selected modules   | `cmd/ctrl + c`                        |
+| paste modules           | `cmd/ctrl + v`                        |
 | move module(s)          | drag selected module header           |
 | drag a cable            | mousedown on any port                 |
 | disconnect a cable      | right-click the cable                 |

@@ -8,6 +8,7 @@ export interface ModuleInstance {
   definitionId: string
   position: { x: number; y: number }
   params: Record<string, number>
+  data?: Record<string, string>
 }
 
 export interface PatchSlice {
@@ -22,8 +23,11 @@ export interface PatchSlice {
   addCable: (cable: SerializedCable) => void
   removeCable: (cableId: string) => void
   setParam: (moduleId: string, param: string, value: number) => void
+  setModuleDataValue: (moduleId: string, key: string, value: string) => void
   setModulePosition: (moduleId: string, position: { x: number; y: number }) => void
   setModulesPositions: (positions: Record<string, { x: number; y: number }>) => void
+  copyModulesToClipboard: (moduleIds: string[]) => void
+  pasteModulesFromClipboard: (targetPosition?: { x: number; y: number }) => string[]
   loadPatch: (
     name: string,
     modules: Record<string, ModuleInstance>,
@@ -33,6 +37,14 @@ export interface PatchSlice {
 }
 
 let moduleCounter = 0
+
+function createCableId(cables: Record<string, SerializedCable>): string {
+  let id = ''
+  do {
+    id = `cable-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+  } while (cables[id])
+  return id
+}
 
 // check if a module at `pos` with `width`x`height` overlaps any existing module
 function wouldOverlap(
@@ -206,6 +218,183 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
         }
       }
     })
+  },
+
+  setModuleDataValue(moduleId, key, value) {
+    set((s) => {
+      const mod = s.modules[moduleId]
+      if (!mod) return s
+      const currentValue = mod.data?.[key] ?? ''
+      if (currentValue === value) return s
+      return {
+        modules: {
+          ...s.modules,
+          [moduleId]: {
+            ...mod,
+            data: {
+              ...(mod.data ?? {}),
+              [key]: value,
+            },
+          },
+        },
+      }
+    })
+  },
+
+  copyModulesToClipboard(moduleIds) {
+    const uniqueIds = [...new Set(moduleIds)].filter((id) => !!get().modules[id])
+    if (uniqueIds.length === 0) {
+      set({ moduleClipboard: null, moduleClipboardPasteCount: 0 })
+      return
+    }
+
+    const selectedSet = new Set(uniqueIds)
+    const clipboardModules = uniqueIds.flatMap((id) => {
+      const mod = get().modules[id]
+      if (!mod) return []
+      return {
+        sourceId: id,
+        definitionId: mod.definitionId,
+        position: { ...mod.position },
+        params: { ...mod.params },
+        data: mod.data ? { ...mod.data } : undefined,
+      }
+    })
+
+    const clipboardCables = Object.values(get().cables)
+      .filter(
+        (cable) =>
+          selectedSet.has(cable.from.moduleId) &&
+          selectedSet.has(cable.to.moduleId),
+      )
+      .map((cable) => ({
+        from: { ...cable.from },
+        to: { ...cable.to },
+      }))
+
+    set({
+      moduleClipboard: {
+        modules: clipboardModules,
+        cables: clipboardCables,
+      },
+      moduleClipboardPasteCount: 0,
+    })
+  },
+
+  pasteModulesFromClipboard(targetPosition) {
+    const clipboard = get().moduleClipboard
+    if (!clipboard || clipboard.modules.length === 0) return []
+    const pasteableItems = clipboard.modules.filter((item) =>
+      !!getModule(item.definitionId),
+    )
+    if (pasteableItems.length === 0) return []
+
+    let minClipboardX = 0
+    let minClipboardY = 0
+    if (targetPosition) {
+      minClipboardX = Math.min(...pasteableItems.map((item) => item.position.x))
+      minClipboardY = Math.min(...pasteableItems.map((item) => item.position.y))
+    }
+
+    const nextModules: Record<string, ModuleInstance> = { ...get().modules }
+    const nextCables: Record<string, SerializedCable> = { ...get().cables }
+    const nextFeedback = new Set(get().feedbackCableIds)
+    const idMap = new Map<string, string>()
+    const pastedModuleIds: string[] = []
+    const pasteOffset = get().moduleClipboardPasteCount + 1
+    const repeatedPasteOffset = targetPosition ? 0 : pasteOffset - 1
+    get().pushHistory()
+
+    for (const item of clipboard.modules) {
+      const def = getModule(item.definitionId)
+      if (!def) continue
+
+      const newId = `${item.definitionId}-${++moduleCounter}`
+      const requestedPos = targetPosition
+        ? {
+            x: Math.max(
+              0,
+              targetPosition.x + (item.position.x - minClipboardX) + repeatedPasteOffset,
+            ),
+            y: Math.max(
+              0,
+              targetPosition.y + (item.position.y - minClipboardY) + repeatedPasteOffset,
+            ),
+          }
+        : {
+            x: item.position.x + pasteOffset,
+            y: item.position.y + pasteOffset,
+          }
+      const freePos = findFreePosition(
+        nextModules,
+        requestedPos,
+        def.width,
+        def.height,
+      )
+      const params = { ...item.params }
+      const data = item.data ? { ...item.data } : undefined
+      const state = def.initialize({ sampleRate: engine.sampleRate, bufferSize: 128 })
+
+      engine.addModule(
+        {
+          id: newId,
+          definitionId: item.definitionId,
+          params,
+          state,
+          position: freePos,
+        },
+        def,
+      )
+
+      nextModules[newId] = data
+        ? {
+            definitionId: item.definitionId,
+            position: freePos,
+            params,
+            data,
+          }
+        : {
+            definitionId: item.definitionId,
+            position: freePos,
+            params,
+          }
+
+      idMap.set(item.sourceId, newId)
+      pastedModuleIds.push(newId)
+    }
+
+    if (pastedModuleIds.length === 0) return []
+
+    for (const cable of clipboard.cables) {
+      const fromModuleId = idMap.get(cable.from.moduleId)
+      const toModuleId = idMap.get(cable.to.moduleId)
+      if (!fromModuleId || !toModuleId) continue
+
+      const pastedCable: SerializedCable = {
+        id: createCableId(nextCables),
+        from: { moduleId: fromModuleId, portId: cable.from.portId },
+        to: { moduleId: toModuleId, portId: cable.to.portId },
+      }
+
+      const isFeedback = detectsCycle(
+        { ...nextCables, [pastedCable.id]: pastedCable },
+        pastedCable,
+      )
+      engine.addCable(pastedCable, isFeedback)
+      nextCables[pastedCable.id] = pastedCable
+      if (isFeedback) nextFeedback.add(pastedCable.id)
+    }
+
+    set({
+      modules: nextModules,
+      cables: nextCables,
+      feedbackCableIds: nextFeedback,
+      selectedModuleId: pastedModuleIds[0] ?? null,
+      selectedModuleIds: pastedModuleIds,
+      moduleClipboardPasteCount: pasteOffset,
+    })
+
+    return pastedModuleIds
   },
 
   setModulePosition(moduleId, position) {

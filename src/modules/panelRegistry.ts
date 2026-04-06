@@ -16,6 +16,8 @@ import { CompressorPanel } from './compressor/panel'
 import { ChordGenPanel } from './chordgen/panel'
 import { KeyboardPanel } from './keyboard/panel'
 import { VCAPanel } from './vca/panel'
+import { NotePanel } from './note/panel'
+import { ChaosPanel } from './chaos/panel'
 
 export type ModuleBodyPanelComponent = React.ComponentType<{ moduleId: string }>
 
@@ -36,6 +38,8 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   chordgen: ChordGenPanel,
   keyboard: KeyboardPanel,
   vca: VCAPanel,
+  note: NotePanel,
+  chaos: ChaosPanel,
 }
 
 export function renderModuleBodyPanel(

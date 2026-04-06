@@ -13,6 +13,7 @@ export interface SerializedPatch {
     definitionId: string
     position: { x: number; y: number }
     params: Record<string, number>
+    data?: Record<string, string>
   }[]
 
   cables: {
@@ -44,6 +45,7 @@ export function serializePatch(state: StoreState): SerializedPatch {
       definitionId: mod.definitionId,
       position: mod.position,
       params: { ...mod.params },
+      data: mod.data ? { ...mod.data } : undefined,
     })),
 
     cables: Object.values(state.cables).map((cable) => ({
@@ -76,6 +78,10 @@ export function deserializePatch(json: SerializedPatch): {
       definitionId: m.definitionId,
       position: m.position,
       params: m.params,
+      data:
+        m.data && typeof m.data === 'object'
+          ? ({ ...(m.data as Record<string, string>) })
+          : undefined,
     }
   }
 

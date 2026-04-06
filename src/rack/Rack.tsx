@@ -27,6 +27,8 @@ export function Rack() {
   const selectedModuleIds = useStore((s) => s.selectedModuleIds)
   const setSelectedModules = useStore((s) => s.setSelectedModules)
   const removeModules = useStore((s) => s.removeModules)
+  const copyModulesToClipboard = useStore((s) => s.copyModulesToClipboard)
+  const pasteModulesFromClipboard = useStore((s) => s.pasteModulesFromClipboard)
   const rackRef = useRef<HTMLDivElement>(null)
   const outerRef = useRef<HTMLDivElement>(null)
   const lastMousePosRef = useRef<{ x: number; y: number } | null>(null)
@@ -198,7 +200,42 @@ export function Rack() {
         } else {
           setCommandPaletteOpen(true, { x: 2, y: 2 })
         }
+        return
       }
+
+      const isMac = navigator.platform.toUpperCase().includes('MAC')
+      const mod = isMac ? e.metaKey : e.ctrlKey
+      const key = e.key.toLowerCase()
+
+      if (mod && !e.shiftKey && key === 'c') {
+        if (selectedModuleIds.length > 0) {
+          e.preventDefault()
+          copyModulesToClipboard(selectedModuleIds)
+        }
+        return
+      }
+
+      if (mod && !e.shiftKey && key === 'v') {
+        e.preventDefault()
+        const rack = rackRef.current
+        const mousePos = lastMousePosRef.current
+        if (rack && mousePos) {
+          const rect = rack.getBoundingClientRect()
+          const gridX = Math.max(
+            0,
+            Math.round((mousePos.x - rect.left) / zoom / GRID_UNIT),
+          )
+          const gridY = Math.max(
+            0,
+            Math.round((mousePos.y - rect.top) / zoom / GRID_UNIT),
+          )
+          pasteModulesFromClipboard({ x: gridX, y: gridY })
+        } else {
+          pasteModulesFromClipboard()
+        }
+        return
+      }
+
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedModuleIds.length > 0) {
         e.preventDefault()
         removeModules(selectedModuleIds)
@@ -207,7 +244,15 @@ export function Rack() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [setCommandPaletteOpen, selectedModuleIds, removeModules, setSelectedModules, zoom])
+  }, [
+    copyModulesToClipboard,
+    pasteModulesFromClipboard,
+    setCommandPaletteOpen,
+    selectedModuleIds,
+    removeModules,
+    setSelectedModules,
+    zoom,
+  ])
 
   const selectionLeft = selectionDrag
     ? Math.min(selectionDrag.startX, selectionDrag.currentX)

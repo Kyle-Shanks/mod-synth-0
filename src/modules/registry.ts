@@ -45,6 +45,8 @@ import { TapeDelayDefinition } from './tapedelay/definition'
 import { KeyboardDefinition } from './keyboard/definition'
 import { CVDefinition } from './cv/definition'
 import { OctaveDefinition } from './octave/definition'
+import { NoteDefinition } from './note/definition'
+import { ChaosDefinition } from './chaos/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -126,3 +128,5 @@ reg(TapeDelayDefinition)
 reg(KeyboardDefinition)
 reg(CVDefinition)
 reg(OctaveDefinition)
+reg(NoteDefinition)
+reg(ChaosDefinition)
