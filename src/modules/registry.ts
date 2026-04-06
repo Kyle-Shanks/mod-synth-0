@@ -33,6 +33,7 @@ import { EuclideanDefinition } from './euclidean/definition'
 import { ResonatorDefinition } from './resonator/definition'
 import { TunerDefinition } from './tuner/definition'
 import { XYScopeDefinition } from './xyscope/definition'
+import { SpectrumDefinition } from './spectrum/definition'
 import { FeedbackDelayDefinition } from './feedbackdelay/definition'
 import { FMOpDefinition } from './fmop/definition'
 import { PluckDefinition } from './pluck/definition'
@@ -111,6 +112,7 @@ reg(ResonatorDefinition)
 // display modules
 reg(TunerDefinition)
 reg(XYScopeDefinition)
+reg(SpectrumDefinition)
 
 // expressive voice/fx modules
 reg(FeedbackDelayDefinition)

@@ -56,6 +56,7 @@ export const FlangerDefinition: ModuleDefinition<
       options: ['flanger', 'chorus'],
       label: 'mode',
     },
+    mix: { type: 'float', min: 0, max: 1, default: 0.5, label: 'mix' },
     rate: {
       type: 'float',
       min: 0.01,
@@ -66,7 +67,6 @@ export const FlangerDefinition: ModuleDefinition<
     },
     depth: { type: 'float', min: 0, max: 1, default: 0.5, label: 'depth' },
     feedback: { type: 'float', min: 0, max: 0.95, default: 0.5, label: 'fdbk' },
-    mix: { type: 'float', min: 0, max: 1, default: 0.5, label: 'mix' },
   },
 
   initialize(): FlangerState {

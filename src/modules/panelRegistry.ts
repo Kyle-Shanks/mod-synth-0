@@ -8,6 +8,7 @@ import { ClockPanel } from './clock/panel'
 import { SequencerPanel } from './sequencer/panel'
 import { TunerPanel } from './tuner/panel'
 import { XYScopePanel } from './xyscope/panel'
+import { SpectrumPanel } from './spectrum/panel'
 import { FeedbackDelayPanel } from './feedbackdelay/panel'
 import { FMOpPanel } from './fmop/panel'
 import { PluckPanel } from './pluck/panel'
@@ -27,6 +28,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   sequencer: SequencerPanel,
   tuner: TunerPanel,
   xyscope: XYScopePanel,
+  spectrum: SpectrumPanel,
   feedbackdelay: FeedbackDelayPanel,
   fmop: FMOpPanel,
   pluck: PluckPanel,

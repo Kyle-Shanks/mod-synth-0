@@ -16,7 +16,7 @@ open `http://localhost:5173`. click **start** to initialize the audio context (r
 ### requirements
 
 - a browser with `AudioWorklet` support (chrome, edge, firefox, safari 14.1+)
-- `SharedArrayBuffer` is required for the scope display module. the dev server is configured with the necessary `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
+- `SharedArrayBuffer` is required for display analyzer modules (`scope`, `freq spectrum`, `tuner`, and `xy scope`). the dev server is configured with the necessary `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
 
 ---
 
@@ -124,6 +124,8 @@ this opens a command palette. type to search by name or category, then press `en
 **cv** — constant control-voltage source with a single knob outputting from -1 to 1.
 
 **scope** — waveform display. connects to any signal port and displays the last few milliseconds of signal in real time. a timescale knob zooms the display.
+
+**freq spectrum** — real-time spectral display. connects to any signal port and shows a continuously updated frequency-energy curve, with a panel toggle for `normal`/`high` quality analysis.
 
 **output** — the final module in any patch. routes audio to the browser's audio output. has a master volume knob and a peak meter. one output module is typically sufficient for a complete patch.
 
