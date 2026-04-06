@@ -11,8 +11,8 @@ interface OutputState {
 
 export const OutputDefinition: ModuleDefinition<
   {
-    left: { type: 'audio'; default: 0; label: 'l' }
-    right: { type: 'audio'; default: 0; label: 'r' }
+    left: { type: 'audio'; default: 0; label: 'left' }
+    right: { type: 'audio'; default: 0; label: 'right' }
   },
   Record<string, never>,
   {
@@ -27,8 +27,8 @@ export const OutputDefinition: ModuleDefinition<
   height: 4,
 
   inputs: {
-    left: { type: 'audio', default: 0, label: 'l' },
-    right: { type: 'audio', default: 0, label: 'r' },
+    left: { type: 'audio', default: 0, label: 'left' },
+    right: { type: 'audio', default: 0, label: 'right' },
   },
   outputs: {},
   params: {

@@ -1,14 +1,16 @@
 import type { ModuleDefinition } from '../../engine/types'
 
-interface ARState {
-  stage: string
+type Stage = 'idle' | 'attack' | 'decay'
+
+interface ADState {
+  stage: Stage
   level: number
   gateWasHigh: boolean
   eocTimer: number
   [key: string]: unknown
 }
 
-export const ARDefinition: ModuleDefinition<
+export const ADDefinition: ModuleDefinition<
   {
     gate: { type: 'gate'; default: 0; label: 'gate' }
   },
@@ -25,19 +27,19 @@ export const ARDefinition: ModuleDefinition<
       label: 'atk'
       unit: 's'
     }
-    release: {
+    decay: {
       type: 'float'
       min: 0.001
       max: 20
       default: 0.3
-      label: 'rel'
+      label: 'dec'
       unit: 's'
     }
   },
-  ARState
+  ADState
 > = {
-  id: 'ar',
-  name: 'ar',
+  id: 'ad',
+  name: 'ad',
   category: 'envelope',
   width: 3,
   height: 3,
@@ -58,57 +60,42 @@ export const ARDefinition: ModuleDefinition<
       label: 'atk',
       unit: 's',
     },
-    release: {
+    decay: {
       type: 'float',
       min: 0.001,
       max: 20,
       default: 0.3,
-      label: 'rel',
+      label: 'dec',
       unit: 's',
     },
   },
 
-  initialize(): ARState {
+  initialize(): ADState {
     return { stage: 'idle', level: 0, gateWasHigh: false, eocTimer: 0 }
   },
 
   process(inputs, outputs, params, state, context) {
     const attackSamples = Math.max(1, params.attack * context.sampleRate)
-    const releaseSamples = Math.max(1, params.release * context.sampleRate)
+    const decaySamples = Math.max(1, params.decay * context.sampleRate)
     const triggerDuration = Math.max(1, Math.round(context.sampleRate * 0.01))
-    const releaseDecay = Math.exp(-Math.log(1000) / releaseSamples)
+    const decayRate = Math.exp(-Math.log(1000) / decaySamples)
 
     for (let i = 0; i < 128; i++) {
       const gateHigh = (inputs.gate[i] ?? 0) > 0.5
 
-      // rising edge: start attack
       if (gateHigh && !state.gateWasHigh) {
         state.stage = 'attack'
       }
-
-      // falling edge in gate mode: start release from hold
-      if (
-        !gateHigh &&
-        state.gateWasHigh &&
-        state.stage === 'hold'
-      ) {
-        state.stage = 'release'
-      }
-
       state.gateWasHigh = gateHigh
 
-      // advance envelope
       if (state.stage === 'attack') {
         state.level += 1 / attackSamples
         if (state.level >= 1) {
           state.level = 1
-          state.stage = 'hold'
+          state.stage = 'decay'
         }
-      } else if (state.stage === 'hold') {
-        state.level = 1
-        // gate mode: release on gate-low handled above
-      } else if (state.stage === 'release') {
-        state.level *= releaseDecay
+      } else if (state.stage === 'decay') {
+        state.level *= decayRate
         if (state.level < 0.001) {
           state.level = 0
           state.stage = 'idle'

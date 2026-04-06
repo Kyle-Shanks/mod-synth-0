@@ -11,7 +11,7 @@ interface ClockState {
 
 export const ClockDefinition: ModuleDefinition<
   {
-    reset: { type: 'trigger'; default: 0; label: 'rst' }
+    reset: { type: 'trigger'; default: 0; label: 'reset' }
   },
   {
     gate: { type: 'gate'; default: 0; label: 'gate' }
@@ -50,7 +50,7 @@ export const ClockDefinition: ModuleDefinition<
   height: 4,
 
   inputs: {
-    reset: { type: 'trigger', default: 0, label: 'rst' },
+    reset: { type: 'trigger', default: 0, label: 'reset' },
   },
   outputs: {
     gate: { type: 'gate', default: 0, label: 'gate' },

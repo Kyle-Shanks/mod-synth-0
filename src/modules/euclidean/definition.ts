@@ -14,8 +14,8 @@ interface EuclideanState {
 
 export const EuclideanDefinition: ModuleDefinition<
   {
-    clock: { type: 'gate'; default: 0; label: 'clk' }
-    reset: { type: 'trigger'; default: 0; label: 'rst' }
+    clock: { type: 'gate'; default: 0; label: 'clock' }
+    reset: { type: 'trigger'; default: 0; label: 'reset' }
   },
   {
     out: { type: 'trigger'; default: 0; label: 'out' }
@@ -31,12 +31,12 @@ export const EuclideanDefinition: ModuleDefinition<
   id: 'euclidean',
   name: 'euclid',
   category: 'control',
-  width: 3,
+  width: 4,
   height: 3,
 
   inputs: {
-    clock: { type: 'gate', default: 0, label: 'clk' },
-    reset: { type: 'trigger', default: 0, label: 'rst' },
+    clock: { type: 'gate', default: 0, label: 'clock' },
+    reset: { type: 'trigger', default: 0, label: 'reset' },
   },
   outputs: {
     out: { type: 'trigger', default: 0, label: 'out' },

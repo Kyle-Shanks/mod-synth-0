@@ -10,7 +10,7 @@ interface DelayState {
 export const DelayDefinition: ModuleDefinition<
   {
     audio: { type: 'audio'; default: 0; label: 'in' }
-    timeCv: { type: 'cv'; default: 0; label: 'cv' }
+    timeCv: { type: 'cv'; default: 0; label: 'time' }
   },
   {
     out: { type: 'audio'; default: 0; label: 'out' }
@@ -35,7 +35,7 @@ export const DelayDefinition: ModuleDefinition<
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    timeCv: { type: 'cv', default: 0, label: 'cv' },
+    timeCv: { type: 'cv', default: 0, label: 'time' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },

@@ -7,7 +7,7 @@ interface PannerState {
 export const PannerDefinition: ModuleDefinition<
   {
     in: { type: 'audio'; default: 0; label: 'in' }
-    panCv: { type: 'cv'; default: 0; label: 'pan cv' }
+    panCv: { type: 'cv'; default: 0; label: 'pan' }
   },
   {
     left: { type: 'audio'; default: 0; label: 'left' }
@@ -26,7 +26,7 @@ export const PannerDefinition: ModuleDefinition<
 
   inputs: {
     in: { type: 'audio', default: 0, label: 'in' },
-    panCv: { type: 'cv', default: 0, label: 'pan cv' },
+    panCv: { type: 'cv', default: 0, label: 'pan' },
   },
   outputs: {
     left: { type: 'audio', default: 0, label: 'left' },

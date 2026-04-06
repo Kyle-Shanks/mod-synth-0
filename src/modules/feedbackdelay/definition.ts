@@ -11,15 +11,31 @@ interface FeedbackDelayState {
 export const FeedbackDelayDefinition: ModuleDefinition<
   {
     audio: { type: 'audio'; default: 0; label: 'in' }
-    timeCv: { type: 'cv'; default: 0; label: 'time cv' }
+    timeCv: { type: 'cv'; default: 0; label: 'time' }
   },
   {
     out: { type: 'audio'; default: 0; label: 'out' }
   },
   {
-    time: { type: 'float'; min: 0.01; max: 2.0; default: 0.3; label: 'time'; unit: 's'; curve: 'log' }
+    time: {
+      type: 'float'
+      min: 0.01
+      max: 2.0
+      default: 0.3
+      label: 'time'
+      unit: 's'
+      curve: 'log'
+    }
     feedback: { type: 'float'; min: 0; max: 0.95; default: 0.5; label: 'fdbk' }
-    tone: { type: 'float'; min: 200; max: 10000; default: 4000; label: 'tone'; unit: 'hz'; curve: 'log' }
+    tone: {
+      type: 'float'
+      min: 200
+      max: 10000
+      default: 4000
+      label: 'tone'
+      unit: 'hz'
+      curve: 'log'
+    }
     mix: { type: 'float'; min: 0; max: 1; default: 0.4; label: 'mix' }
   },
   FeedbackDelayState
@@ -32,15 +48,31 @@ export const FeedbackDelayDefinition: ModuleDefinition<
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    timeCv: { type: 'cv', default: 0, label: 'time cv' },
+    timeCv: { type: 'cv', default: 0, label: 'time' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },
   },
   params: {
-    time: { type: 'float', min: 0.01, max: 2.0, default: 0.3, label: 'time', unit: 's', curve: 'log' },
+    time: {
+      type: 'float',
+      min: 0.01,
+      max: 2.0,
+      default: 0.3,
+      label: 'time',
+      unit: 's',
+      curve: 'log',
+    },
     feedback: { type: 'float', min: 0, max: 0.95, default: 0.5, label: 'fdbk' },
-    tone: { type: 'float', min: 200, max: 10000, default: 4000, label: 'tone', unit: 'hz', curve: 'log' },
+    tone: {
+      type: 'float',
+      min: 200,
+      max: 10000,
+      default: 4000,
+      label: 'tone',
+      unit: 'hz',
+      curve: 'log',
+    },
     mix: { type: 'float', min: 0, max: 1, default: 0.4, label: 'mix' },
   },
 
@@ -62,13 +94,16 @@ export const FeedbackDelayDefinition: ModuleDefinition<
     const buf = state.buffer as Float32Array
     const bufLen = buf.length
     // one-pole lowpass coefficient for tone filter on feedback path
-    const toneCoeff = Math.exp(-2 * Math.PI * params.tone / sr)
+    const toneCoeff = Math.exp((-2 * Math.PI * params.tone) / sr)
 
     for (let i = 0; i < 128; i++) {
       const input = inputs.audio[i] ?? 0
       const timeCv = inputs.timeCv[i] ?? 0
       // CV modulates time by ±1 octave
-      const delayTime = Math.max(0.01, Math.min(2.0, params.time * Math.pow(2, timeCv)))
+      const delayTime = Math.max(
+        0.01,
+        Math.min(2.0, params.time * Math.pow(2, timeCv)),
+      )
       const delaySamples = Math.min(bufLen - 2, delayTime * sr)
 
       // fractional delay with linear interpolation
@@ -80,7 +115,8 @@ export const FeedbackDelayDefinition: ModuleDefinition<
       const delayed = r0 * (1 - frac) + r1 * frac
 
       // tone filter (one-pole lowpass) applied to feedback path
-      state.filterState = (1 - toneCoeff) * delayed + toneCoeff * (state.filterState as number)
+      state.filterState =
+        (1 - toneCoeff) * delayed + toneCoeff * (state.filterState as number)
       const toneFiltered = state.filterState as number
 
       // soft saturation in feedback path

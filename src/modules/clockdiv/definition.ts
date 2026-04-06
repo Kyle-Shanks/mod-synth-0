@@ -11,8 +11,8 @@ interface ClockDivState {
 
 export const ClockDivDefinition: ModuleDefinition<
   {
-    clock: { type: 'gate'; default: 0; label: 'clk' }
-    reset: { type: 'trigger'; default: 0; label: 'rst' }
+    clock: { type: 'gate'; default: 0; label: 'clock' }
+    reset: { type: 'trigger'; default: 0; label: 'reset' }
   },
   {
     out: { type: 'gate'; default: 0; label: 'out' }
@@ -46,8 +46,8 @@ export const ClockDivDefinition: ModuleDefinition<
   height: 4,
 
   inputs: {
-    clock: { type: 'gate', default: 0, label: 'clk' },
-    reset: { type: 'trigger', default: 0, label: 'rst' },
+    clock: { type: 'gate', default: 0, label: 'clock' },
+    reset: { type: 'trigger', default: 0, label: 'reset' },
   },
   outputs: {
     out: { type: 'gate', default: 0, label: 'out' },

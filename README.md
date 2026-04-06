@@ -79,7 +79,11 @@ this opens a command palette. type to search by name or category, then press `en
 
 ### envelopes and modulation
 
-**adsr** — attack/decay/sustain/release envelope generator. triggered by a gate input. outputs a 0–1 cv signal that shapes amplitude or filter cutoff over time. supports retrigger from the current level on rapid re-attack.
+**adsr** — attack/decay/sustain/release envelope generator. triggered by a gate input. outputs a 0–1 envelope on `out` for shaping amplitude or filter cutoff. supports retrigger from the current level on rapid re-attack.
+
+**ar** — attack/release envelope generator. always gate-driven: rise during held gate, then release on gate-low. outputs envelope on `out` and a 10ms `eoc` trigger when the release finishes.
+
+**ad** — attack/decay one-shot envelope generator. starts on gate rising edge, runs through attack then decay, and emits a 10ms `eoc` trigger at end of cycle.
 
 **attenuverter** — scales and inverts cv signals. useful for controlling the depth and polarity of modulation.
 
@@ -91,7 +95,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 **chord** — takes a single root v/oct input and outputs four v/oct signals tuned to a chord above it. chord type is selectable (maj, min, dom7, maj7, min7, dim, aug, sus2, sus4). octave offset and spread controls adjust voicing. the panel shows a one-octave piano keyboard with the active chord notes highlighted.
 
-**panner** — constant-power stereo panner. mono audio in, pan cv modulation, separate left and right outputs. the panel shows a semicircular arc with a glowing indicator dot.
+**panner** — constant-power stereo panner. mono audio in, pan modulation input, separate left and right outputs. the panel shows a semicircular arc with a glowing indicator dot.
 
 **prob gate** — probabilistic gate. on each rising gate edge, a random number is checked against the probability knob. gates that pass are forwarded; blocked gates fire the skip output instead. useful for adding variation to sequences without changing the clock grid.
 
@@ -99,11 +103,11 @@ this opens a command palette. type to search by name or category, then press `en
 
 **clock** — generates regular gate pulses at a bpm-derived rate. includes reset input, swing amount, a trigger output, and a selectable divided gate output.
 
-**sequencer** — 8-step cv + gate sequencer. advances one step per clock pulse. each step has its own pitch value (set by fader) and a configurable gate length.
+**sequencer** — 8-step pitch + gate sequencer. advances one step per clock pulse. each step has its own pitch value (set by fader) and a configurable gate length.
 
 **push button** — a manual trigger. hold for a sustained gate output; each press also fires a 10ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
 
-**keyboard** — computer keyboard to cv/gate converter. select the module to arm it, then play notes with `a w s e d f t g y h u j k`. use `z` / `x` to shift octaves. the panel highlights the currently held key and shows the active octave. outputs v/oct cv, a held gate, and a 10ms trigger pulse on note-on.
+**keyboard** — computer keyboard to pitch/gate converter. select the module to arm it, then play notes with `a w s e d f t g y h u j k`. use `z` / `x` to shift octaves. the panel highlights the currently held key and shows the active octave. outputs pitch on `out`, a held gate, and a 10ms trigger pulse on note-on.
 
 ### effects
 

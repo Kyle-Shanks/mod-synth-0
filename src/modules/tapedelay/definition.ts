@@ -14,7 +14,7 @@ interface TapeDelayState {
 export const TapeDelayDefinition: ModuleDefinition<
   {
     audio: { type: 'audio'; default: 0; label: 'in' }
-    timeCv: { type: 'cv'; default: 0; label: 'time cv' }
+    timeCv: { type: 'cv'; default: 0; label: 'time' }
   },
   {
     out: { type: 'audio'; default: 0; label: 'out' }
@@ -45,7 +45,7 @@ export const TapeDelayDefinition: ModuleDefinition<
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    timeCv: { type: 'cv', default: 0, label: 'time cv' },
+    timeCv: { type: 'cv', default: 0, label: 'time' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },

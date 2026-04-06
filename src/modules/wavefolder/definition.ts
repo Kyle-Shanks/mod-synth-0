@@ -19,7 +19,7 @@ export const WavefolderDefinition: ModuleDefinition<
   WavefolderState
 > = {
   id: 'wavefolder',
-  name: 'wfold',
+  name: 'wavefold',
   category: 'fx',
   width: 2,
   height: 3,

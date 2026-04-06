@@ -9,8 +9,8 @@ interface VCFState {
 export const VCFDefinition: ModuleDefinition<
   {
     audio: { type: 'audio'; default: 0; label: 'in' }
-    cutoffCv: { type: 'cv'; default: 0; label: 'cut cv' }
-    resonanceCv: { type: 'cv'; default: 0; label: 'res cv' }
+    cutoffCv: { type: 'cv'; default: 0; label: 'cutoff' }
+    resonanceCv: { type: 'cv'; default: 0; label: 'res' }
     envelope: { type: 'cv'; default: 0; label: 'env' }
   },
   { out: { type: 'audio'; default: 0; label: 'out' } },
@@ -50,8 +50,8 @@ export const VCFDefinition: ModuleDefinition<
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    cutoffCv: { type: 'cv', default: 0, label: 'cut cv' },
-    resonanceCv: { type: 'cv', default: 0, label: 'res cv' },
+    cutoffCv: { type: 'cv', default: 0, label: 'cutoff' },
+    resonanceCv: { type: 'cv', default: 0, label: 'res' },
     envelope: { type: 'cv', default: 0, label: 'env' },
   },
   outputs: {

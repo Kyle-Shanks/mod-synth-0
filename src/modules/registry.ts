@@ -20,6 +20,7 @@ import { SlewDefinition } from './slew/definition'
 import { MultDefinition } from './mult/definition'
 import { EnvFollowerDefinition } from './envfollower/definition'
 import { ARDefinition } from './ar/definition'
+import { ADDefinition } from './ad/definition'
 import { ComparatorDefinition } from './comparator/definition'
 import { LogicDefinition } from './logic/definition'
 import { WavefolderDefinition } from './wavefolder/definition'
@@ -91,6 +92,7 @@ reg(SlewDefinition)
 reg(MultDefinition)
 reg(EnvFollowerDefinition)
 reg(ARDefinition)
+reg(ADDefinition)
 reg(ComparatorDefinition)
 reg(LogicDefinition)
 reg(WavefolderDefinition)

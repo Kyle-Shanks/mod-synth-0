@@ -12,7 +12,7 @@ interface ADSRState {
 
 export const ADSRDefinition: ModuleDefinition<
   { gate: { type: 'gate'; default: 0; label: 'gate' } },
-  { envelope: { type: 'cv'; default: 0; label: 'env' } },
+  { envelope: { type: 'cv'; default: 0; label: 'out' } },
   {
     attack: {
       type: 'float'
@@ -52,7 +52,7 @@ export const ADSRDefinition: ModuleDefinition<
     gate: { type: 'gate', default: 0, label: 'gate' },
   },
   outputs: {
-    envelope: { type: 'cv', default: 0, label: 'env' },
+    envelope: { type: 'cv', default: 0, label: 'out' },
   },
   params: {
     attack: {

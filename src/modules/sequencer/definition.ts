@@ -9,11 +9,11 @@ interface SequencerState {
 
 export const SequencerDefinition: ModuleDefinition<
   {
-    clock: { type: 'gate'; default: 0; label: 'clk' }
-    reset: { type: 'trigger'; default: 0; label: 'rst' }
+    clock: { type: 'gate'; default: 0; label: 'clock' }
+    reset: { type: 'trigger'; default: 0; label: 'reset' }
   },
   {
-    cv: { type: 'cv'; default: 0; label: 'cv' }
+    cv: { type: 'cv'; default: 0; label: 'out' }
     gate: { type: 'gate'; default: 0; label: 'gate' }
   },
   {
@@ -49,11 +49,11 @@ export const SequencerDefinition: ModuleDefinition<
   height: 4,
 
   inputs: {
-    clock: { type: 'gate', default: 0, label: 'clk' },
-    reset: { type: 'trigger', default: 0, label: 'rst' },
+    clock: { type: 'gate', default: 0, label: 'clock' },
+    reset: { type: 'trigger', default: 0, label: 'reset' },
   },
   outputs: {
-    cv: { type: 'cv', default: 0, label: 'cv' },
+    cv: { type: 'cv', default: 0, label: 'out' },
     gate: { type: 'gate', default: 0, label: 'gate' },
   },
   params: {

@@ -7,7 +7,7 @@ interface LFOState {
 
 export const LFODefinition: ModuleDefinition<
   {
-    rateCv: { type: 'cv'; default: 0; label: 'rate cv' }
+    rateCv: { type: 'cv'; default: 0; label: 'rate' }
   },
   {
     sine: { type: 'cv'; default: 0; label: 'sin' }
@@ -42,7 +42,7 @@ export const LFODefinition: ModuleDefinition<
   height: 3,
 
   inputs: {
-    rateCv: { type: 'cv', default: 0, label: 'rate cv' },
+    rateCv: { type: 'cv', default: 0, label: 'rate' },
   },
   outputs: {
     sine: { type: 'cv', default: 0, label: 'sin' },

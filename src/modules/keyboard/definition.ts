@@ -17,7 +17,7 @@ interface KeyboardState {
 export const KeyboardDefinition: ModuleDefinition<
   Record<string, never>,
   {
-    cv: { type: 'cv'; default: 0; label: 'cv' }
+    cv: { type: 'cv'; default: 0; label: 'out' }
     gate: { type: 'gate'; default: 0; label: 'gate' }
     trigger: { type: 'trigger'; default: 0; label: 'trig' }
   },
@@ -32,7 +32,7 @@ export const KeyboardDefinition: ModuleDefinition<
 
   inputs: {},
   outputs: {
-    cv: { type: 'cv', default: 0, label: 'cv' },
+    cv: { type: 'cv', default: 0, label: 'out' },
     gate: { type: 'gate', default: 0, label: 'gate' },
     trigger: { type: 'trigger', default: 0, label: 'trig' },
   },
