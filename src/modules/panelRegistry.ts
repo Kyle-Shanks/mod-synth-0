@@ -13,6 +13,7 @@ import { FMOpPanel } from './fmop/panel'
 import { PluckPanel } from './pluck/panel'
 import { CompressorPanel } from './compressor/panel'
 import { ChordGenPanel } from './chordgen/panel'
+import { KeyboardPanel } from './keyboard/panel'
 
 export type ModuleBodyPanelComponent = React.ComponentType<{ moduleId: string }>
 
@@ -30,6 +31,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   pluck: PluckPanel,
   compressor: CompressorPanel,
   chordgen: ChordGenPanel,
+  keyboard: KeyboardPanel,
 }
 
 export function renderModuleBodyPanel(definitionId: string, moduleId: string): React.ReactElement {

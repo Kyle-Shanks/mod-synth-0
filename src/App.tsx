@@ -90,9 +90,12 @@ export default function App() {
   }
 
   const handleNewPatch = useCallback(() => {
-    if (Object.keys(useStore.getState().modules).length === 0) return
-    if (!window.confirm('clear current patch? unsaved changes will be lost.'))
+    if (
+      Object.keys(useStore.getState().modules).length > 0 &&
+      !window.confirm('clear current patch? unsaved changes will be lost.')
+    ) {
       return
+    }
     clearPatch()
     clearPatchStorage()
   }, [clearPatch])

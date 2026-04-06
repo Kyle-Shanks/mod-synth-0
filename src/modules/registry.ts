@@ -40,6 +40,9 @@ import { ProbGateDefinition } from './probgate/definition'
 import { ChordGenDefinition } from './chordgen/definition'
 import { PannerDefinition } from './panner/definition'
 import { TapeDelayDefinition } from './tapedelay/definition'
+import { KeyboardDefinition } from './keyboard/definition'
+import { CVDefinition } from './cv/definition'
+import { OctaveDefinition } from './octave/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -116,3 +119,6 @@ reg(ProbGateDefinition)
 reg(ChordGenDefinition)
 reg(PannerDefinition)
 reg(TapeDelayDefinition)
+reg(KeyboardDefinition)
+reg(CVDefinition)
+reg(OctaveDefinition)

@@ -40,7 +40,7 @@ export const ClockDivDefinition: ModuleDefinition<
   ClockDivState
 > = {
   id: 'clockdiv',
-  name: 'clk div',
+  name: 'clock div',
   category: 'control',
   width: 3,
   height: 4,

@@ -57,7 +57,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 ### oscillators and generators
 
-**vco** — voltage controlled oscillator. outputs sine, sawtooth, and pulse waveforms simultaneously. frequency is set by knob and modulated via v/oct cv input. fm input for frequency modulation.
+**vco** — voltage controlled oscillator. outputs sine, sawtooth, and pulse waveforms simultaneously. frequency is set by knob and modulated via v/oct cv input. fm input for frequency modulation. pulse width can be modulated with the `pw` cv input.
 
 **lfo** — low frequency oscillator. same waveforms as the vco but operates below audio rate (0.01hz–100hz). outputs are cv-typed so they patch naturally to filter cutoffs, vca gains, and other modulation targets.
 
@@ -87,6 +87,8 @@ this opens a command palette. type to search by name or category, then press `en
 
 **quantizer** — snaps a continuous cv pitch signal to the nearest note in a selectable musical scale.
 
+**octave** — transposes incoming v/oct cv by integer octaves. useful for quickly shifting melodies and keyboard/sequencer lines up or down.
+
 **chord** — takes a single root v/oct input and outputs four v/oct signals tuned to a chord above it. chord type is selectable (maj, min, dom7, maj7, min7, dim, aug, sus2, sus4). octave offset and spread controls adjust voicing. the panel shows a one-octave piano keyboard with the active chord notes highlighted.
 
 **panner** — constant-power stereo panner. mono audio in, pan cv modulation, separate left and right outputs. the panel shows a semicircular arc with a glowing indicator dot.
@@ -101,6 +103,8 @@ this opens a command palette. type to search by name or category, then press `en
 
 **push button** — a manual trigger. hold for a sustained gate output; each press also fires a 10ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
 
+**keyboard** — computer keyboard to cv/gate converter. select the module to arm it, then play notes with `a w s e d f t g y h u j k`. use `z` / `x` to shift octaves. the panel highlights the currently held key and shows the active octave. outputs v/oct cv, a held gate, and a 10ms trigger pulse on note-on.
+
 ### effects
 
 **reverb** — convolution reverb. mix control blends the dry signal with the reverberated signal.
@@ -112,6 +116,8 @@ this opens a command palette. type to search by name or category, then press `en
 **tape delay** — warm delay with tape character. wow/flutter adds pitch instability to repeats; drive saturates the feedback path for degraded, lo-fi repeats. echo animation shows spinning reels and diminishing echo dots.
 
 ### utility and display
+
+**cv** — constant control-voltage source with a single knob outputting from -1 to 1.
 
 **scope** — waveform display. connects to any signal port and displays the last few milliseconds of signal in real time. a timescale knob zooms the display.
 

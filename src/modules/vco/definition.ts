@@ -9,6 +9,7 @@ export const VCODefinition: ModuleDefinition<
   {
     frequency: { type: 'cv'; default: 0; label: 'v/oct' }
     fm: { type: 'cv'; default: 0; label: 'fm' }
+    pulseWidthCv: { type: 'cv'; default: 0; label: 'pw' }
   },
   {
     sine: { type: 'audio'; default: 0; label: 'sin' }
@@ -52,6 +53,7 @@ export const VCODefinition: ModuleDefinition<
   inputs: {
     frequency: { type: 'cv', default: 0, label: 'v/oct' },
     fm: { type: 'cv', default: 0, label: 'fm' },
+    pulseWidthCv: { type: 'cv', default: 0, label: 'pw' },
   },
   outputs: {
     sine: { type: 'audio', default: 0, label: 'sin' },
@@ -107,6 +109,11 @@ export const VCODefinition: ModuleDefinition<
         0.001,
         cvFreq * detuneRatio + fmAmount * params.frequency,
       )
+      const pulseWidthCv = inputs.pulseWidthCv[i] ?? 0
+      const pulseWidth = Math.max(
+        0.01,
+        Math.min(0.99, params.pulseWidth + pulseWidthCv * 0.5),
+      )
 
       // advance phase
       state.phase += freq / sampleRate
@@ -115,7 +122,7 @@ export const VCODefinition: ModuleDefinition<
       // generate waveforms
       outputs.sine[i] = Math.sin(state.phase * twoPi)
       outputs.saw[i] = 2 * state.phase - 1
-      outputs.pulse[i] = state.phase < params.pulseWidth ? 1 : -1
+      outputs.pulse[i] = state.phase < pulseWidth ? 1 : -1
     }
   },
 }

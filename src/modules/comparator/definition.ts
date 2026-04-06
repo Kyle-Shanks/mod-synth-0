@@ -26,7 +26,7 @@ export const ComparatorDefinition: ModuleDefinition<
   ComparatorState
 > = {
   id: 'comparator',
-  name: 'cmp',
+  name: 'comparator',
   category: 'utility',
   width: 3,
   height: 3,
