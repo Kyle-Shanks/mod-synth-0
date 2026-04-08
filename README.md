@@ -71,7 +71,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 ### filters and dynamics
 
-**vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps.
+**vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps. the panel overlays response + signal content using a log-frequency analyzer tuned for stable low-frequency readout.
 
 **vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
 
@@ -129,7 +129,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 **scope** — waveform display. connects to any signal port and displays the last few milliseconds of signal in real time. a timescale knob zooms the display.
 
-**freq spectrum** — real-time spectral display. connects to any signal port and shows a continuously updated frequency-energy curve, with a panel toggle for `normal`/`high` quality analysis.
+**freq spectrum** — real-time spectral display. connects to any signal port and shows a continuously updated log-frequency energy curve with DC rejection for cleaner low-end bars.
 
 **output** — the final module in any patch. routes audio to the browser's audio output. has a master volume knob and a peak meter. one output module is typically sufficient for a complete patch.
 

@@ -3,6 +3,9 @@ import type { ModuleDefinition } from '../../engine/types'
 interface VCFState {
   z1: number // first delay element
   z2: number // second delay element
+  scopeBuffer: Float32Array | null
+  writeIndexBuffer: Int32Array | null
+  writeIndex: number
   [key: string]: unknown
 }
 
@@ -45,7 +48,7 @@ export const VCFDefinition: ModuleDefinition<
   id: 'vcf',
   name: 'vcf',
   category: 'filter',
-  width: 3,
+  width: 5,
   height: 5,
 
   inputs: {
@@ -85,12 +88,23 @@ export const VCFDefinition: ModuleDefinition<
   },
 
   initialize(): VCFState {
-    return { z1: 0, z2: 0 }
+    return {
+      z1: 0,
+      z2: 0,
+      scopeBuffer: null,
+      writeIndexBuffer: null,
+      writeIndex: 0,
+    }
   },
 
   process(inputs, outputs, params, state, context) {
     const sampleRate = context.sampleRate
     const mode = params.mode // 0=lp, 1=hp, 2=bp
+
+    const scopeBuffer = state.scopeBuffer as Float32Array | null
+    const writeIndexBuffer = state.writeIndexBuffer as Int32Array | null
+    const bufferLength = scopeBuffer ? scopeBuffer.length : 0
+    let writeIndex = state.writeIndex as number
 
     for (let i = 0; i < 128; i++) {
       const input = inputs.audio[i] ?? 0
@@ -120,13 +134,26 @@ export const VCFDefinition: ModuleDefinition<
       state.z2 = 2 * v2 - state.z2
 
       // select output based on mode
+      let out: number
       if (mode < 0.5) {
-        outputs.out[i] = v2 // lowpass
+        out = v2 // lowpass
       } else if (mode < 1.5) {
-        outputs.out[i] = input - k * v1 - v2 // highpass
+        out = input - k * v1 - v2 // highpass
       } else {
-        outputs.out[i] = v1 // bandpass
+        out = v1 // bandpass
       }
+      outputs.out[i] = out
+
+      // write output to scope buffer for display
+      if (scopeBuffer && bufferLength > 0) {
+        scopeBuffer[writeIndex % bufferLength] = out
+        writeIndex++
+      }
+    }
+
+    if (scopeBuffer && writeIndexBuffer && bufferLength > 0) {
+      state.writeIndex = writeIndex % bufferLength
+      Atomics.store(writeIndexBuffer, 0, state.writeIndex as number)
     }
   },
 }

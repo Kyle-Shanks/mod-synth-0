@@ -763,6 +763,8 @@ scope, freq spectrum, tuner, and xy scope each set up their own `SharedArrayBuff
 
 buffers are injected through zustand store actions, not direct engine calls from `ModulePanel.tsx`. if `SharedArrayBuffer` is unavailable (missing coop/coep headers), the panels gracefully render without live data.
 
+the freq spectrum and vcf panels share a single log-frequency analyzer implementation at `src/modules/utils/logSpectrumAnalyzer.ts`. it precomputes a blackman-harris window, radix-2 fft tables, and bin-to-bar weights with low-band center-spacing guards so early bars stay responsive. each frame removes dc offset, runs an in-place fft, aggregates fft bin energy into bars, and applies attack/release smoothing in-place so low-frequency bars are stable without per-frame allocations.
+
 ### sequencer and clock indicator buffers
 
 the clock and sequencer modules use `Int32Array` views of `SharedArrayBuffer` instances (injected via the store action `setIndicatorBuffer`) to communicate the current beat/step position to the ui without polling. these are read atomically in the `ClockIndicator` and `SequencerIndicator` components via `requestAnimationFrame`.

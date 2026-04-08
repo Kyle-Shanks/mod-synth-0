@@ -10,14 +10,7 @@ interface SpectrumState {
 export const SpectrumDefinition: ModuleDefinition<
   { in: { type: 'audio'; default: 0; label: 'in' } },
   Record<string, never>,
-  {
-    quality: {
-      type: 'select'
-      default: 1
-      options: ['normal', 'high']
-      label: 'quality'
-    }
-  },
+  Record<string, never>,
   SpectrumState
 > = {
   id: 'spectrum',
@@ -30,14 +23,7 @@ export const SpectrumDefinition: ModuleDefinition<
     in: { type: 'audio', default: 0, label: 'in' },
   },
   outputs: {},
-  params: {
-    quality: {
-      type: 'select',
-      default: 1,
-      options: ['normal', 'high'],
-      label: 'quality',
-    },
-  },
+  params: {},
 
   initialize(): SpectrumState {
     return {
@@ -48,7 +34,6 @@ export const SpectrumDefinition: ModuleDefinition<
   },
 
   process(inputs, _outputs, _params, state) {
-    // Reuse the scope-style ring buffer bridge for zero-copy display updates.
     const scopeBuffer = state.scopeBuffer as Float32Array | null
     const writeIndexBuffer = state.writeIndexBuffer as Int32Array | null
     if (!scopeBuffer || !writeIndexBuffer) return
