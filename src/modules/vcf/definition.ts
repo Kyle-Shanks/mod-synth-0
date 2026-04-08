@@ -6,6 +6,7 @@ interface VCFState {
   scopeBuffer: Float32Array | null
   writeIndexBuffer: Int32Array | null
   writeIndex: number
+  _meters: Record<string, number>
   [key: string]: unknown
 }
 
@@ -94,17 +95,25 @@ export const VCFDefinition: ModuleDefinition<
       scopeBuffer: null,
       writeIndexBuffer: null,
       writeIndex: 0,
+      _meters: {
+        cutoffNorm: 0,
+        resNorm: 0,
+      },
     }
   },
 
   process(inputs, outputs, params, state, context) {
     const sampleRate = context.sampleRate
     const mode = params.mode // 0=lp, 1=hp, 2=bp
+    const logCutoffMin = Math.log10(20)
+    const logCutoffRange = Math.log10(20000) - logCutoffMin
 
     const scopeBuffer = state.scopeBuffer as Float32Array | null
     const writeIndexBuffer = state.writeIndexBuffer as Int32Array | null
     const bufferLength = scopeBuffer ? scopeBuffer.length : 0
     let writeIndex = state.writeIndex as number
+    let cutoffSum = 0
+    let resSum = 0
 
     for (let i = 0; i < 128; i++) {
       const input = inputs.audio[i] ?? 0
@@ -118,6 +127,8 @@ export const VCFDefinition: ModuleDefinition<
 
       const resCv = inputs.resonanceCv[i] ?? 0
       const res = Math.max(0, Math.min(1, params.resonance + resCv))
+      cutoffSum += clampedCutoff
+      resSum += res
 
       // ZDF (zero-delay feedback) SVF — unconditionally stable (Cytomic/Simper topology)
       const g = Math.tan((Math.PI * clampedCutoff) / sampleRate)
@@ -155,5 +166,15 @@ export const VCFDefinition: ModuleDefinition<
       state.writeIndex = writeIndex % bufferLength
       Atomics.store(writeIndexBuffer, 0, state.writeIndex as number)
     }
+
+    const meters = state._meters as Record<string, number>
+    const avgCutoff = Math.max(20, cutoffSum / 128)
+    const avgRes = resSum / 128
+    const cutoffNorm =
+      logCutoffRange > 0
+        ? (Math.log10(avgCutoff) - logCutoffMin) / logCutoffRange
+        : 0
+    meters.cutoffNorm = Math.max(0, Math.min(1, cutoffNorm))
+    meters.resNorm = Math.max(0, Math.min(1, avgRes))
   },
 }

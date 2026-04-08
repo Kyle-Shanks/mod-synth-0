@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useRef } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { ListSelector } from '../../components/ListSelector'
@@ -16,13 +17,16 @@ const VCF_DISPLAY_SR = 44100
 const VCF_AUDIO_MIN_DB = -72
 const VCF_LOG_MIN_FREQ = Math.log10(VCF_MIN_FREQ)
 const VCF_LOG_MAX_FREQ = Math.log10(VCF_MAX_FREQ)
+const VCF_LOG_FREQ_RANGE = VCF_LOG_MAX_FREQ - VCF_LOG_MIN_FREQ
 
 // Filter response display range:
 // 0 dB (passband) maps to ~72% height, +12 dB resonance peak maps to 100%,
 // giving clear headroom for peaks. Slope reaches 0 at -30 dB.
 const VCF_FILT_DB_MIN = -30
 const VCF_FILT_DB_MAX = 12
-const VCF_FILT_DB_RANGE = VCF_FILT_DB_MAX - VCF_FILT_DB_MIN  // 42
+const VCF_FILT_DB_RANGE = VCF_FILT_DB_MAX - VCF_FILT_DB_MIN // 42
+const VCF_MOD_ATTACK = 0.44
+const VCF_MOD_RELEASE = 0.16
 
 export function VCFPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
@@ -34,6 +38,8 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
   const paramsRef = useRef(mod?.params ?? {})
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
+  const modTargetsRef = useRef({ cutoffNorm: Number.NaN, resNorm: Number.NaN })
+  const modDisplayRef = useRef({ cutoffHz: Number.NaN, resonance: Number.NaN })
 
   // pre-allocated per-frame state (no heap allocation inside RAF)
   const filterResponseRef = useRef(new Float32Array(VCF_N_BARS))
@@ -48,6 +54,22 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
 
   useEffect(() => { themeRef.current = theme }, [theme])
   useEffect(() => { paramsRef.current = mod?.params ?? {} }, [mod?.params])
+
+  useEffect(() => {
+    return useStore.subscribe((state) => {
+      const ctx = state.subpatchContext
+      const instanceId = ctx[ctx.length - 1]?.instanceId
+      const workletId = instanceId ? internalWorkletId(instanceId, moduleId) : moduleId
+      const cutoffNorm = state.meterValues[`${workletId}:cutoffNorm`]
+      const resNorm = state.meterValues[`${workletId}:resNorm`]
+      if (typeof cutoffNorm === 'number' && Number.isFinite(cutoffNorm)) {
+        modTargetsRef.current.cutoffNorm = Math.max(0, Math.min(1, cutoffNorm))
+      }
+      if (typeof resNorm === 'number' && Number.isFinite(resNorm)) {
+        modTargetsRef.current.resNorm = Math.max(0, Math.min(1, resNorm))
+      }
+    })
+  }, [moduleId])
 
   useEffect(() => {
     spectrumKernelRef.current = createLogSpectrumKernel({
@@ -93,12 +115,46 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
       const w = canvas.width
       const h = canvas.height
       const spectrumKernel = spectrumKernelRef.current
+      const modTargets = modTargetsRef.current
+      const modDisplay = modDisplayRef.current
 
       ctx.fillStyle = t.shades.shade0
       ctx.fillRect(0, 0, w, h)
 
-      const cutoff = Math.max(1, p.cutoff ?? 1000)
-      const resonance = p.resonance ?? 0
+      const paramCutoff = Math.max(VCF_MIN_FREQ, Math.min(VCF_MAX_FREQ, p.cutoff ?? 1000))
+      const paramResonance = Math.max(0, Math.min(1, p.resonance ?? 0))
+
+      let cutoff = paramCutoff
+      if (Number.isFinite(modTargets.cutoffNorm)) {
+        const targetCutoff = Math.pow(
+          10,
+          VCF_LOG_MIN_FREQ + modTargets.cutoffNorm * VCF_LOG_FREQ_RANGE,
+        )
+        let displayedCutoff = modDisplay.cutoffHz
+        if (!Number.isFinite(displayedCutoff)) displayedCutoff = targetCutoff
+        displayedCutoff +=
+          (targetCutoff - displayedCutoff)
+          * (targetCutoff > displayedCutoff ? VCF_MOD_ATTACK : VCF_MOD_RELEASE)
+        modDisplay.cutoffHz = displayedCutoff
+        cutoff = displayedCutoff
+      } else {
+        modDisplay.cutoffHz = paramCutoff
+      }
+
+      let resonance = paramResonance
+      if (Number.isFinite(modTargets.resNorm)) {
+        const targetRes = modTargets.resNorm
+        let displayedRes = modDisplay.resonance
+        if (!Number.isFinite(displayedRes)) displayedRes = targetRes
+        displayedRes +=
+          (targetRes - displayedRes)
+          * (targetRes > displayedRes ? VCF_MOD_ATTACK : VCF_MOD_RELEASE)
+        modDisplay.resonance = displayedRes
+        resonance = displayedRes
+      } else {
+        modDisplay.resonance = paramResonance
+      }
+
       const mode = Math.round(p.mode ?? 0)
 
       // k from VCF process(): k = 2 - 2 * res, Q = 1/k

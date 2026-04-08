@@ -71,7 +71,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 ### filters and dynamics
 
-**vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps. the panel overlays response + signal content using a log-frequency analyzer tuned for stable low-frequency readout.
+**vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps. the panel overlays response + signal content using a log-frequency analyzer tuned for stable low-frequency readout, and its bars track live modulation arriving on `cutoff`, `res`, and `env`.
 
 **vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
 
