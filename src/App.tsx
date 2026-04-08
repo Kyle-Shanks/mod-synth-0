@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { ThemeProvider } from './theme/ThemeProvider'
 import { Rack } from './rack/Rack'
 import { CommandPalette } from './components/CommandPalette'
+import { PresetsModal } from './components/PresetsModal'
 import { SettingsPanel } from './components/SettingsPanel'
 import { engine } from './engine/EngineController'
 import { useStore } from './store'
@@ -10,6 +11,7 @@ import {
   setupAutosave,
   clearPatchStorage,
 } from './persistence/storage'
+import { loadLibraryFromStorage } from './store/subpatchSlice'
 import {
   serializePatch,
   deserializePatch,
@@ -35,18 +37,30 @@ export default function App() {
   const commandPaletteOpen = useStore((s) => s.commandPaletteOpen)
   // const undo = useStore((s) => s.undo)
   // const redo = useStore((s) => s.redo)
-  const pastLength = useStore((s) => s.past.length)
-  const futureLength = useStore((s) => s.future.length)
+  const pastLength = useStore((s) =>
+    s.subpatchContext.length > 0 ? 0 : s.past.length,
+  )
+  const futureLength = useStore((s) =>
+    s.subpatchContext.length > 0 ? 0 : s.future.length,
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
   const initStartedRef = useRef(false)
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
+  const [presetsOpen, setPresetsOpen] = useState(false)
+  const subpatchContext = useStore((s) => s.subpatchContext)
+  const isInsideSubpatch = subpatchContext.length > 0
 
   useEffect(() => {
     if (initStartedRef.current) return
     initStartedRef.current = true
     engine.initialize().then(() => {
       setEngineReady(true)
+      // load library presets before restoring the patch
+      const savedLibrary = loadLibraryFromStorage()
+      if (Object.keys(savedLibrary).length > 0) {
+        useStore.setState({ libraryPresets: savedLibrary })
+      }
       restoreSavedPatch()
     })
   }, [setEngineReady])
@@ -96,6 +110,7 @@ export default function App() {
     ) {
       return
     }
+    useStore.getState().exitToRoot()
     clearPatch()
     clearPatchStorage()
   }, [clearPatch])
@@ -126,8 +141,9 @@ export default function App() {
             alert('invalid patch file.')
             return
           }
-          const { name, modules, cables, settings } = deserializePatch(data)
-          loadPatch(name, modules, cables)
+          const { name, modules, cables, definitions, settings } =
+            deserializePatch(data)
+          loadPatch(name, modules, cables, definitions)
           setCableTautness(settings.cableTautness)
           setTooltipsEnabled(settings.tooltipsEnabled)
           setTheme(settings.themeId)
@@ -300,6 +316,18 @@ export default function App() {
               onChange={handleImport}
             />
 
+            {/* presets — hidden when inside a subpatch */}
+            {!isInsideSubpatch && (
+              <button
+                className='topbar-button'
+                onClick={() => setPresetsOpen(true)}
+                style={topBarBtnStyle}
+                title='subpatch library'
+              >
+                presets
+              </button>
+            )}
+
             {/* separator dot */}
             <span
               style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
@@ -364,7 +392,7 @@ export default function App() {
                 color: 'var(--shade2)',
               }}
             >
-              space / right-click to add modules
+              space to add modules
             </span>
 
             {/* settings gear */}
@@ -387,6 +415,9 @@ export default function App() {
 
           <Rack />
           {commandPaletteOpen && <CommandPalette />}
+          {presetsOpen && (
+            <PresetsModal onClose={() => setPresetsOpen(false)} />
+          )}
           <SettingsPanel />
         </>
       )}

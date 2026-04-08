@@ -3,7 +3,31 @@ import { useStore } from '../store'
 import { getAllModules } from '../modules/registry'
 import type { ModuleDefinition } from '../engine/types'
 
-const CATEGORY_ORDER = ['source', 'control', 'envelope', 'filter', 'dynamics', 'fx', 'utility', 'display'] as const
+// synthetic "add subpatch container" entry shown only at root level
+const SUBPATCH_ENTRY: ModuleDefinition = {
+  id: '__add_subpatch__',
+  name: 'subpatch',
+  category: 'subpatch',
+  width: 4,
+  height: 3,
+  inputs: {},
+  outputs: {},
+  params: {},
+  initialize: () => ({}),
+  process: () => {},
+}
+
+const CATEGORY_ORDER = [
+  'subpatch',
+  'source',
+  'control',
+  'envelope',
+  'filter',
+  'dynamics',
+  'fx',
+  'utility',
+  'display',
+] as const
 
 type DisplayItem =
   | { kind: 'header'; category: string }
@@ -13,24 +37,37 @@ export function CommandPalette() {
   const position = useStore((s) => s.commandPalettePosition)
   const setOpen = useStore((s) => s.setCommandPaletteOpen)
   const addModule = useStore((s) => s.addModule)
+  const createDefinition = useStore((s) => s.createDefinition)
+  const addSubpatchContainer = useStore((s) => s.addSubpatchContainer)
+  const subpatchContext = useStore((s) => s.subpatchContext)
+  const isInsideSubpatch = subpatchContext.length > 0
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // filter module list: hide internal modules at root; show them only inside a subpatch
+  // at root, add synthetic 'subpatch' entry
   const allModules = getAllModules()
+    .filter((m) => {
+      if (m.internal) return isInsideSubpatch
+      return true
+    })
+    .concat(isInsideSubpatch ? [] : [SUBPATCH_ENTRY])
 
   // flat list of selectable modules (used for keyboard nav)
   const selectableModules: ModuleDefinition[] = query
     ? allModules
         .filter((m) => {
           const q = query.toLowerCase()
-          return m.name.includes(q) || m.category.includes(q) || m.id.includes(q)
+          return (
+            m.name.includes(q) || m.category.includes(q) || m.id.includes(q)
+          )
         })
         .sort((a, b) => a.name.localeCompare(b.name))
     : CATEGORY_ORDER.flatMap((cat) =>
         allModules
           .filter((m) => m.category === cat)
-          .sort((a, b) => a.name.localeCompare(b.name))
+          .sort((a, b) => a.name.localeCompare(b.name)),
       )
 
   // display items — interleave category headers when not filtering
@@ -61,7 +98,13 @@ export function CommandPalette() {
   const clampedSelectedIndex = Math.min(selectedIndex, maxIndex)
 
   function handleSelect(definitionId: string) {
-    addModule(definitionId, position ?? { x: 2, y: 2 })
+    const pos = position ?? { x: 2, y: 2 }
+    if (definitionId === '__add_subpatch__') {
+      const defId = createDefinition('untitled')
+      addSubpatchContainer(defId, pos)
+    } else {
+      addModule(definitionId, pos)
+    }
     setOpen(false)
   }
 
@@ -116,7 +159,12 @@ export function CommandPalette() {
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* input */}
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--shade2)' }}>
+        <div
+          style={{
+            padding: '8px 12px',
+            borderBottom: '1px solid var(--shade2)',
+          }}
+        >
           <input
             ref={inputRef}
             value={query}
@@ -125,7 +173,7 @@ export function CommandPalette() {
               setSelectedIndex(0)
             }}
             onKeyDown={handleKeyDown}
-            placeholder="add module..."
+            placeholder='add module...'
             style={{
               width: '100%',
               background: 'transparent',

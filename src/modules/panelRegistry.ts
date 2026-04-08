@@ -18,6 +18,8 @@ import { KeyboardPanel } from './keyboard/panel'
 import { VCAPanel } from './vca/panel'
 import { NotePanel } from './note/panel'
 import { ChaosPanel } from './chaos/panel'
+import { SubpatchInputPanel } from './subpatch-input/panel'
+import { SubpatchOutputPanel } from './subpatch-output/panel'
 
 export type ModuleBodyPanelComponent = React.ComponentType<{ moduleId: string }>
 
@@ -40,6 +42,8 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   vca: VCAPanel,
   note: NotePanel,
   chaos: ChaosPanel,
+  'subpatch-input': SubpatchInputPanel,
+  'subpatch-output': SubpatchOutputPanel,
 }
 
 export function renderModuleBodyPanel(

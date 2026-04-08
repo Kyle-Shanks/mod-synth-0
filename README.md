@@ -135,24 +135,55 @@ this opens a command palette. type to search by name or category, then press `en
 
 ---
 
+## subpatches
+
+subpatches let you group related modules into a reusable, named container. the container appears as a single panel on the rack with exposed ports and optional macro knobs.
+
+**creating a subpatch**
+
+- select two or more modules → right-click empty rack space → **group as subpatch** — wraps the selection into a container, preserving internal cables.
+- open the command palette → **subpatch** — creates an empty container you can drill into and build from scratch.
+
+**editing a subpatch**
+
+- **double-click** a container to drill into it. the breadcrumb at the top shows the current context; click any segment or press `esc` to exit.
+- inside the subpatch, add modules normally with `space`/`/` or right-click.
+- **exposing ports**: place a **in** or **out** module inside the subpatch. its ports appear on the container face. click the label to rename; click the type badge to cycle audio → cv → gate → trigger.
+- **exposing macros**: right-click any knob while inside a subpatch → **expose as macro**. a macro knob appears on the container face. right-click again → **remove macro** to unexpose it.
+
+**linked instances**
+
+all instances of the same subpatch definition share the same internal structure. editing the internals of one (while drilled in) updates all instances when you exit.
+
+**naming**
+
+double-click the name in the container header to rename it.
+
+---
+
 ## controls
 
-| action                  | how                                   |
-| ----------------------- | ------------------------------------- |
-| add module              | `space` or `/` or right-click on rack |
-| delete selected modules | `delete` or `backspace`               |
-| select module           | click on it                           |
-| select multiple modules | click-drag empty rack area            |
-| copy selected modules   | `cmd/ctrl + c`                        |
-| paste modules           | `cmd/ctrl + v`                        |
-| move module(s)          | drag selected module header           |
-| drag a cable            | mousedown on any port                 |
-| disconnect a cable      | right-click the cable                 |
-| rename patch            | click the patch name in the top bar   |
-| new patch               | top bar → new                         |
-| export patch            | top bar → export                      |
-| import patch            | top bar → import                      |
-| settings                | gear icon in the top bar              |
+| action                    | how                                                 |
+| ------------------------- | --------------------------------------------------- |
+| add module                | `space` or `/` on rack                              |
+| delete selected modules   | `delete` or `backspace`                             |
+| select module             | click on it                                         |
+| select multiple modules   | click-drag empty rack area                          |
+| copy selected modules     | `cmd/ctrl + c`                                      |
+| paste modules             | `cmd/ctrl + v`                                      |
+| move module(s)            | drag selected module header                         |
+| drag a cable              | mousedown on any port                               |
+| disconnect a cable        | right-click the cable                               |
+| rename patch              | click the patch name in the top bar                 |
+| new patch                 | top bar → new                                       |
+| export patch              | top bar → export                                    |
+| import patch              | top bar → import                                    |
+| settings                  | gear icon in the top bar                            |
+| group modules as subpatch | select ≥2 modules → right-click empty space         |
+| enter subpatch            | double-click container header                       |
+| exit subpatch             | `esc` or click breadcrumb                           |
+| expose port in subpatch   | add **in** / **out** module while drilled in        |
+| expose knob as macro      | right-click knob while drilled in → expose as macro |
 
 ---
 

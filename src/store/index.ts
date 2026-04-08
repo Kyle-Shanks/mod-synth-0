@@ -4,8 +4,9 @@ import { createUISlice, type UISlice } from './uiSlice'
 import { createSettingsSlice, type SettingsSlice } from './settingsSlice'
 import { createEngineSlice, type EngineSlice } from './engineSlice'
 import { createHistorySlice, type HistorySlice } from './historySlice'
+import { createSubpatchSlice, type SubpatchSlice } from './subpatchSlice'
 
-export type StoreState = PatchSlice & UISlice & SettingsSlice & EngineSlice & HistorySlice
+export type StoreState = PatchSlice & UISlice & SettingsSlice & EngineSlice & HistorySlice & SubpatchSlice
 
 export const useStore = create<StoreState>()((...args) => ({
   ...createPatchSlice(...args),
@@ -13,4 +14,5 @@ export const useStore = create<StoreState>()((...args) => ({
   ...createSettingsSlice(...args),
   ...createEngineSlice(...args),
   ...createHistorySlice(...args),
+  ...createSubpatchSlice(...args),
 }))

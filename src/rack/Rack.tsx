@@ -1,11 +1,13 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
+import { SubpatchBreadcrumb } from '../components/SubpatchBreadcrumb'
 import { CableLayer } from '../cables/CableLayer'
 import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
+import { isSubpatchContainer } from '../store/subpatchSlice'
 
 const RACK_COLS = 64
 const RACK_ROWS = 32
@@ -29,6 +31,10 @@ export function Rack() {
   const removeModules = useStore((s) => s.removeModules)
   const copyModulesToClipboard = useStore((s) => s.copyModulesToClipboard)
   const pasteModulesFromClipboard = useStore((s) => s.pasteModulesFromClipboard)
+  const subpatchContext = useStore((s) => s.subpatchContext)
+  const exitSubpatch = useStore((s) => s.exitSubpatch)
+  const groupModulesAsSubpatch = useStore((s) => s.groupModulesAsSubpatch)
+  const isInsideSubpatch = subpatchContext.length > 0
   const rackRef = useRef<HTMLDivElement>(null)
   const outerRef = useRef<HTMLDivElement>(null)
   const lastMousePosRef = useRef<{ x: number; y: number } | null>(null)
@@ -113,6 +119,7 @@ export function Rack() {
     if (!start) return
 
     e.preventDefault()
+    ;(document.activeElement as HTMLElement)?.blur()
     const additiveSelection = e.shiftKey
     const baseSelection = additiveSelection ? selectedModuleIds : []
     if (!additiveSelection) setSelectedModules([])
@@ -166,17 +173,33 @@ export function Rack() {
     setSelectedModules,
   ])
 
-  // right-click on empty space opens command palette
+  const [groupContextMenu, setGroupContextMenu] = useState<{ x: number; y: number; gridPos: { x: number; y: number } } | null>(null)
+
+  // right-click: open command palette OR "group as subpatch" if modules are selected
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     const rack = rackRef.current
     if (!rack) return
     const rect = rack.getBoundingClientRect()
-    setCommandPaletteOpen(true, {
+    const gridPos = {
       x: Math.round((e.clientX - rect.left) / zoom / GRID_UNIT),
       y: Math.round((e.clientY - rect.top) / zoom / GRID_UNIT),
-    })
-  }, [setCommandPaletteOpen, zoom])
+    }
+
+    // if multiple modules are selected and we right-click on empty space OR on a module
+    // within the selection, show the group menu
+    const sel = useStore.getState().selectedModuleIds
+    const target = e.target as HTMLElement
+    const clickedPanel = target.closest<HTMLElement>('[data-module-panel]')
+    const clickedModuleId = clickedPanel?.getAttribute('data-module-panel-id') ?? null
+    const clickedIsInSelection = clickedModuleId !== null && sel.includes(clickedModuleId)
+    if (sel.length > 1 && !isInsideSubpatch && (!clickedPanel || clickedIsInSelection)) {
+      setGroupContextMenu({ x: e.clientX, y: e.clientY, gridPos })
+      return
+    }
+
+    // right-click on non-selection targets does nothing (command palette uses space/slash)
+  }, [zoom, isInsideSubpatch])
 
   // keyboard: space opens command palette near mouse, delete removes selected modules
   useEffect(() => {
@@ -188,6 +211,14 @@ export function Rack() {
         e.target instanceof HTMLSelectElement ||
         (e.target instanceof HTMLElement && e.target.isContentEditable)
       ) return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        if (useStore.getState().subpatchContext.length > 0) {
+          useStore.getState().exitSubpatch()
+        }
+        return
+      }
+
       if (e.code === 'Space' || e.key === '/') {
         e.preventDefault()
         const rack = rackRef.current
@@ -267,14 +298,40 @@ export function Rack() {
     ? Math.abs(selectionDrag.currentY - selectionDrag.startY)
     : 0
 
+  // filter which module IDs to render:
+  // - at root: hide proxy modules (they only appear inside subpatches)
+  // - inside subpatch: show all modules (including proxies of the current definition)
+  const visibleModuleIds = Object.keys(modules).filter((id) => {
+    const mod = modules[id]
+    if (!mod) return false
+    if (!isInsideSubpatch) {
+      // hide proxy modules that got orphaned or were somehow added to root
+      if (mod.definitionId === 'subpatch-input' || mod.definitionId === 'subpatch-output') return false
+      // hide container modules that belong to a different subpatch context (shouldn't happen, but guard it)
+    } else {
+      // inside a subpatch: hide root-level containers and non-internal modules
+      // only show modules from the current definition (the injected ones + their IDs match the definition)
+      const currentDef = subpatchContext[subpatchContext.length - 1]
+      if (!currentDef) return false
+      const def = useStore.getState().definitions[currentDef.definitionId]
+      if (!def) return false
+      // only show modules that are part of this definition
+      return id in def.modules
+    }
+    return true
+  })
+
   return (
     <div
       ref={outerRef}
       style={{
         flex: 1,
         overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      <SubpatchBreadcrumb />
       <div
         style={{
           width: rackWidth * zoom,
@@ -316,7 +373,7 @@ export function Rack() {
           }} />
 
           {/* modules */}
-          {Object.keys(modules).map((moduleId) => (
+          {visibleModuleIds.map((moduleId) => (
             <ModulePanel key={moduleId} moduleId={moduleId} />
           ))}
 
@@ -344,6 +401,59 @@ export function Rack() {
           <Tooltip />
         </div>
       </div>
+
+      {/* "group as subpatch" context menu */}
+      {groupContextMenu && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 200 }}
+            onMouseDown={() => setGroupContextMenu(null)}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              left: groupContextMenu.x,
+              top: groupContextMenu.y,
+              zIndex: 201,
+              background: 'var(--shade1)',
+              border: '1px solid var(--shade2)',
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              minWidth: 180,
+            }}
+          >
+            <div
+              style={{
+                padding: '8px 12px',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--shade2)',
+                borderBottom: '1px solid var(--shade2)',
+              }}
+            >
+              {selectedModuleIds.length} modules selected
+            </div>
+            <div
+              onClick={() => {
+                const sel = useStore.getState().selectedModuleIds
+                groupModulesAsSubpatch(sel, 'untitled')
+                setGroupContextMenu(null)
+                setSelectedModules([])
+              }}
+              style={{
+                padding: '8px 12px',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--shade3)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'var(--accent0)'; (e.target as HTMLElement).style.color = 'var(--shade0)' }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = ''; (e.target as HTMLElement).style.color = 'var(--shade3)' }}
+            >
+              group as subpatch
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

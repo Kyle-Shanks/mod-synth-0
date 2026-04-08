@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
+import { internalWorkletId } from '../store/subpatchSlice'
 
 const BAR_HEIGHT = 52
 // Smoothing coefficients per animation frame (~16ms at 60fps).
@@ -88,8 +89,12 @@ export function GainMeter({ moduleId }: GainMeterProps) {
   // Subscribe to the store directly — no re-renders, just ref updates
   useEffect(() => {
     return useStore.subscribe((state) => {
-      targetRef.current.l = state.meterValues[`${moduleId}:peakL`] ?? 0
-      targetRef.current.r = state.meterValues[`${moduleId}:peakR`] ?? 0
+      // When inside a subpatch, worklet IDs are prefixed with the container instanceId
+      const ctx = state.subpatchContext
+      const instanceId = ctx[ctx.length - 1]?.instanceId
+      const workletId = instanceId ? internalWorkletId(instanceId, moduleId) : moduleId
+      targetRef.current.l = state.meterValues[`${workletId}:peakL`] ?? 0
+      targetRef.current.r = state.meterValues[`${workletId}:peakR`] ?? 0
     })
   }, [moduleId])
 

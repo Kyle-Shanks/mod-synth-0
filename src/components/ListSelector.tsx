@@ -6,9 +6,11 @@ interface ListSelectorProps {
   paramId: string
   definition: ParamDefinition
   value: number
+  // optional override: if provided, called instead of setParam (index passed as argument)
+  onChangeOverride?: (index: number) => void
 }
 
-export function ListSelector({ moduleId, paramId, definition, value }: ListSelectorProps) {
+export function ListSelector({ moduleId, paramId, definition, value, onChangeOverride }: ListSelectorProps) {
   const setParam = useStore((s) => s.setParam)
   const options = definition.options ?? []
   const selectedIndex = Math.round(value)
@@ -33,9 +35,13 @@ export function ListSelector({ moduleId, paramId, definition, value }: ListSelec
           key={option}
           onClick={(e) => {
             e.stopPropagation()
-            useStore.getState().stageHistory()
-            setParam(moduleId, paramId, i)
-            useStore.getState().commitHistory()
+            if (onChangeOverride) {
+              onChangeOverride(i)
+            } else {
+              useStore.getState().stageHistory()
+              setParam(moduleId, paramId, i)
+              useStore.getState().commitHistory()
+            }
           }}
           style={{
             padding: '2px 6px',

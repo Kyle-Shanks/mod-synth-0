@@ -4,8 +4,10 @@ import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { renderModuleBodyPanel } from '../modules/panelRegistry'
 import { Port } from './Port'
+import { SubpatchPanel } from './SubpatchPanel'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
+import { isSubpatchContainer } from '../store/subpatchSlice'
 
 interface ModulePanelProps {
   moduleId: string
@@ -53,6 +55,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       if (!mod) return
       e.preventDefault()
       e.stopPropagation()
+      ;(document.activeElement as HTMLElement)?.blur()
 
       const state = useStore.getState()
       const currentSelection = state.selectedModuleIds
@@ -140,6 +143,12 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   }, [moduleId])
 
   if (!mod) return null
+
+  // subpatch container — delegate to SubpatchPanel
+  if (isSubpatchContainer(mod)) {
+    return <SubpatchPanel moduleId={moduleId} />
+  }
+
   const isSelected = selectedModuleIds.includes(moduleId)
 
   // missing module — definition not in registry, show placeholder
@@ -201,8 +210,16 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   const widthPx = def.width * GRID_UNIT
   const heightPx = def.height * GRID_UNIT
 
-  const inputPorts = Object.entries(def.inputs)
-  const outputPorts = Object.entries(def.outputs)
+  // filter hidden ports (they still exist in the worklet but aren't shown in the UI)
+  const inputPorts = Object.entries(def.inputs).filter(([, pd]) => !pd.hidden)
+  const outputPorts = Object.entries(def.outputs).filter(([, pd]) => !pd.hidden)
+
+  // if the module instance has a data.portType, use it as an override for all visible ports
+  const portTypeOverride = (() => {
+    const t = mod.data?.portType
+    if (t === 'audio' || t === 'cv' || t === 'gate' || t === 'trigger') return t
+    return undefined
+  })()
 
   // check which ports are connected
   const connectedPorts = new Set<string>()
@@ -281,7 +298,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
                     moduleId={moduleId}
                     portId={id}
                     direction='input'
-                    type={portDef.type}
+                    type={portTypeOverride ?? portDef.type}
                     label={portDef.label}
                     connected={connectedPorts.has(id)}
                   />
@@ -310,7 +327,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
                     moduleId={moduleId}
                     portId={id}
                     direction='output'
-                    type={portDef.type}
+                    type={portTypeOverride ?? portDef.type}
                     label={portDef.label}
                     connected={connectedPorts.has(id)}
                   />

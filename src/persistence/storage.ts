@@ -72,10 +72,10 @@ export function restoreSavedPatch(): boolean {
   const saved = loadPatchFromStorage()
   if (!saved) return false
 
-  const { name, modules, cables, settings } = deserializePatch(saved)
+  const { name, modules, cables, definitions, settings } = deserializePatch(saved)
   const store = useStore.getState()
 
-  store.loadPatch(name, modules, cables)
+  store.loadPatch(name, modules, cables, definitions)
   store.setCableTautness(settings.cableTautness)
   store.setTooltipsEnabled(settings.tooltipsEnabled)
   store.setTheme(settings.themeId)
@@ -98,6 +98,7 @@ export function setupAutosave(): () => void {
         state.modules !== prevState.modules ||
         state.cables !== prevState.cables ||
         state.patchName !== prevState.patchName ||
+        state.definitions !== prevState.definitions ||
         state.cableTautness !== prevState.cableTautness ||
         state.tooltipsEnabled !== prevState.tooltipsEnabled ||
         state.themeId !== prevState.themeId

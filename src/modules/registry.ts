@@ -47,6 +47,8 @@ import { CVDefinition } from './cv/definition'
 import { OctaveDefinition } from './octave/definition'
 import { NoteDefinition } from './note/definition'
 import { ChaosDefinition } from './chaos/definition'
+import { SubpatchInputDefinition } from './subpatch-input/definition'
+import { SubpatchOutputDefinition } from './subpatch-output/definition'
 
 const registry = new Map<string, ModuleDefinition>()
 
@@ -130,3 +132,7 @@ reg(CVDefinition)
 reg(OctaveDefinition)
 reg(NoteDefinition)
 reg(ChaosDefinition)
+
+// subpatch proxy modules (internal: true — hidden at root level in command palette)
+reg(SubpatchInputDefinition)
+reg(SubpatchOutputDefinition)

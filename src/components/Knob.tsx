@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 
@@ -7,6 +8,8 @@ interface KnobProps {
   paramId: string
   definition: ParamDefinition
   value: number
+  // optional override: if provided, called instead of setParam
+  onChangeOverride?: (value: number) => void
 }
 
 const KNOB_SIZE = 32
@@ -22,12 +25,34 @@ function valueToLog(value: number, min: number, max: number): number {
   return Math.log(value / min) / Math.log(max / min)
 }
 
-export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
+export function Knob({ moduleId, paramId, definition, value, onChangeOverride }: KnobProps) {
   const setParam = useStore((s) => s.setParam)
+  const applyValue = useCallback((v: number) => {
+    if (onChangeOverride) { onChangeOverride(v) } else { setParam(moduleId, paramId, v) }
+  }, [onChangeOverride, setParam, moduleId, paramId])
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ currentValue: number } | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const [macroMenu, setMacroMenu] = useState<{ x: number; y: number } | null>(null)
+
+  // close macro menu on outside click
+  useEffect(() => {
+    if (!macroMenu) return
+    const handler = () => setMacroMenu(null)
+    window.addEventListener('mousedown', handler)
+    return () => window.removeEventListener('mousedown', handler)
+  }, [macroMenu])
+
+  // reactive: re-renders when the macro is added or removed
+  const isMacroExposed = useStore((s) => {
+    if (onChangeOverride) return false  // macro knob on container face — never lock itself
+    const ctx = s.subpatchContext
+    const defId = ctx[ctx.length - 1]?.definitionId
+    if (!defId) return false
+    const macroId = `macro-${moduleId}-${paramId}`
+    return !!s.definitions[defId]?.macros.find((m) => m.id === macroId)
+  })
 
   const min = definition.min ?? 0
   const max = definition.max ?? 1
@@ -39,6 +64,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
   const angle = -135 + normalized * 270
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (isMacroExposed) return  // locked — controlled by the macro knob on the container
     e.preventDefault()
     e.stopPropagation()
     if (e.detail === 2) {
@@ -47,7 +73,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
       setDragging(false)
       document.exitPointerLock()
       useStore.getState().stageHistory()
-      setParam(moduleId, paramId, definition.default)
+      applyValue(definition.default)
       useStore.getState().commitHistory()
       return
     }
@@ -56,7 +82,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
     setDragging(true)
     // lock pointer so cursor stays hidden and in place
     svgRef.current?.requestPointerLock()
-  }, [value, moduleId, paramId, definition.default, setParam])
+  }, [value, definition.default, applyValue])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return
@@ -73,8 +99,8 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
       newValue = Math.max(min, Math.min(max, dragRef.current.currentValue + dy * range * sensitivity))
     }
     dragRef.current.currentValue = newValue
-    setParam(moduleId, paramId, newValue)
-  }, [moduleId, paramId, min, max, range, isLog, setParam])
+    applyValue(newValue)
+  }, [min, max, range, isLog, applyValue])
 
   const handlePointerUp = useCallback(() => {
     dragRef.current = null
@@ -90,15 +116,46 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
     : value.toFixed(value < 10 ? 2 : 1)
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    if (isMacroExposed) return
     e.stopPropagation()
     // cancel any active drag first, then reset — this fires reliably even inside pointer lock
     dragRef.current = null
     setDragging(false)
     document.exitPointerLock()
     useStore.getState().stageHistory()
-    setParam(moduleId, paramId, definition.default)
+    applyValue(definition.default)
     useStore.getState().commitHistory()
-  }, [moduleId, paramId, definition.default, setParam])
+  }, [definition.default, applyValue, isMacroExposed])
+
+  // right-click inside a subpatch (on a non-macro knob) → "expose as macro"
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    if (onChangeOverride) return // macro knob itself — skip
+    const ctx = useStore.getState().subpatchContext
+    if (ctx.length === 0) return // not inside a subpatch
+    e.preventDefault()
+    e.stopPropagation()
+    setMacroMenu({ x: e.clientX, y: e.clientY })
+  }, [onChangeOverride])
+
+  function toggleMacro() {
+    const ctx = useStore.getState().subpatchContext
+    const defId = ctx[ctx.length - 1]?.definitionId
+    if (!defId) return
+    const macroId = `macro-${moduleId}-${paramId}`
+    const def = useStore.getState().definitions[defId]
+    const existing = def?.macros.find((m) => m.id === macroId)
+    if (existing) {
+      useStore.getState().removeMacro(defId, macroId)
+    } else {
+      useStore.getState().addMacro(defId, {
+        id: macroId,
+        label: definition.label,
+        targetModuleId: moduleId,
+        targetParamId: paramId,
+      })
+    }
+    setMacroMenu(null)
+  }
 
   return (
     <div
@@ -107,35 +164,89 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
         flexDirection: 'column',
         alignItems: 'center',
         gap: 2,
-        cursor: 'ns-resize',
+        cursor: isMacroExposed ? 'default' : 'ns-resize',
+        position: 'relative',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={handleDoubleClick}
+      onContextMenu={handleContextMenu}
     >
+      {macroMenu && createPortal(
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 300 }} onMouseDown={() => setMacroMenu(null)} />
+          <div
+            style={{
+              position: 'fixed',
+              left: macroMenu.x,
+              top: macroMenu.y,
+              zIndex: 301,
+              background: 'var(--shade1)',
+              border: '1px solid var(--shade2)',
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              minWidth: 160,
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                padding: '4px 10px',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--shade2)',
+                borderBottom: '1px solid var(--shade2)',
+              }}
+            >
+              {definition.label}
+            </div>
+            <div
+              onClick={toggleMacro}
+              style={{
+                padding: '7px 10px',
+                fontSize: 'var(--text-sm)',
+                color: isMacroExposed ? 'var(--accent0)' : 'var(--shade3)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--accent0)'; (e.currentTarget as HTMLElement).style.color = 'var(--shade0)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = isMacroExposed ? 'var(--accent0)' : 'var(--shade3)' }}
+            >
+              {isMacroExposed ? 'remove macro' : 'expose as macro'}
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
+
       <svg
         ref={svgRef}
         width={KNOB_SIZE}
         height={KNOB_SIZE}
         viewBox="0 0 32 32"
+        style={{ opacity: isMacroExposed ? 0.65 : 1 }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
         {/* outer ring */}
-        <circle cx="16" cy="16" r="13" fill="none" stroke="var(--shade2)" strokeWidth="1.5" />
+        <circle
+          cx="16" cy="16" r="13" fill="none"
+          stroke={isMacroExposed ? 'var(--accent1)' : 'var(--shade2)'}
+          strokeWidth="1.5"
+          strokeDasharray={isMacroExposed ? '3 2' : undefined}
+        />
         {/* position indicator */}
         <line
           x1="16"
           y1="16"
           x2={16 + 10 * Math.cos((angle - 90) * Math.PI / 180)}
           y2={16 + 10 * Math.sin((angle - 90) * Math.PI / 180)}
-          stroke="var(--accent0)"
+          stroke={isMacroExposed ? 'var(--accent1)' : 'var(--accent0)'}
           strokeWidth="2"
           strokeLinecap="round"
         />
         {/* center dot */}
-        <circle cx="16" cy="16" r="2" fill="var(--shade2)" />
+        <circle cx="16" cy="16" r="2" fill={isMacroExposed ? 'var(--accent1)' : 'var(--shade2)'} />
       </svg>
       {/* fixed-height label area to prevent layout shift */}
       <div style={{
@@ -143,6 +254,7 @@ export function Knob({ moduleId, paramId, definition, value }: KnobProps) {
         height: 11,
         minWidth: 30,
         textAlign: 'center',
+        opacity: isMacroExposed ? 0.65 : 1,
       }}>
         <span style={{
           fontSize: 'var(--text-xs)',

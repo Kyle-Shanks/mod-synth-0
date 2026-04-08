@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
+import { internalWorkletId } from '../store/subpatchSlice'
 
 const BAR_HEIGHT = 52
 const ATTACK = 0.9
@@ -22,7 +23,10 @@ export function MonoGainMeter({
 
   useEffect(() => {
     return useStore.subscribe((state) => {
-      targetRef.current = state.meterValues[`${moduleId}:${portId}`] ?? 0
+      const ctx = state.subpatchContext
+      const instanceId = ctx[ctx.length - 1]?.instanceId
+      const workletId = instanceId ? internalWorkletId(instanceId, moduleId) : moduleId
+      targetRef.current = state.meterValues[`${workletId}:${portId}`] ?? 0
     })
   }, [moduleId, portId])
 

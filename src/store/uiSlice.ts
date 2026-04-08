@@ -18,6 +18,12 @@ export interface ModuleClipboardData {
   }>
 }
 
+export interface SubpatchContextEntry {
+  instanceId: string
+  definitionId: string
+  name: string
+}
+
 export interface UISlice {
   selectedModuleId: string | null
   selectedModuleIds: string[]
@@ -30,6 +36,8 @@ export interface UISlice {
   zoom: number
   moduleClipboard: ModuleClipboardData | null
   moduleClipboardPasteCount: number
+  // subpatch drill-down navigation stack (empty = root)
+  subpatchContext: SubpatchContextEntry[]
   setSelectedModule: (id: string | null) => void
   setSelectedModules: (ids: string[]) => void
   setHoveredPort: (key: string | null) => void
@@ -40,9 +48,12 @@ export interface UISlice {
   setZoom: (z: number) => void
   setModuleClipboard: (clipboard: ModuleClipboardData | null) => void
   setModuleClipboardPasteCount: (count: number) => void
+  enterSubpatch: (instanceId: string, definitionId: string, name: string) => void
+  exitSubpatch: () => void
+  exitToRoot: () => void
 }
 
-export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set) => ({
+export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, get) => ({
   selectedModuleId: null,
   selectedModuleIds: [],
   hoveredPortKey: null,
@@ -54,6 +65,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set) =>
   zoom: 1,
   moduleClipboard: null,
   moduleClipboardPasteCount: 0,
+  subpatchContext: [],
 
   setSelectedModule: (id) => set({
     selectedModuleId: id,
@@ -77,4 +89,62 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set) =>
   setZoom: (z) => set({ zoom: Math.max(0.25, Math.min(2.0, z)) }),
   setModuleClipboard: (clipboard) => set({ moduleClipboard: clipboard }),
   setModuleClipboardPasteCount: (count) => set({ moduleClipboardPasteCount: Math.max(0, count) }),
+
+  enterSubpatch(instanceId, definitionId, name) {
+    const def = get().definitions[definitionId]
+    if (!def) return
+    // inject internal modules and cables into state so existing components work unmodified
+    set((s) => ({
+      subpatchContext: [...s.subpatchContext, { instanceId, definitionId, name }],
+      selectedModuleId: null,
+      selectedModuleIds: [],
+      modules: { ...s.modules, ...def.modules },
+      cables: { ...s.cables, ...def.cables },
+    }))
+  },
+  exitSubpatch() {
+    const state = get()
+    const current = state.subpatchContext[state.subpatchContext.length - 1]
+    if (!current) return
+    const def = state.definitions[current.definitionId]
+    // eject injected modules and cables from state.modules/cables
+    const newModules = { ...state.modules }
+    const newCables = { ...state.cables }
+    const newFeedback = new Set(state.feedbackCableIds)
+    if (def) {
+      for (const id of Object.keys(def.modules)) delete newModules[id]
+      for (const id of Object.keys(def.cables)) { delete newCables[id]; newFeedback.delete(id) }
+    }
+    set({
+      modules: newModules,
+      cables: newCables,
+      feedbackCableIds: newFeedback,
+      subpatchContext: state.subpatchContext.slice(0, -1),
+      selectedModuleId: null,
+      selectedModuleIds: [],
+    })
+    // rebuild all other instances of this definition
+    get().syncAllInstances(current.definitionId)
+  },
+  exitToRoot() {
+    const state = get()
+    const current = state.subpatchContext[state.subpatchContext.length - 1]
+    const def = current ? state.definitions[current.definitionId] : null
+    const newModules = { ...state.modules }
+    const newCables = { ...state.cables }
+    const newFeedback = new Set(state.feedbackCableIds)
+    if (def) {
+      for (const id of Object.keys(def.modules)) delete newModules[id]
+      for (const id of Object.keys(def.cables)) { delete newCables[id]; newFeedback.delete(id) }
+    }
+    set({
+      modules: newModules,
+      cables: newCables,
+      feedbackCableIds: newFeedback,
+      subpatchContext: [],
+      selectedModuleId: null,
+      selectedModuleIds: [],
+    })
+    if (current) get().syncAllInstances(current.definitionId)
+  },
 })

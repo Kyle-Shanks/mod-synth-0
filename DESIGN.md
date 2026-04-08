@@ -417,7 +417,7 @@ do not restrict the audio↔cv or gate↔trigger cross-connections. they are del
 
 ## 6. zustand store architecture
 
-the store is composed of four slices in `src/store/`:
+the store is composed of five slices in `src/store/`:
 
 ### patchSlice
 
@@ -431,6 +431,33 @@ patchName: string
 ```
 
 all module additions, cable connections, and parameter changes go through patchSlice actions. the actions call into `EngineController` to keep the worklet in sync. **components must never call `EngineController` directly — always go through the store.**
+
+`modules` may also contain `SubpatchContainerInstance` entries (where `definitionId === '__subpatch__'`), which carry extra fields: `subpatchDefinitionId`, `macroValues`, `containerWidth`, `containerHeight`. these entries are handled specially by actions — see the subpatch section below.
+
+### subpatchSlice
+
+subpatch definitions and library — persisted with the patch.
+
+```typescript
+definitions: Record<string, SubpatchDefinition>  // patch-local definitions (saved with patch)
+libraryPresets: Record<string, SubpatchDefinition>  // global user library (localStorage)
+```
+
+a `SubpatchDefinition` holds the internal module/cable topology shared by all instances:
+
+```typescript
+interface SubpatchDefinition {
+  id: string
+  name: string
+  modules: Record<string, ModuleInstance>     // internal module map
+  cables: Record<string, SerializedCable>
+  exposedInputs: ExposedPortDef[]             // ordered, derived from subpatch-input modules
+  exposedOutputs: ExposedPortDef[]            // derived from subpatch-output modules
+  macros: MacroDefinition[]
+}
+```
+
+key actions: `createDefinition`, `addSubpatchContainer`, `groupModulesAsSubpatch`, `refreshExposedPorts`, `syncAllInstances`, `addMacro`, `removeMacro`, `setMacroValue`, `saveDefinitionToLibrary`.
 
 ### uiSlice
 
@@ -447,7 +474,11 @@ commandPalettePosition: { x: number; y: number } | null
 settingsPanelOpen: boolean
 moduleClipboard: ModuleClipboardData | null
 moduleClipboardPasteCount: number
+// subpatch drill-down navigation stack (empty = root)
+subpatchContext: SubpatchContextEntry[]  // { instanceId, definitionId, name }
 ```
+
+`enterSubpatch` injects the definition's modules/cables into `state.modules`/`state.cables` so existing components work unmodified. `exitSubpatch` ejects them and calls `syncAllInstances`.
 
 ### settingsSlice
 
@@ -585,12 +616,19 @@ interface SerializedPatch {
     position: { x: number; y: number }
     params: Record<string, number>
     data?: Record<string, string>
+    // subpatch container extras (when definitionId === '__subpatch__')
+    subpatchDefinitionId?: string
+    macroValues?: Record<string, number>
+    containerWidth?: number
+    containerHeight?: number
   }>
   cables: Array<{
     id: string
     from: { moduleId: string; portId: string }
     to: { moduleId: string; portId: string }
   }>
+  // subpatch definitions — all patch-local definitions
+  subpatchDefinitions?: SubpatchDefinition[]
   settings: {
     cableTautness: number
     tooltipsEnabled: boolean
@@ -631,7 +669,7 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_48 modules currently shipped._
+_50 modules currently shipped (48 user-visible + 2 internal proxy modules)._
 
 | id              | name           | category | inputs                                            | outputs                         |
 | --------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
@@ -683,6 +721,10 @@ _48 modules currently shipped._
 | `panner`        | panner         | utility  | in (audio), pan (cv)                              | left, right (audio)             |
 | `tapedelay`     | tape delay     | fx       | in (audio), time (cv)                             | out (audio)                     |
 | `note`          | note           | utility  | —                                                 | —                               |
+| `subpatch-input`  | in           | utility  | in (any)                                          | out (any) — internal proxy      |
+| `subpatch-output` | out          | utility  | in (any)                                          | out (any) — internal proxy      |
+
+`subpatch-input` and `subpatch-output` are marked `internal: true` and are hidden from the command palette at root level. they are simple pass-through modules; their real purpose is to define exposed ports on a subpatch container's face. placed inside a subpatch via drill-down view. label and port type are configurable via their custom panel.
 
 ### panel component system
 
@@ -749,3 +791,23 @@ module visuals now follow a single pattern:
 - `ModulePanel.tsx` remains the shared shell for dragging, multi-selection, and ports
 
 this keeps module-specific UI logic close to each module while preserving a single canonical path for rack behavior and cable positioning.
+
+### subpatch / container modules
+
+subpatches are purely a ui-level grouping concept. the audio worklet always sees a flat graph — internal modules are added to the worklet with namespaced ids (`${instanceId}::${internalModuleId}`).
+
+**definition vs. instance.** a `SubpatchDefinition` holds the internal topology shared by all instances. a `SubpatchContainerInstance` (stored in `patchSlice.modules`) is one placement of that definition on the canvas, plus per-instance `macroValues` and pre-computed display dimensions.
+
+**drill-down navigation.** double-clicking a container calls `enterSubpatch()` in `uiSlice`, which injects the definition's internal modules/cables into `state.modules`/`state.cables`. existing rack components (`ModulePanel`, `Port`, `CableLayer`) continue to work without modification because they just read from those maps. on exit, injected entries are removed and `syncAllInstances(defId)` hot-reloads all other instances from the updated definition.
+
+**port exposure.** `subpatch-input` and `subpatch-output` modules placed inside a subpatch define the exposed ports on the container face. their label and portType (audio/cv/gate/trigger) are editable via the proxy module's custom panel. `refreshExposedPorts()` is called any time a proxy is added, removed, or has its `label`/`portType` changed; it rebuilds `exposedInputs`/`exposedOutputs` on the definition and updates all container instances' display dimensions.
+
+**container port ids.** the parent patch uses synthetic port ids (`sp_in_0`, `sp_out_0`, etc.) for connections to/from containers. `resolveContainerPort()` and `resolveWorkletCable()` translate these to the actual proxy worklet module ids before sending commands to the worklet.
+
+**macro knobs.** right-clicking any knob inside a drill-down view shows an "expose as macro" context menu. this adds a `MacroDefinition` to the definition. the container face renders macro knobs using `SubpatchPanel`. each knob calls `setMacroValue(instanceId, macroId, value)` which routes the value to the internal worklet module. right-clicking again shows "remove macro".
+
+**creation workflows.** two ways to create subpatches:
+- select modules → right-click empty space → "group as subpatch" (`groupModulesAsSubpatch`)
+- open command palette → "subpatch" entry → creates empty container (`createDefinition` + `addSubpatchContainer`)
+
+**undo/redo.** `historySlice` snapshots `definitions` alongside `modules`/`cables` in each history entry so undo correctly restores subpatch state.

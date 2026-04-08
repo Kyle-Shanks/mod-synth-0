@@ -1,10 +1,11 @@
-import { useRef, useLayoutEffect, useCallback, useState } from 'react'
+import { useRef, useLayoutEffect, useCallback, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from '../store'
 import { portPositionCache } from './PortPositionCache'
 import { cablePath } from './CableBezier'
 import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
+import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
 
 // Wider invisible stroke used purely for hit detection — makes cables much easier to hover
 const HIT_STROKE_WIDTH = 14
@@ -23,6 +24,8 @@ export function CableLayer() {
   const previewPathRef = useRef<SVGPathElement | null>(null)
   const cables = useStore((s) => s.cables)
   const modules = useStore((s) => s.modules)
+  const definitions = useStore((s) => s.definitions)
+  const subpatchContext = useStore((s) => s.subpatchContext)
   const tautness = useStore((s) => s.cableTautness)
   const dragState = useStore((s) => s.dragState)
   const hoveredCableId = useStore((s) => s.hoveredCableId)
@@ -31,6 +34,26 @@ export function CableLayer() {
   const feedbackCableIds = useStore((s) => s.feedbackCableIds)
   // ports take precedence — suppress cable pointer events while a port is hovered
   const hoveredPortKey = useStore((s) => s.hoveredPortKey)
+
+  // Filter cables to only those belonging to the current view.
+  // While drilled into a subpatch, root cables must be hidden and vice-versa.
+  const visibleCables = useMemo(() => {
+    if (subpatchContext.length === 0) {
+      // Root view: exclude any cable that belongs to a definition's internal cables
+      const internalCableIds = new Set<string>()
+      for (const def of Object.values(definitions)) {
+        for (const id of Object.keys(def.cables)) internalCableIds.add(id)
+      }
+      return Object.values(cables).filter((c) => !internalCableIds.has(c.id))
+    } else {
+      // Drill-down view: only show cables from the current definition
+      const currentDefId = subpatchContext[subpatchContext.length - 1]?.definitionId
+      const def = currentDefId ? definitions[currentDefId] : undefined
+      if (!def) return []
+      const defCableIds = new Set(Object.keys(def.cables))
+      return Object.values(cables).filter((c) => defCableIds.has(c.id))
+    }
+  }, [cables, subpatchContext, definitions])
 
   const [contextMenu, setContextMenu] = useState<{
     cableId: string
@@ -43,7 +66,7 @@ export function CableLayer() {
     if (!svg) return
 
     // update all cable paths (both hit area and visual path share the same bezier)
-    for (const cable of Object.values(cables)) {
+    for (const cable of visibleCables) {
       const fromPos = portPositionCache.get(
         cable.from.moduleId,
         cable.from.portId,
@@ -92,7 +115,7 @@ export function CableLayer() {
     } else if (preview) {
       preview.style.display = 'none'
     }
-  }, [cables, tautness, dragState])
+  }, [visibleCables, tautness, dragState])
 
   // subscribe to port position changes for live cable updates during drag
   useLayoutEffect(() => {
@@ -104,6 +127,18 @@ export function CableLayer() {
   function getCableColor(fromModuleId: string, fromPortId: string): string {
     const mod = modules[fromModuleId]
     if (!mod) return 'var(--shade2)'
+
+    // subpatch container: resolve port type from definition's exposedOutputs/exposedInputs
+    if (isSubpatchContainer(mod)) {
+      const def = definitions[mod.subpatchDefinitionId]
+      if (!def) return 'var(--shade2)'
+      const parsed = parseSubpatchPortId(fromPortId)
+      if (!parsed.isSubpatchPort) return 'var(--shade2)'
+      const ports = parsed.direction === 'output' ? def.exposedOutputs : def.exposedInputs
+      const exposed = ports[parsed.index]
+      return exposed ? CABLE_COLORS[exposed.type] : 'var(--shade2)'
+    }
+
     const def = getModule(mod.definitionId)
     if (!def) return 'var(--shade2)'
     const port = def.outputs[fromPortId] ?? def.inputs[fromPortId]
@@ -141,7 +176,7 @@ export function CableLayer() {
           overflow: 'visible',
         }}
       >
-        {Object.values(cables).map((cable) => {
+        {visibleCables.map((cable) => {
           const isHovered = hoveredCableId === cable.id
           const isFeedback = feedbackCableIds.has(cable.id)
           const hasHover = hoveredCableId !== null

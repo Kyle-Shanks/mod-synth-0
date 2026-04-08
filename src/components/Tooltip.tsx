@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { portPositionCache } from '../cables/PortPositionCache'
 import type { PortType } from '../engine/types'
+import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
 
 const TOOLTIP_DELAY = 300
 
@@ -84,15 +85,41 @@ export function Tooltip() {
   const mod = modules[moduleId]
   if (!mod) return null
 
-  const def = getModule(mod.definitionId)
-  if (!def) return null
+  const definitions = useStore.getState().definitions
 
-  const portDef = def.inputs[portId] ?? def.outputs[portId]
-  if (!portDef) return null
+  // Resolve port label, type and direction — handles both regular modules and subpatch containers
+  let portLabel: string
+  let portType: PortType
+  let direction: 'input' | 'output'
 
-  const isInput = portId in def.inputs
-  const direction = isInput ? 'input' : 'output'
-  const typeStyle = PORT_TYPE_STYLE[portDef.type]
+  if (isSubpatchContainer(mod)) {
+    const def = definitions[mod.subpatchDefinitionId]
+    if (!def) return null
+    const parsed = parseSubpatchPortId(portId)
+    if (!parsed.isSubpatchPort) return null
+    const ports = parsed.direction === 'input' ? def.exposedInputs : def.exposedOutputs
+    const exposed = ports[parsed.index]
+    if (!exposed) return null
+    portLabel = exposed.label
+    portType = exposed.type
+    direction = parsed.direction
+  } else {
+    const def = getModule(mod.definitionId)
+    if (!def) return null
+    const portDef = def.inputs[portId] ?? def.outputs[portId]
+    if (!portDef) return null
+    portLabel = portDef.label
+    portType = portDef.type
+    // proxy modules (subpatch-input/output) store the user-selected type in data.portType
+    const dataType = mod.data?.portType
+    if (dataType === 'audio' || dataType === 'cv' || dataType === 'gate' || dataType === 'trigger') {
+      portType = dataType
+    }
+    direction = portId in def.inputs ? 'input' : 'output'
+  }
+
+  const typeStyle = PORT_TYPE_STYLE[portType]
+  const isInput = direction === 'input'
 
   // count connections on this port
   const connections = Object.values(cables).filter((c) =>
@@ -105,19 +132,30 @@ export function Tooltip() {
     const otherId = isInput ? c.from.moduleId : c.to.moduleId
     const otherPortId = isInput ? c.from.portId : c.to.portId
     const otherMod = modules[otherId]
+    if (otherMod && isSubpatchContainer(otherMod)) {
+      const otherDef = definitions[otherMod.subpatchDefinitionId]
+      if (otherDef) {
+        const parsed = parseSubpatchPortId(otherPortId)
+        if (parsed.isSubpatchPort) {
+          const ports = parsed.direction === 'input' ? otherDef.exposedInputs : otherDef.exposedOutputs
+          const exposed = ports[parsed.index]
+          return `${otherDef.name} · ${exposed?.label ?? otherPortId}`
+        }
+      }
+    }
     const otherDef = otherMod ? getModule(otherMod.definitionId) : undefined
     const otherPortDef = otherDef
       ? (otherDef.outputs[otherPortId] ?? otherDef.inputs[otherPortId])
       : undefined
     const modName = otherDef?.name ?? otherId
-    const portLabel = otherPortDef?.label ?? otherPortId
-    return `${modName} · ${portLabel}`
+    const portLabelStr = otherPortDef?.label ?? otherPortId
+    return `${modName} · ${portLabelStr}`
   })
 
   const pos = portPositionCache.get(moduleId, portId)
   if (!pos) return null
 
-  const expandedLabel = expandLabel(portId, portDef.label)
+  const expandedLabel = expandLabel(portId, portLabel)
 
   return (
     <div
@@ -161,7 +199,7 @@ export function Tooltip() {
           fontWeight: 600,
           lineHeight: 1,
         }}>
-          {typeStyle?.label ?? portDef.type}
+          {typeStyle?.label ?? portType}
         </span>
         <span style={{
           fontSize: 'var(--text-xs)',
