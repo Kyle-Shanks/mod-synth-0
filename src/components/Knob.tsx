@@ -82,7 +82,7 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
     setDragging(true)
     // lock pointer so cursor stays hidden and in place
     svgRef.current?.requestPointerLock()
-  }, [value, definition.default, applyValue])
+  }, [value, definition.default, applyValue, isMacroExposed])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return

@@ -13,8 +13,15 @@ export function MixerPanel({ moduleId }: MixerPanelProps) {
 
   if (!mod || !def) return null
 
-  const levelParamIds = ['level1', 'level2', 'level3', 'level4'] as const
+  const channels = [
+    { levelParamId: 'level1', muteParamId: 'mute1', meterLeftId: 'ch1L', meterRightId: 'ch1R', label: '1' },
+    { levelParamId: 'level2', muteParamId: 'mute2', meterLeftId: 'ch2L', meterRightId: 'ch2R', label: '2' },
+    { levelParamId: 'level3', muteParamId: 'mute3', meterLeftId: 'ch3L', meterRightId: 'ch3R', label: '3' },
+    { levelParamId: 'level4', muteParamId: 'mute4', meterLeftId: 'ch4L', meterRightId: 'ch4R', label: '4' },
+  ] as const
   const masterDef = def.params.master
+  const masterMuteDef = def.params.masterMute
+  const masterMuted = (mod.params.masterMute ?? masterMuteDef?.default ?? 0) >= 0.5
 
   return (
     <div
@@ -35,20 +42,25 @@ export function MixerPanel({ moduleId }: MixerPanelProps) {
           gap: 6,
         }}
       >
-        {levelParamIds.map((paramId, idx) => {
-          const paramDef = def.params[paramId]
+        {channels.map((channel) => {
+          const paramDef = def.params[channel.levelParamId]
+          const muteDef = def.params[channel.muteParamId]
           if (!paramDef) return null
+          const muted =
+            (mod.params[channel.muteParamId] ?? muteDef?.default ?? 0) >= 0.5
 
           return (
             <MixerInputStrip
-              key={paramId}
+              key={channel.levelParamId}
               moduleId={moduleId}
-              paramId={paramId}
+              paramId={channel.levelParamId}
               definition={paramDef}
-              value={mod.params[paramId] ?? paramDef.default}
-              meterLeftId={`ch${idx + 1}L`}
-              meterRightId={`ch${idx + 1}R`}
-              label={`${idx + 1}`}
+              value={mod.params[channel.levelParamId] ?? paramDef.default}
+              muteParamId={channel.muteParamId}
+              muted={muted}
+              meterLeftId={channel.meterLeftId}
+              meterRightId={channel.meterRightId}
+              label={channel.label}
             />
           )
         })}
@@ -59,6 +71,8 @@ export function MixerPanel({ moduleId }: MixerPanelProps) {
           paramId='master'
           definition={masterDef}
           value={mod.params.master ?? masterDef.default}
+          muteParamId='masterMute'
+          muted={masterMuted}
         />
       )}
     </div>

@@ -75,7 +75,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 **vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
 
-**mixer** — 4-channel audio mixer with per-channel slim level strips, dual L/R gain meters, and a master level control.
+**mixer** — 4-channel audio mixer with per-channel slim level strips, dual L/R gain meters, per-channel mute toggles under each strip, a master mute toggle under the master meter, and a master level control.
 
 **compressor** — dynamic range compressor with threshold, ratio, attack, release, makeup gain, soft knee, and parallel compression mix. a sidechain input enables ducking and pumping effects. the panel displays a live transfer curve and a gain reduction meter. the gr output emits a cv signal tracking the compression amount.
 
@@ -124,6 +124,8 @@ this opens a command palette. type to search by name or category, then press `en
 ### utility and display
 
 **cv** — constant control-voltage source with a single knob outputting from -1 to 1.
+
+**mute** — single-channel mute utility. audio input passes through to output when unmuted; the large center button toggles hard mute.
 
 **note** — text note module for writing patch ideas, reminders, and performance cues directly on the rack. notes are saved with the patch.
 

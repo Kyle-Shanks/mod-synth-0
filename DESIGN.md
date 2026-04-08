@@ -439,8 +439,8 @@ all module additions, cable connections, and parameter changes go through patchS
 subpatch definitions and library — persisted with the patch.
 
 ```typescript
-definitions: Record<string, SubpatchDefinition>  // patch-local definitions (saved with patch)
-libraryPresets: Record<string, SubpatchDefinition>  // global user library (localStorage)
+definitions: Record<string, SubpatchDefinition> // patch-local definitions (saved with patch)
+libraryPresets: Record<string, SubpatchDefinition> // global user library (localStorage)
 ```
 
 a `SubpatchDefinition` holds the internal module/cable topology shared by all instances:
@@ -449,10 +449,10 @@ a `SubpatchDefinition` holds the internal module/cable topology shared by all in
 interface SubpatchDefinition {
   id: string
   name: string
-  modules: Record<string, ModuleInstance>     // internal module map
+  modules: Record<string, ModuleInstance> // internal module map
   cables: Record<string, SerializedCable>
-  exposedInputs: ExposedPortDef[]             // ordered, derived from subpatch-input modules
-  exposedOutputs: ExposedPortDef[]            // derived from subpatch-output modules
+  exposedInputs: ExposedPortDef[] // ordered, derived from subpatch-input modules
+  exposedOutputs: ExposedPortDef[] // derived from subpatch-output modules
   macros: MacroDefinition[]
 }
 ```
@@ -670,60 +670,61 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_50 modules currently shipped (48 user-visible + 2 internal proxy modules)._
+_51 modules currently shipped (49 user-visible + 2 internal proxy modules)._
 
-| id              | name           | category | inputs                                            | outputs                         |
-| --------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
-| `vco`           | vco            | source   | frequency (cv), fm (cv), pw (cv)                  | sine, saw, pulse (audio)        |
-| `vcf`           | vcf            | filter   | audio, cutoffCv, resonanceCv, envelope (cv)       | out (audio)                     |
-| `vca`           | vca            | dynamics | audio, cv                                         | out (audio, metered)            |
-| `mixer`         | mixer          | utility  | in1–in4 (audio)                                   | out (audio)                     |
-| `adsr`          | adsr           | envelope | gate                                              | out (cv)                        |
-| `ad`            | ad             | envelope | gate                                              | out (cv), eoc (trigger)         |
-| `pushbutton`    | button         | control  | —                                                 | gate, trigger                   |
-| `scope`         | scope          | display  | in (audio/cv)                                     | —                               |
-| `spectrum`      | freq spectrum  | display  | in (audio)                                        | —                               |
-| `output`        | output         | utility  | left, right (audio)                               | — (stereo meter)                |
-| `lfo`           | lfo            | source   | rate (cv)                                         | sine, saw, pulse, triangle (cv) |
-| `chaos`         | chaos          | source   | —                                                 | x, y, z (cv)                    |
-| `noise`         | noise          | source   | —                                                 | white, pink, brown (audio)      |
-| `samplehold`    | s&h            | utility  | in (cv), trigger                                  | out (cv)                        |
-| `clock`         | clock          | control  | —                                                 | clock, div2, div4, div8 (gate)  |
-| `sequencer`     | seq            | control  | clock (gate), reset (trigger)                     | out (cv), gate                  |
-| `keyboard`      | keyboard       | control  | —                                                 | out (cv), gate, trigger         |
-| `attenuverter`  | atten          | utility  | in (cv)                                           | out (cv)                        |
-| `cv`            | cv             | control  | —                                                 | out (cv)                        |
-| `octave`        | octave         | utility  | in (cv)                                           | out (cv)                        |
-| `quantizer`     | quant          | utility  | in (cv)                                           | out (cv)                        |
-| `reverb`        | reverb         | fx       | in (audio)                                        | out (audio)                     |
-| `delay`         | delay          | utility  | in (audio)                                        | out (audio)                     |
-| `slew`          | slew           | utility  | in (cv)                                           | out (cv)                        |
-| `mult`          | mult           | utility  | in (cv)                                           | a, b, c, d (cv)                 |
-| `envfollower`   | env flwr       | dynamics | in (audio)                                        | out (cv)                        |
-| `ar`            | ar             | envelope | gate (gate)                                       | out (cv), eoc (trigger)         |
-| `comparator`    | comparator     | utility  | a, b (cv)                                         | gt, lt, eq (gate)               |
-| `logic`         | logic          | utility  | a, b (gate)                                       | out (gate)                      |
-| `wavefolder`    | wavefold       | fx       | in (audio), foldCv (cv)                           | out (audio)                     |
-| `ringmod`       | ring mod       | fx       | a, b (audio)                                      | out (audio)                     |
-| `bitcrusher`    | crush          | fx       | in (audio)                                        | out (audio)                     |
-| `dist`          | dist           | fx       | in (audio)                                        | out (audio)                     |
-| `flanger`       | flanger        | fx       | in (audio)                                        | out (audio)                     |
-| `clockdiv`      | clock div      | control  | clock (gate), reset (trigger)                     | out (gate)                      |
-| `euclidean`     | euclid         | control  | clock (gate), reset (trigger)                     | out, accent (trigger)           |
-| `resonator`     | resonator      | source   | excite (trigger), pitch (cv), exciteAudio (audio) | out (audio)                     |
-| `tuner`         | tuner          | display  | in (audio)                                        | —                               |
-| `xyscope`       | xy scope       | display  | x, y (audio)                                      | —                               |
-| `feedbackdelay` | feedback delay | fx       | in (audio), time (cv)                             | out (audio)                     |
-| `fmop`          | fm op          | source   | v/oct (cv), mod in (audio)                        | out (audio)                     |
-| `pluck`         | pluck          | source   | excite (trigger), v/oct (cv), exc in (audio)      | out (audio)                     |
-| `compressor`    | compressor     | dynamics | in (audio), sc (audio)                            | out (audio), gr (cv)            |
-| `probgate`      | prob gate      | utility  | in (gate)                                         | out (gate), skip (gate)         |
-| `chordgen`      | chord          | utility  | root (cv)                                         | v1–v4 (cv)                      |
-| `panner`        | panner         | utility  | in (audio), pan (cv)                              | left, right (audio)             |
-| `tapedelay`     | tape delay     | fx       | in (audio), time (cv)                             | out (audio)                     |
-| `note`          | note           | utility  | —                                                 | —                               |
-| `subpatch-input`  | in           | utility  | in (any)                                          | out (any) — internal proxy      |
-| `subpatch-output` | out          | utility  | in (any)                                          | out (any) — internal proxy      |
+| id                | name           | category | inputs                                            | outputs                         |
+| ----------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
+| `vco`             | vco            | source   | frequency (cv), fm (cv), pw (cv)                  | sine, saw, pulse (audio)        |
+| `vcf`             | vcf            | filter   | audio, cutoffCv, resonanceCv, envelope (cv)       | out (audio)                     |
+| `vca`             | vca            | dynamics | audio, cv                                         | out (audio, metered)            |
+| `mixer`           | mixer          | utility  | in1–in4 (audio; mute1–mute4 + masterMute params)  | out (audio)                     |
+| `adsr`            | adsr           | envelope | gate                                              | out (cv)                        |
+| `ad`              | ad             | envelope | gate                                              | out (cv), eoc (trigger)         |
+| `pushbutton`      | button         | control  | —                                                 | gate, trigger                   |
+| `scope`           | scope          | display  | in (audio/cv)                                     | —                               |
+| `spectrum`        | freq spectrum  | display  | in (audio)                                        | —                               |
+| `output`          | output         | utility  | left, right (audio)                               | — (stereo meter)                |
+| `lfo`             | lfo            | source   | rate (cv)                                         | sine, saw, pulse, triangle (cv) |
+| `chaos`           | chaos          | source   | —                                                 | x, y, z (cv)                    |
+| `noise`           | noise          | source   | —                                                 | white, pink, brown (audio)      |
+| `samplehold`      | s&h            | utility  | in (cv), trigger                                  | out (cv)                        |
+| `clock`           | clock          | control  | —                                                 | clock, div2, div4, div8 (gate)  |
+| `sequencer`       | seq            | control  | clock (gate), reset (trigger)                     | out (cv), gate                  |
+| `keyboard`        | keyboard       | control  | —                                                 | out (cv), gate, trigger         |
+| `attenuverter`    | atten          | utility  | in (cv)                                           | out (cv)                        |
+| `cv`              | cv             | control  | —                                                 | out (cv)                        |
+| `octave`          | octave         | utility  | in (cv)                                           | out (cv)                        |
+| `quantizer`       | quant          | utility  | in (cv)                                           | out (cv)                        |
+| `reverb`          | reverb         | fx       | in (audio)                                        | out (audio)                     |
+| `delay`           | delay          | utility  | in (audio)                                        | out (audio)                     |
+| `slew`            | slew           | utility  | in (cv)                                           | out (cv)                        |
+| `mult`            | mult           | utility  | in (cv)                                           | a, b, c, d (cv)                 |
+| `mute`            | mute           | utility  | in (audio)                                        | out (audio)                     |
+| `envfollower`     | env flwr       | dynamics | in (audio)                                        | out (cv)                        |
+| `ar`              | ar             | envelope | gate (gate)                                       | out (cv), eoc (trigger)         |
+| `comparator`      | comparator     | utility  | a, b (cv)                                         | gt, lt, eq (gate)               |
+| `logic`           | logic          | utility  | a, b (gate)                                       | out (gate)                      |
+| `wavefolder`      | wavefold       | fx       | in (audio), foldCv (cv)                           | out (audio)                     |
+| `ringmod`         | ring mod       | fx       | a, b (audio)                                      | out (audio)                     |
+| `bitcrusher`      | crush          | fx       | in (audio)                                        | out (audio)                     |
+| `dist`            | dist           | fx       | in (audio)                                        | out (audio)                     |
+| `flanger`         | flanger        | fx       | in (audio)                                        | out (audio)                     |
+| `clockdiv`        | clock div      | control  | clock (gate), reset (trigger)                     | out (gate)                      |
+| `euclidean`       | euclid         | control  | clock (gate), reset (trigger)                     | out, accent (trigger)           |
+| `resonator`       | resonator      | source   | excite (trigger), pitch (cv), exciteAudio (audio) | out (audio)                     |
+| `tuner`           | tuner          | display  | in (audio)                                        | —                               |
+| `xyscope`         | xy scope       | display  | x, y (audio)                                      | —                               |
+| `feedbackdelay`   | feedback delay | fx       | in (audio), time (cv)                             | out (audio)                     |
+| `fmop`            | fm op          | source   | v/oct (cv), mod in (audio)                        | out (audio)                     |
+| `pluck`           | pluck          | source   | excite (trigger), v/oct (cv), exc in (audio)      | out (audio)                     |
+| `compressor`      | compressor     | dynamics | in (audio), sc (audio)                            | out (audio), gr (cv)            |
+| `probgate`        | prob gate      | utility  | in (gate)                                         | out (gate), skip (gate)         |
+| `chordgen`        | chord          | utility  | root (cv)                                         | v1–v4 (cv)                      |
+| `panner`          | panner         | utility  | in (audio), pan (cv)                              | left, right (audio)             |
+| `tapedelay`       | tape delay     | fx       | in (audio), time (cv)                             | out (audio)                     |
+| `note`            | note           | utility  | —                                                 | —                               |
+| `subpatch-input`  | in             | utility  | in (any)                                          | out (any) — internal proxy      |
+| `subpatch-output` | out            | utility  | in (any)                                          | out (any) — internal proxy      |
 
 `subpatch-input` and `subpatch-output` are marked `internal: true` and are hidden from the command palette at root level. they are simple pass-through modules; their real purpose is to define exposed ports on a subpatch container's face. placed inside a subpatch via drill-down view. label and port type are configurable via their custom panel.
 
@@ -810,6 +811,7 @@ subpatches are purely a ui-level grouping concept. the audio worklet always sees
 **macro knobs.** right-clicking any knob inside a drill-down view shows an "expose as macro" context menu. this adds a `MacroDefinition` to the definition. the container face renders macro knobs using `SubpatchPanel`. each knob calls `setMacroValue(instanceId, macroId, value)` which routes the value to the internal worklet module. right-clicking again shows "remove macro".
 
 **creation workflows.** two ways to create subpatches:
+
 - select modules → right-click empty space → "group as subpatch" (`groupModulesAsSubpatch`)
 - open command palette → "subpatch" entry → creates empty container (`createDefinition` + `addSubpatchContainer`)
 

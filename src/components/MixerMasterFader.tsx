@@ -19,6 +19,8 @@ interface MixerMasterFaderProps {
   paramId: string
   definition: ParamDefinition
   value: number
+  muteParamId: string
+  muted: boolean
 }
 
 export function MixerMasterFader({
@@ -26,6 +28,8 @@ export function MixerMasterFader({
   paramId,
   definition,
   value,
+  muteParamId,
+  muted,
 }: MixerMasterFaderProps) {
   const setParam = useStore((s) => s.setParam)
   const [hovered, setHovered] = useState(false)
@@ -144,6 +148,17 @@ export function MixerMasterFader({
     useStore.getState().commitHistory()
   }, [])
 
+  const toggleMute = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+      useStore.getState().stageHistory()
+      setParam(moduleId, muteParamId, muted ? 0 : 1)
+      useStore.getState().commitHistory()
+    },
+    [moduleId, muteParamId, muted, setParam],
+  )
+
   return (
     <div
       style={{
@@ -251,21 +266,38 @@ export function MixerMasterFader({
       </div>
 
       <div
+        onPointerDown={toggleMute}
+        onDoubleClick={(e) => e.stopPropagation()}
         style={{
           width: 20,
           height: 18,
+          position: 'relative',
+          overflow: 'hidden',
           borderRadius: 3,
-          border: '1px solid var(--shade2)',
-          color: 'var(--shade3)',
+          border: `1px solid ${muted ? 'var(--accent3)' : 'var(--shade2)'}`,
+          color: muted ? 'var(--accent3)' : 'var(--shade3)',
           fontSize: 'var(--text-xs)',
           lineHeight: 1,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: 'var(--shade1)',
+          cursor: 'pointer',
+          transition: 'color 100ms, border-color 100ms',
         }}
       >
-        m
+        {muted && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'var(--accent3)',
+              opacity: 0.2,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <span style={{ position: 'relative' }}>m</span>
       </div>
     </div>
   )

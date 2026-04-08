@@ -18,6 +18,11 @@ export const MixerDefinition: ModuleDefinition<
     level2: { type: 'float'; min: 0; max: 1; default: 0.8; label: 'lv 2' }
     level3: { type: 'float'; min: 0; max: 1; default: 0.8; label: 'lv 3' }
     level4: { type: 'float'; min: 0; max: 1; default: 0.8; label: 'lv 4' }
+    mute1: { type: 'boolean'; default: 0; label: 'mute 1' }
+    mute2: { type: 'boolean'; default: 0; label: 'mute 2' }
+    mute3: { type: 'boolean'; default: 0; label: 'mute 3' }
+    mute4: { type: 'boolean'; default: 0; label: 'mute 4' }
+    masterMute: { type: 'boolean'; default: 0; label: 'mute m' }
     master: { type: 'float'; min: 0; max: 1; default: 1; label: 'mstr' }
   },
   MixerState
@@ -42,6 +47,11 @@ export const MixerDefinition: ModuleDefinition<
     level2: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 2' },
     level3: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 3' },
     level4: { type: 'float', min: 0, max: 1, default: 0.8, label: 'lv 4' },
+    mute1: { type: 'boolean', default: 0, label: 'mute 1' },
+    mute2: { type: 'boolean', default: 0, label: 'mute 2' },
+    mute3: { type: 'boolean', default: 0, label: 'mute 3' },
+    mute4: { type: 'boolean', default: 0, label: 'mute 4' },
+    masterMute: { type: 'boolean', default: 0, label: 'mute m' },
     master: { type: 'float', min: 0, max: 1, default: 1, label: 'mstr' },
   },
 
@@ -63,6 +73,11 @@ export const MixerDefinition: ModuleDefinition<
   },
 
   process(inputs, outputs, params, state) {
+    const mute1 = (params.mute1 ?? 0) >= 0.5
+    const mute2 = (params.mute2 ?? 0) >= 0.5
+    const mute3 = (params.mute3 ?? 0) >= 0.5
+    const mute4 = (params.mute4 ?? 0) >= 0.5
+    const masterMuted = (params.masterMute ?? 0) >= 0.5
     let peak1 = 0
     let peak2 = 0
     let peak3 = 0
@@ -70,10 +85,10 @@ export const MixerDefinition: ModuleDefinition<
     let peakMaster = 0
 
     for (let i = 0; i < 128; i++) {
-      const ch1 = (inputs.in1[i] ?? 0) * params.level1
-      const ch2 = (inputs.in2[i] ?? 0) * params.level2
-      const ch3 = (inputs.in3[i] ?? 0) * params.level3
-      const ch4 = (inputs.in4[i] ?? 0) * params.level4
+      const ch1 = mute1 ? 0 : (inputs.in1[i] ?? 0) * params.level1
+      const ch2 = mute2 ? 0 : (inputs.in2[i] ?? 0) * params.level2
+      const ch3 = mute3 ? 0 : (inputs.in3[i] ?? 0) * params.level3
+      const ch4 = mute4 ? 0 : (inputs.in4[i] ?? 0) * params.level4
 
       const abs1 = Math.abs(ch1)
       const abs2 = Math.abs(ch2)
@@ -84,7 +99,7 @@ export const MixerDefinition: ModuleDefinition<
       if (abs3 > peak3) peak3 = abs3
       if (abs4 > peak4) peak4 = abs4
 
-      const out = (ch1 + ch2 + ch3 + ch4) * params.master
+      const out = (ch1 + ch2 + ch3 + ch4) * (masterMuted ? 0 : params.master)
       outputs.out[i] = out
 
       const absOut = Math.abs(out)

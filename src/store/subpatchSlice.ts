@@ -67,7 +67,6 @@ export function internalWorkletId(instanceId: string, internalModId: string): st
 export function resolveContainerPort(
   moduleId: string,
   portId: string,
-  container: SubpatchContainerInstance,
   def: SubpatchDefinition,
 ): { moduleId: string; portId: string } {
   const parsed = parseSubpatchPortId(portId)
@@ -615,10 +614,10 @@ export function _expandInstance(
     const toIsContainer = cable.to.moduleId === instanceId
     if (!fromIsContainer && !toIsContainer) continue
     const from = fromIsContainer
-      ? resolveContainerPort(cable.from.moduleId, cable.from.portId, container, def)
+      ? resolveContainerPort(cable.from.moduleId, cable.from.portId, def)
       : cable.from
     const to = toIsContainer
-      ? resolveContainerPort(cable.to.moduleId, cable.to.portId, container, def)
+      ? resolveContainerPort(cable.to.moduleId, cable.to.portId, def)
       : cable.to
     engine.addCable({ id: cable.id, from, to }, false)
   }

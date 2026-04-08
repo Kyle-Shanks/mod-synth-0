@@ -138,11 +138,11 @@ function resolveWorkletCable(cable: SerializedCable, state: StoreState): Seriali
   let to = cable.to
   if (fromMod && isSubpatchContainer(fromMod)) {
     const def = state.definitions[fromMod.subpatchDefinitionId]
-    if (def) from = resolveContainerPort(cable.from.moduleId, cable.from.portId, fromMod, def)
+    if (def) from = resolveContainerPort(cable.from.moduleId, cable.from.portId, def)
   }
   if (toMod && isSubpatchContainer(toMod)) {
     const def = state.definitions[toMod.subpatchDefinitionId]
-    if (def) to = resolveContainerPort(cable.to.moduleId, cable.to.portId, toMod, def)
+    if (def) to = resolveContainerPort(cable.to.moduleId, cable.to.portId, def)
   }
   return { ...cable, from, to }
 }
@@ -464,7 +464,11 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
         const fromId = idMap.get(cable.from.moduleId)
         const toId = idMap.get(cable.to.moduleId)
         if (!fromId || !toId) continue
-        get().addCable({ from: { moduleId: fromId, portId: cable.from.portId }, to: { moduleId: toId, portId: cable.to.portId } })
+        get().addCable({
+          id: createCableId(get().cables),
+          from: { moduleId: fromId, portId: cable.from.portId },
+          to: { moduleId: toId, portId: cable.to.portId },
+        })
       }
 
       set({ selectedModuleIds: pastedIds, selectedModuleId: pastedIds[0] ?? null, moduleClipboardPasteCount: pasteOffset })

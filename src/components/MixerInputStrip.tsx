@@ -19,6 +19,8 @@ interface MixerInputStripProps {
   paramId: string
   definition: ParamDefinition
   value: number
+  muteParamId: string
+  muted: boolean
   meterLeftId: string
   meterRightId: string
   label: string
@@ -29,6 +31,8 @@ export function MixerInputStrip({
   paramId,
   definition,
   value,
+  muteParamId,
+  muted,
   meterLeftId,
   meterRightId,
   label,
@@ -154,6 +158,17 @@ export function MixerInputStrip({
     document.exitPointerLock()
     useStore.getState().commitHistory()
   }, [])
+
+  const toggleMute = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+      useStore.getState().stageHistory()
+      setParam(moduleId, muteParamId, muted ? 0 : 1)
+      useStore.getState().commitHistory()
+    },
+    [moduleId, muteParamId, muted, setParam],
+  )
 
   return (
     <div
@@ -291,22 +306,39 @@ export function MixerInputStrip({
       </div>
 
       <div
+        onPointerDown={toggleMute}
+        onDoubleClick={(e) => e.stopPropagation()}
         style={{
           width: 18,
           height: 18,
           marginLeft: STRIP_LEFT / 2,
+          position: 'relative',
+          overflow: 'hidden',
           borderRadius: 3,
-          border: '1px solid var(--shade2)',
-          color: 'var(--shade3)',
+          border: `1px solid ${muted ? 'var(--accent3)' : 'var(--shade2)'}`,
+          color: muted ? 'var(--accent3)' : 'var(--shade3)',
           fontSize: 'var(--text-xs)',
           lineHeight: 1,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: 'var(--shade1)',
+          cursor: 'pointer',
+          transition: 'color 100ms, border-color 100ms',
         }}
       >
-        {label}
+        {muted && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'var(--accent3)',
+              opacity: 0.2,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <span style={{ position: 'relative' }}>{label}</span>
       </div>
     </div>
   )

@@ -7,7 +7,6 @@ import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
-import { isSubpatchContainer } from '../store/subpatchSlice'
 
 const RACK_COLS = 64
 const RACK_ROWS = 32
@@ -32,7 +31,6 @@ export function Rack() {
   const copyModulesToClipboard = useStore((s) => s.copyModulesToClipboard)
   const pasteModulesFromClipboard = useStore((s) => s.pasteModulesFromClipboard)
   const subpatchContext = useStore((s) => s.subpatchContext)
-  const exitSubpatch = useStore((s) => s.exitSubpatch)
   const groupModulesAsSubpatch = useStore((s) => s.groupModulesAsSubpatch)
   const isInsideSubpatch = subpatchContext.length > 0
   const rackRef = useRef<HTMLDivElement>(null)
