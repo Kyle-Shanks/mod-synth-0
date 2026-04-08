@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { getModule } from '../registry'
-import { Knob } from '../../components/Knob'
-import { Fader } from '../../components/Fader'
+import { MixerInputStrip } from '../../components/MixerInputStrip'
+import { MixerMasterFader } from '../../components/MixerMasterFader'
 
 interface MixerPanelProps {
   moduleId: string
@@ -13,46 +13,54 @@ export function MixerPanel({ moduleId }: MixerPanelProps) {
 
   if (!mod || !def) return null
 
-  const paramEntries = Object.entries(def.params)
+  const levelParamIds = ['level1', 'level2', 'level3', 'level4'] as const
+  const masterDef = def.params.master
 
   return (
     <div
       style={{
         flex: 1,
         display: 'flex',
-        flexWrap: 'wrap',
         alignItems: 'flex-end',
         justifyContent: 'center',
-        gap: 8,
-        padding: '6px 4px',
+        gap: 10,
+        padding: '4px 4px',
         overflow: 'hidden',
       }}
     >
-      {paramEntries.map(([paramId, paramDef]) => {
-        if (paramId !== 'master') {
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: 6,
+        }}
+      >
+        {levelParamIds.map((paramId, idx) => {
+          const paramDef = def.params[paramId]
+          if (!paramDef) return null
+
           return (
-            <Fader
+            <MixerInputStrip
               key={paramId}
               moduleId={moduleId}
               paramId={paramId}
               definition={paramDef}
               value={mod.params[paramId] ?? paramDef.default}
-              orientation='vertical'
-              length={56}
+              meterLeftId={`ch${idx + 1}L`}
+              meterRightId={`ch${idx + 1}R`}
+              label={`${idx + 1}`}
             />
           )
-        }
-
-        return (
-          <Knob
-            key={paramId}
-            moduleId={moduleId}
-            paramId={paramId}
-            definition={paramDef}
-            value={mod.params[paramId] ?? paramDef.default}
-          />
-        )
-      })}
+        })}
+      </div>
+      {masterDef && (
+        <MixerMasterFader
+          moduleId={moduleId}
+          paramId='master'
+          definition={masterDef}
+          value={mod.params.master ?? masterDef.default}
+        />
+      )}
     </div>
   )
 }

@@ -1,24 +1,43 @@
 import { useRef, useEffect } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { useTheme } from '../../theme/themeContext'
 import { Knob } from '../../components/Knob'
 import { GRID_UNIT } from '../../theme/tokens'
 
+const GR_ATTACK = 0.9
+const GR_RELEASE = 0.18
+
 export function CompressorPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
   const def = mod ? getModule(mod.definitionId) : undefined
-  const grLevel = useStore((s) => s.meterValues[`${moduleId}:gr`] ?? 1)
   const theme = useTheme()
   const themeRef = useRef(theme)
   const paramsRef = useRef(mod?.params ?? {})
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
+  const grFillRef = useRef<HTMLDivElement>(null)
+  const grValueRef = useRef<HTMLDivElement>(null)
+  const grTargetRef = useRef(0)
+  const grDisplayRef = useRef(0)
 
   useEffect(() => { themeRef.current = theme }, [theme])
   useEffect(() => { paramsRef.current = mod?.params ?? {} }, [mod?.params])
 
   const widthPx = def ? def.width * GRID_UNIT : 240
+
+  useEffect(() => {
+    return useStore.subscribe((state) => {
+      const ctx = state.subpatchContext
+      const instanceId = ctx[ctx.length - 1]?.instanceId
+      const workletId = instanceId
+        ? internalWorkletId(instanceId, moduleId)
+        : moduleId
+      const gr = state.meterValues[`${workletId}:gr`] ?? 1
+      grTargetRef.current = Math.max(0, Math.min(1, 1 - gr))
+    })
+  }, [moduleId])
 
   useEffect(() => {
     const draw = () => {
@@ -119,6 +138,23 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
       ctx.stroke()
       ctx.shadowBlur = 0
 
+      const target = grTargetRef.current
+      let current = grDisplayRef.current
+      current += (target - current) * (target > current ? GR_ATTACK : GR_RELEASE)
+      grDisplayRef.current = current
+      const reductionPct = current * 100
+
+      const fill = grFillRef.current
+      if (fill) {
+        fill.style.height = `${reductionPct}%`
+        fill.style.background =
+          reductionPct > 15 ? 'var(--accent2)' : 'var(--accent3)'
+      }
+      const valueEl = grValueRef.current
+      if (valueEl) {
+        valueEl.textContent = reductionPct > 0.5 ? `-${reductionPct.toFixed(0)}` : '0'
+      }
+
       rafRef.current = requestAnimationFrame(draw)
     }
     rafRef.current = requestAnimationFrame(draw)
@@ -129,10 +165,6 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
 
   const canvasW = widthPx - 56 // leave room for GR meter column
   const paramEntries = Object.entries(def.params)
-
-  // gr: 0=max reduction, 1=no reduction
-  const grPct = Math.max(0, Math.min(1, grLevel))
-  const grReductionPct = (1 - grPct) * 100
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '6px 8px', gap: 6, overflow: 'hidden' }}>
@@ -156,19 +188,19 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
             overflow: 'hidden',
           }}>
             {/* gain reduction bar fills from top */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: `${grReductionPct}%`,
-              background: grReductionPct > 15 ? 'var(--accent2)' : 'var(--accent3)',
-              transition: 'height 40ms linear',
-            }} />
+            <div
+              ref={grFillRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 0,
+                background: 'var(--accent3)',
+              }}
+            />
           </div>
-          <div style={{ fontSize: 7, color: 'var(--shade2)', lineHeight: 1 }}>
-            {grReductionPct > 0.5 ? `-${grReductionPct.toFixed(0)}` : '0'}
-          </div>
+          <div ref={grValueRef} style={{ fontSize: 7, color: 'var(--shade2)', lineHeight: 1 }}>0</div>
         </div>
       </div>
 

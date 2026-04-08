@@ -574,6 +574,7 @@ each module renders as an absolutely-positioned div on the rack canvas. `ModuleP
 ```
 
 the output port inset (`shade3` background) is the primary visual signal distinguishing outputs from inputs.
+when a module has outputs but no inputs, the output inset stretches full-width across the port row.
 
 module body rendering is delegated by `src/modules/panelRegistry.ts`:
 

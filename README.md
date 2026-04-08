@@ -75,7 +75,7 @@ this opens a command palette. type to search by name or category, then press `en
 
 **vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
 
-**mixer** — 4-channel audio mixer with individual level faders and a master level control.
+**mixer** — 4-channel audio mixer with per-channel slim level strips, dual L/R gain meters, and a master level control.
 
 **compressor** — dynamic range compressor with threshold, ratio, attack, release, makeup gain, soft knee, and parallel compression mix. a sidechain input enables ducking and pumping effects. the panel displays a live transfer curve and a gain reduction meter. the gr output emits a cv signal tracking the compression amount.
 

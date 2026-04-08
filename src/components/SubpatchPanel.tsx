@@ -449,6 +449,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
           {outputPorts.length > 0 && (
             <div
               style={{
+                flex: inputPorts.length > 0 ? undefined : 1,
                 background: 'var(--shade3)',
                 display: 'flex',
                 flexWrap: 'wrap',
