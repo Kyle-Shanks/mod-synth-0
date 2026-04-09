@@ -40,6 +40,7 @@ import { PluckDefinition } from './pluck/definition'
 import { CompressorDefinition } from './compressor/definition'
 import { ProbGateDefinition } from './probgate/definition'
 import { ChordGenDefinition } from './chordgen/definition'
+import { ChordDiceDefinition } from './chorddice/definition'
 import { PannerDefinition } from './panner/definition'
 import { TapeDelayDefinition } from './tapedelay/definition'
 import { KeyboardDefinition } from './keyboard/definition'
@@ -126,6 +127,7 @@ reg(PluckDefinition)
 reg(CompressorDefinition)
 reg(ProbGateDefinition)
 reg(ChordGenDefinition)
+reg(ChordDiceDefinition)
 reg(PannerDefinition)
 reg(TapeDelayDefinition)
 reg(KeyboardDefinition)

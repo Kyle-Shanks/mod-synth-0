@@ -14,6 +14,7 @@ import { FMOpPanel } from './fmop/panel'
 import { PluckPanel } from './pluck/panel'
 import { CompressorPanel } from './compressor/panel'
 import { ChordGenPanel } from './chordgen/panel'
+import { ChordDicePanel } from './chorddice/panel'
 import { KeyboardPanel } from './keyboard/panel'
 import { VCAPanel } from './vca/panel'
 import { NotePanel } from './note/panel'
@@ -40,6 +41,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   pluck: PluckPanel,
   compressor: CompressorPanel,
   chordgen: ChordGenPanel,
+  chorddice: ChordDicePanel,
   keyboard: KeyboardPanel,
   vca: VCAPanel,
   note: NotePanel,

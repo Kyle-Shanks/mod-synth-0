@@ -109,6 +109,8 @@ this opens a command palette. type to search by name or category, then press `en
 
 **push button** — a manual trigger. hold for a sustained gate output; each press also fires a 10ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
 
+**chord dice** — press the die to generate a fresh 4-chord progression. the module now combines curated progression templates with algorithmic generation, including borrowed chords, chromatic side-slips, inversions, and experimental voicings. a clock trigger input steps through the progression, and the root cv input transposes all chords together. outputs `v1`–`v4` provide the chord tones as v/oct cv.
+
 **keyboard** — computer keyboard to pitch/gate converter. select the module to arm it, then play notes with `a w s e d f t g y h u j k`. use `z` / `x` to shift octaves. the panel highlights the currently held key and shows the active octave. outputs pitch on `out`, a held gate, and a 10ms trigger pulse on note-on.
 
 ### effects

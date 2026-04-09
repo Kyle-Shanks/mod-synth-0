@@ -670,7 +670,7 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_51 modules currently shipped (49 user-visible + 2 internal proxy modules)._
+_52 modules currently shipped (50 user-visible + 2 internal proxy modules)._
 
 | id                | name           | category | inputs                                            | outputs                         |
 | ----------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
@@ -720,6 +720,7 @@ _51 modules currently shipped (49 user-visible + 2 internal proxy modules)._
 | `compressor`      | compressor     | dynamics | in (audio), sc (audio)                            | out (audio), gr (cv)            |
 | `probgate`        | prob gate      | utility  | in (gate)                                         | out (gate), skip (gate)         |
 | `chordgen`        | chord          | utility  | root (cv)                                         | v1–v4 (cv)                      |
+| `chorddice`       | chord dice     | control  | clock (trigger), root (cv)                        | v1–v4 (cv)                      |
 | `panner`          | panner         | utility  | in (audio), pan (cv)                              | left, right (audio)             |
 | `tapedelay`       | tape delay     | fx       | in (audio), time (cv)                             | out (audio)                     |
 | `note`            | note           | utility  | —                                                 | —                               |
