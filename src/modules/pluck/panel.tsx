@@ -70,7 +70,6 @@ export function PluckPanel({ moduleId }: { moduleId: string }) {
       ctx.setLineDash([])
 
       // draw vibrating harmonics
-      ctx.shadowBlur = 6
       for (let harm = 1; harm <= numHarmonics; harm++) {
         // position-based amplitude weighting: suppresses harmonics at multiples of 1/position
         const posAtten = Math.abs(Math.sin(Math.PI * position * harm))
@@ -83,7 +82,6 @@ export function PluckPanel({ moduleId }: { moduleId: string }) {
 
         ctx.globalAlpha = Math.max(0, Math.min(1, alpha))
         ctx.strokeStyle = harm === 1 ? t.accents.accent0 : t.accents.accent1
-        ctx.shadowColor = harm === 1 ? t.accents.accent0 : t.accents.accent1
         ctx.lineWidth = Math.max(0.5, 2 - harm * 0.2)
 
         ctx.beginPath()
@@ -97,7 +95,6 @@ export function PluckPanel({ moduleId }: { moduleId: string }) {
       }
 
       ctx.globalAlpha = 1
-      ctx.shadowBlur = 0
 
       // pluck position marker
       const posX = xLeft + position * (xRight - xLeft)

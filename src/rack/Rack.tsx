@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react'
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
@@ -43,6 +43,40 @@ export function Rack() {
 
   const rackWidth = RACK_COLS * GRID_UNIT
   const rackHeight = RACK_ROWS * GRID_UNIT
+  const gridLines = useMemo(() => {
+    const lines = []
+    for (let x = 0; x <= rackWidth; x += GRID_UNIT) {
+      const xPos = x + 0.5
+      lines.push(
+        <line
+          key={`v-${x}`}
+          x1={xPos}
+          y1={0}
+          x2={xPos}
+          y2={rackHeight}
+          stroke="var(--shade2)"
+          strokeWidth={1}
+          strokeOpacity={0.3}
+        />,
+      )
+    }
+    for (let y = 0; y <= rackHeight; y += GRID_UNIT) {
+      const yPos = y + 0.5
+      lines.push(
+        <line
+          key={`h-${y}`}
+          x1={0}
+          y1={yPos}
+          x2={rackWidth}
+          y2={yPos}
+          stroke="var(--shade2)"
+          strokeWidth={1}
+          strokeOpacity={0.3}
+        />,
+      )
+    }
+    return lines
+  }, [rackWidth, rackHeight])
 
   const getRackPoint = useCallback((clientX: number, clientY: number) => {
     const rack = rackRef.current
@@ -330,7 +364,6 @@ export function Rack() {
     '--rack-width': `${rackWidth}px`,
     '--rack-height': `${rackHeight}px`,
     '--rack-transform': `scale(${zoom})`,
-    '--grid-size': `${GRID_UNIT}px`,
   } as CSSProperties
 
   const selectionStyle = {
@@ -354,8 +387,16 @@ export function Rack() {
           className={styles.rack}
           style={rackStyle}
         >
-          {/* grid overlay at 0.15 opacity */}
-          <div className={styles.gridOverlay} />
+          {/* static rack grid */}
+          <svg
+            className={styles.gridOverlay}
+            width={rackWidth}
+            height={rackHeight}
+            viewBox={`0 0 ${rackWidth} ${rackHeight}`}
+            aria-hidden="true"
+          >
+            {gridLines}
+          </svg>
 
           {/* modules */}
           {visibleModuleIds.map((moduleId) => (

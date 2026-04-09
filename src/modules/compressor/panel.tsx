@@ -116,8 +116,6 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
       ctx.globalAlpha = 1
 
       // compression curve
-      ctx.shadowBlur = 6
-      ctx.shadowColor = t.accents.accent0
       ctx.strokeStyle = t.accents.accent0
       ctx.lineWidth = 2
       ctx.beginPath()
@@ -138,7 +136,6 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
         else ctx.lineTo(px, py)
       }
       ctx.stroke()
-      ctx.shadowBlur = 0
 
       const target = grTargetRef.current
       let current = grDisplayRef.current

@@ -100,11 +100,6 @@ export function ChordGenPanel({ moduleId }: { moduleId: string }) {
 
         ctx.fillStyle = isActive ? t.accents.accent1 : t.shades.shade1
         ctx.fillRect(x, 1, bkW, bkH)
-        if (isActive) {
-          ctx.shadowBlur = 4
-          ctx.shadowColor = t.accents.accent1
-        }
-        ctx.shadowBlur = 0
       }
 
       rafRef.current = requestAnimationFrame(draw)

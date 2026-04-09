@@ -40,8 +40,6 @@ export function FMOpPanel({ moduleId }: { moduleId: string }) {
       const twoPi = 2 * Math.PI
 
       // draw computed FM waveform: y = sin(x + index * sin(ratio * x))
-      ctx.shadowBlur = 8
-      ctx.shadowColor = t.accents.accent1
       ctx.strokeStyle = t.accents.accent1
       ctx.lineWidth = 1.5
       ctx.beginPath()
@@ -53,7 +51,6 @@ export function FMOpPanel({ moduleId }: { moduleId: string }) {
         else ctx.lineTo(px, py)
       }
       ctx.stroke()
-      ctx.shadowBlur = 0
 
       rafRef.current = requestAnimationFrame(draw)
     }

@@ -16,21 +16,12 @@
   height: var(--rack-height);
   transform: var(--rack-transform);
   transform-origin: 0 0;
-  background-image:
-    linear-gradient(var(--shade2) 1px, transparent 1px),
-    linear-gradient(90deg, var(--shade2) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
-  background-position: -1px -1px;
+  background: var(--shade0);
 }
 
 .gridOverlay {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgb(42 42 46 / 30%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(42 42 46 / 30%) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
-  background-position: -1px -1px;
   pointer-events: none;
 }
 

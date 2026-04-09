@@ -84,10 +84,6 @@ export function FeedbackDelayPanel({ moduleId }: { moduleId: string }) {
         const x = 32 + e * spacing
         const bH = maxH * amp
 
-        // glow effect
-        ctx.shadowBlur = 6
-        ctx.shadowColor = t.accents.accent0
-
         const alpha = Math.min(1, amp * 1.5)
         ctx.globalAlpha = alpha
         ctx.strokeStyle = t.accents.accent0
@@ -97,7 +93,6 @@ export function FeedbackDelayPanel({ moduleId }: { moduleId: string }) {
         ctx.lineTo(x, h / 2 + bH)
         ctx.stroke()
 
-        ctx.shadowBlur = 0
         ctx.globalAlpha = 1
         amp *= feedback
       }
