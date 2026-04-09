@@ -1,0 +1,200 @@
+.spotlightLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 210;
+}
+
+.spotlight {
+  position: fixed;
+  border: 1px solid var(--accent0);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent0) 10%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent0) 35%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent0) 28%, transparent);
+  animation: pulse 1100ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.48;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.48;
+  }
+}
+
+.panel {
+  position: fixed;
+  right: 12px;
+  top: 48px;
+  width: 330px;
+  max-height: min(78vh, 720px);
+  overflow: auto;
+  z-index: 230;
+  background: color-mix(in srgb, var(--shade1) 96%, var(--shade0));
+  border: 1px solid var(--shade2);
+  border-radius: 6px;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--shade0) 62%, transparent);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--shade2);
+  padding-bottom: 8px;
+}
+
+.title {
+  font-size: var(--text-sm);
+  color: var(--shade3);
+}
+
+.lessonTitle {
+  font-size: var(--text-sm);
+  color: var(--accent0);
+}
+
+.linkButton,
+.actionButton,
+.secondaryButton,
+.modeButton {
+  composes: textButtonBase from '../styles/controlPrimitives.module.css';
+}
+
+.linkButton {
+  color: var(--shade2);
+}
+
+.modeRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.modeButton {
+  border: 1px solid var(--shade2);
+  padding: 4px 6px;
+}
+
+.modeButton[data-active='true'] {
+  color: var(--shade0);
+  background: var(--accent0);
+  border-color: var(--accent0);
+}
+
+.lessonList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lessonCard {
+  border: 1px solid color-mix(in srgb, var(--shade2) 70%, transparent);
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lessonTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: var(--shade3);
+  font-size: var(--text-sm);
+}
+
+.lessonBadge {
+  color: var(--accent1);
+  font-size: var(--text-xs);
+}
+
+.lessonSummary {
+  color: var(--shade2);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.lessonMeta {
+  color: var(--shade2);
+  font-size: var(--text-xs);
+}
+
+.lessonActions,
+.actionsRow,
+.footerActions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--shade2);
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  border: 1px solid var(--accent0);
+  color: var(--shade0);
+  background: var(--accent0);
+  padding: 3px 8px;
+}
+
+.actionButton:hover {
+  background: color-mix(in srgb, var(--accent0) 84%, var(--shade3));
+  color: var(--shade0);
+}
+
+.secondaryButton {
+  border: 1px solid var(--shade2);
+  padding: 3px 8px;
+}
+
+.sectionLabel,
+.stepMeta,
+.completeTitle {
+  color: var(--shade2);
+  font-size: var(--text-xs);
+}
+
+.completeTitle {
+  color: var(--accent1);
+}
+
+.bodyText {
+  color: var(--shade3);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.demoBox {
+  border: 1px dashed var(--shade2);
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--shade3);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  background: color-mix(in srgb, var(--shade0) 65%, transparent);
+}
+
+@media (max-width: 900px) {
+  .panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 56vh;
+    top: auto;
+    bottom: 8px;
+  }
+}

@@ -4,6 +4,7 @@ import { Rack } from './rack/Rack'
 import { CommandPalette } from './components/CommandPalette'
 import { PresetsModal } from './components/PresetsModal'
 import { SettingsPanel } from './components/SettingsPanel'
+import { TutorialOverlay } from './components/TutorialOverlay'
 import { engine } from './engine/EngineController'
 import { useStore } from './store'
 import {
@@ -33,6 +34,7 @@ export default function App() {
   const setPatchName = useStore((s) => s.setPatchName)
   const clearPatch = useStore((s) => s.clearPatch)
   const loadPatch = useStore((s) => s.loadPatch)
+  const setTutorialPanelOpen = useStore((s) => s.setTutorialPanelOpen)
   const setCableTautness = useStore((s) => s.setCableTautness)
   const setTooltipsEnabled = useStore((s) => s.setTooltipsEnabled)
   const themeId = useStore((s) => s.themeId)
@@ -260,6 +262,17 @@ export default function App() {
               </button>
             )}
 
+            {!isInsideSubpatch && (
+              <button
+                className={styles.topbarButton}
+                data-tutorial-launch=''
+                onClick={() => setTutorialPanelOpen(true)}
+                title='guided tutorials'
+              >
+                tutorials
+              </button>
+            )}
+
             {/* separator dot */}
             <span className={styles.separator}>·</span>
 
@@ -327,6 +340,7 @@ export default function App() {
             <PresetsModal onClose={() => setPresetsOpen(false)} />
           )}
           <SettingsPanel />
+          <TutorialOverlay />
         </>
       )}
     </ThemeProvider>

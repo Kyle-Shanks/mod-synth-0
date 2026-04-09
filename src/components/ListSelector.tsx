@@ -21,7 +21,12 @@ export function ListSelector({ moduleId, paramId, definition, value, onChangeOve
   const selectedIndex = Math.round(value)
 
   return (
-    <div className={styles.root}>
+    <div
+      className={styles.root}
+      data-param-control=''
+      data-module-id={moduleId}
+      data-param-id={paramId}
+    >
       <div className={styles.label}>
         {definition.label}
       </div>

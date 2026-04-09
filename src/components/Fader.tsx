@@ -104,6 +104,9 @@ export function Fader({
   return (
     <div
       className={styles.root}
+      data-param-control=''
+      data-module-id={moduleId}
+      data-param-id={paramId}
       data-orientation={orientation}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

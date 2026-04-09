@@ -417,7 +417,7 @@ do not restrict the audio↔cv or gate↔trigger cross-connections. they are del
 
 ## 6. zustand store architecture
 
-the store is composed of five slices in `src/store/`:
+the store is composed of six slices in `src/store/`:
 
 ### patchSlice
 
@@ -500,6 +500,29 @@ meterValues: Record<string, number> // 'moduleId:portId' → peak value
 ```
 
 `meterValues` is written by `App.tsx` which subscribes to `METER` events from the worklet via `engine.onEvent()`.
+
+### tutorialSlice
+
+guided learning state — not persisted in patch json (lesson completion timestamps are stored in localstorage).
+
+```typescript
+tutorialPanelOpen: boolean
+tutorialMode: 'beginner' | 'veteran'
+activeTutorialId: string | null
+tutorialStepIndex: number
+tutorialHint: string | null
+tutorialShowDemo: boolean
+tutorialCompletion: Record<string, string> // lessonId → completedAt (iso)
+```
+
+lesson definitions live in `src/tutorials/lessons.ts`. each step provides:
+
+- a one-action instruction (`action`, `why`, `hints`, `demo`)
+- a validation predicate against live store state (`validate`)
+- an optional auto-perform handler (`autoPerform`) used by the "try for me" button
+- optional focus targets (`focus`) consumed by the overlay spotlight renderer
+
+`syncTutorialProgress()` auto-advances when step predicates pass. when a lesson completes, `tutorialCompletion[lessonId]` is persisted via `src/tutorials/storage.ts`.
 
 ---
 
@@ -821,6 +844,15 @@ module visuals now follow a single pattern:
 - `ModulePanel.tsx` remains the shared shell for dragging, multi-selection, and ports
 
 this keeps module-specific UI logic close to each module while preserving a single canonical path for rack behavior and cable positioning.
+
+### tutorial overlay architecture
+
+the guided learning ui lives in `src/components/TutorialOverlay.tsx` + `TutorialOverlay.module.css`.
+
+- the panel reads tutorial state from `tutorialSlice` and renders lesson selection or active step content
+- step progress is validated against live store snapshots (modules/cables/params/context) on change
+- spotlight rectangles are drawn in a fixed overlay layer by querying focused module/port/param dom nodes
+- param spotlighting depends on `data-param-control` + `data-module-id` + `data-param-id` attributes added to shared controls (`Knob`, `ListSelector`, `Fader`)
 
 ### subpatch / container modules
 

@@ -167,6 +167,28 @@ Double-click the name in the container header to rename it.
 
 ---
 
+## Tutorials
+
+Click **tutorials** in the top bar to open guided lessons directly in the rack (shown at root level; hidden while drilled into a subpatch).
+
+- **Two modes**
+  - `beginner`: strict, step-by-step guidance
+  - `veteran`: challenge goals with looser validation
+- **Built-in lesson pack (6 active)**
+  - beginner: `first voice`, `envelope shaping`, `clock + sequencer`, `feedback safely`, `subpatch macros`
+  - veteran: `challenge: kick voice in 6 modules`
+- **Step behavior**
+  - each step asks for one action (add module, cable connection, param range, etc.)
+  - progress auto-validates from live store state
+  - each step includes contextual hints, **show me** guidance text, and **try for me** auto-perform
+- **Spotlight guidance**
+  - active tutorial steps highlight relevant modules, ports, and controls in-place
+
+Starting a lesson clears the current patch after confirmation.
+Lesson completion badges are saved in LocalStorage.
+
+---
+
 ## Controls
 
 | Action                    | How                                                  |

@@ -167,6 +167,9 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
   return (
     <div
       className={classes(styles.root, isMacroExposed && styles.rootLocked)}
+      data-param-control=''
+      data-module-id={moduleId}
+      data-param-id={paramId}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={handleDoubleClick}
