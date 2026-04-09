@@ -60,8 +60,10 @@ export function SettingsPanel() {
             onChange={(e) => setTheme(e.target.value)}
             className={styles.select}
           >
-            {Object.keys(themes).map((id) => (
-              <option key={id} value={id}>{id}</option>
+            {Object.entries(themes).map(([id, theme]) => (
+              <option key={id} value={id}>
+                {theme.name}
+              </option>
             ))}
           </select>
         </div>

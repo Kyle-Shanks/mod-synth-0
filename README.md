@@ -195,7 +195,7 @@ double-click the name in the container header to rename it.
 
 - **cable tautness** — controls how much cables sag between ports (0 = taut, 1 = loose)
 - **tooltips** — toggle port tooltips on hover
-- **theme** — dark, light, and synthwave themes
+- **theme** — 11 themes total: base (`dark`, `light`), dark variants (`forest`, `abyss`, `volcanic`), light variants (`braun`), stylized variants (`synthwave`, `ice`, `arcade`), and monochrome variants (`slate`, `paper`)
 
 ---
 

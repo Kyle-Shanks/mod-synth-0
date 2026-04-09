@@ -519,7 +519,15 @@ meterValues: Record<string, number> // 'moduleId:portId' → peak value
 
 ### theme system
 
-themes are defined in `src/theme/tokens.ts` and applied via `ThemeProvider.tsx` which injects css custom properties onto `:root`. the app ships with dark, light, and synthwave themes (`src/theme/darkTheme.ts`, `src/theme/lightTheme.ts`, `src/theme/synthwaveTheme.ts`).
+themes are defined in `src/theme/tokens.ts` and applied via `ThemeProvider.tsx` which injects css custom properties onto `:root`. theme definitions live in `src/theme/*.ts` and are registered in `src/theme/themeRegistry.ts`.
+
+the app currently ships with 11 themes:
+
+- base: `dark`, `light`
+- dark variants: `forest`, `abyss`, `volcanic`
+- light variants: `braun`
+- stylized variants: `synthwave`, `ice`, `arcade`
+- monochrome variants: `slate`, `paper`
 
 ```typescript
 interface Theme {
