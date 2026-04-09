@@ -1,208 +1,216 @@
-# modular synth
+# Modular Synth
 
-a browser-based modular synthesizer. build patches by connecting modules with virtual cables, the same way you would with a hardware eurorack system.
+A browser-based modular synthesizer. Build patches by connecting modules with virtual cables, the same way you would with a hardware Eurorack system.
 
 ---
 
-## running the project
+## Running the Project
 
 ```bash
 npm install
 npm run dev
 ```
 
-open `http://localhost:5173`. click **start** to initialize the audio context (required by the browser before any sound can play).
+Open `http://localhost:5173`. Click **Start** to initialize the audio context (required by the browser before any sound can play).
 
-### requirements
+### Requirements
 
-- a browser with `AudioWorklet` support (chrome, edge, firefox, safari 14.1+)
-- `SharedArrayBuffer` is required for display analyzer modules (`scope`, `freq spectrum`, `tuner`, and `xy scope`). the dev server is configured with the necessary `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
-
----
-
-## what it is
-
-modular synthesis works by connecting individual signal-processing modules together. each module does one thing — oscillate, filter, amplify, generate an envelope, display a waveform — and you decide how they connect. the patch you build determines the sound.
-
-this instrument runs entirely in the browser. there is no server. patches autosave to localstorage and can be exported and imported as json files.
+- A browser with `AudioWorklet` support (Chrome, Edge, Firefox, Safari 14.1+)
+- `SharedArrayBuffer` is required for display analyzer modules (`scope`, `freq spectrum`, `tuner`, and `xy scope`). The dev server is configured with the necessary `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
 
 ---
 
-## adding modules
+## What It Is
 
-- press `space` or `/` anywhere in the rack
-- or right-click on an empty area of the rack
+Modular synthesis works by connecting individual signal-processing modules together. Each module does one thing: oscillate, filter, amplify, generate an envelope, display a waveform, and more. The patch you build determines the sound.
 
-this opens a command palette. type to search by name or category, then press `enter` to place the module at your cursor position.
-
----
-
-## patching
-
-- **drag from any output port** to start drawing a cable
-- **release on an input port** to complete the connection
-- cables are color-coded by signal type: violet for audio, green for cv, red for gate, amber for trigger
-- **right-click any cable** to disconnect it
-- **drag an existing cable's input end** to re-patch it
-
-### connection rules
-
-- audio ↔ cv: allowed. since all signals are the same data type under the hood (float32 arrays at audio rate), mixing them enables audio-rate modulation and other expressive techniques
-- gate ↔ trigger: allowed. both carry on/off signals and are electrically compatible
-- audio/cv → gate/trigger: not allowed. these signal families are logically incompatible
+This instrument runs entirely in the browser. There is no server. Patches autosave to LocalStorage and can be exported and imported as JSON files.
 
 ---
 
-## modules
+## Adding Modules
 
-### oscillators and generators
+- Press `space` or `/` anywhere in the rack
 
-**vco** — voltage controlled oscillator. outputs sine, sawtooth, and pulse waveforms simultaneously. frequency is set by knob and modulated via v/oct cv input. fm input for frequency modulation. pulse width can be modulated with the `pw` cv input.
-
-**lfo** — low frequency oscillator. same waveforms as the vco but operates below audio rate (0.01hz–100hz). outputs are cv-typed so they patch naturally to filter cutoffs, vca gains, and other modulation targets.
-
-**chaos** — lorenz-attractor chaotic cv source. emits three correlated outputs (`x`, `y`, `z`) with controls for integration speed and the classic attractor constants (`sigma`, `rho`, `beta`) plus output scaling.
-
-**noise** — white, pink, and brown noise generator. useful for percussion, wind textures, and randomization.
-
-**fm op** — fm operator module. implements a single sinusoidal carrier with phase modulation input, a frequency ratio parameter, modulation index, and operator self-feedback. chain two or more fm ops together to build dx7-style fm synthesis algorithms. the panel displays the ratio as n:1 and previews the resulting waveform shape.
-
-**pluck** — enhanced karplus-strong string synthesizer. position controls where along the string the excitation happens (suppressing different harmonics). brightness shapes the initial spectral content. stiffness adds inharmonicity via an allpass filter in the feedback loop. the panel shows an animated visualization of the harmonic overtones. a custom audio input can replace the noise burst excitation.
-
-### filters and dynamics
-
-**vcf** — voltage controlled filter. state variable filter with lowpass, highpass, and bandpass modes. cutoff and resonance are both cv-modulatable. envelope input for filter sweeps. the panel overlays response + signal content using a log-frequency analyzer tuned for stable low-frequency readout, and its bars track live modulation arriving on `cutoff`, `res`, and `env`.
-
-**vca** — voltage controlled amplifier. multiplies the audio input by a cv signal. essential for shaping amplitude with an envelope.
-
-**mixer** — 4-channel audio mixer with per-channel slim level strips, dual L/R gain meters, per-channel mute toggles under each strip, a master mute toggle under the master meter, and a master level control.
-
-**compressor** — dynamic range compressor with threshold, ratio, attack, release, makeup gain, soft knee, and parallel compression mix. a sidechain input enables ducking and pumping effects. the panel displays a live transfer curve and a gain reduction meter. the gr output emits a cv signal tracking the compression amount.
-
-### envelopes and modulation
-
-**adsr** — attack/decay/sustain/release envelope generator. triggered by a gate input. outputs a 0–1 envelope on `out` for shaping amplitude or filter cutoff. supports retrigger from the current level on rapid re-attack.
-
-**ar** — attack/release envelope generator. always gate-driven: rise during held gate, then release on gate-low. outputs envelope on `out` and a 10ms `eoc` trigger when the release finishes.
-
-**ad** — attack/decay one-shot envelope generator. starts on gate rising edge, runs through attack then decay, and emits a 10ms `eoc` trigger at end of cycle.
-
-**attenuverter** — scales and inverts cv signals. useful for controlling the depth and polarity of modulation.
-
-**sample & hold** — captures a cv value when triggered and holds it until the next trigger. use with noise or an lfo to generate random stepped cv.
-
-**quantizer** — snaps a continuous cv pitch signal to the nearest note in a selectable musical scale.
-
-**octave** — transposes incoming v/oct cv by integer octaves. useful for quickly shifting melodies and keyboard/sequencer lines up or down.
-
-**chord** — takes a single root v/oct input and outputs four v/oct signals tuned to a chord above it. chord type is selectable (maj, min, dom7, maj7, min7, dim, aug, sus2, sus4). octave offset and spread controls adjust voicing. the panel shows a one-octave piano keyboard with the active chord notes highlighted.
-
-**panner** — constant-power stereo panner. mono audio in, pan modulation input, separate left and right outputs. the panel shows a semicircular arc with a glowing indicator dot.
-
-**prob gate** — probabilistic gate. on each rising gate edge, a random number is checked against the probability knob. gates that pass are forwarded; blocked gates fire the skip output instead. useful for adding variation to sequences without changing the clock grid.
-
-### sequencing and timing
-
-**clock** — generates regular gate pulses at a bpm-derived rate. includes reset input, swing amount, a trigger output, and a selectable divided gate output.
-
-**sequencer** — 8-step pitch + gate sequencer. advances one step per clock pulse. each step has its own pitch value (set by fader) and a configurable gate length.
-
-**push button** — a manual trigger. hold for a sustained gate output; each press also fires a 10ms trigger pulse on a separate port. useful for manually triggering envelopes during performance.
-
-**chord dice** — press the die to generate a fresh 4-chord progression. the module now combines curated progression templates with algorithmic generation, including borrowed chords, chromatic side-slips, inversions, and experimental voicings. a clock trigger input steps through the progression, and the root cv input transposes all chords together. outputs `v1`–`v4` provide the chord tones as v/oct cv.
-
-**keyboard** — computer keyboard to pitch/gate converter. select the module to arm it, then play notes with `a w s e d f t g y h u j k`. use `z` / `x` to shift octaves. the panel highlights the currently held key and shows the active octave. outputs pitch on `out`, a held gate, and a 10ms trigger pulse on note-on.
-
-### effects
-
-**reverb** — convolution reverb. mix control blends the dry signal with the reverberated signal.
-
-**delay** — delay line with time control and cv modulation input.
-
-**feedback delay** — delay with a feedback loop. tone control shapes the frequency of each repeat; soft saturation in the feedback path adds subtle warmth at high settings.
-
-**tape delay** — warm delay with tape character. wow/flutter adds pitch instability to repeats; drive saturates the feedback path for degraded, lo-fi repeats. echo animation shows spinning reels and diminishing echo dots.
-
-### utility and display
-
-**cv** — constant control-voltage source with a single knob outputting from -1 to 1.
-
-**mute** — single-channel mute utility. audio input passes through to output when unmuted; the large center button toggles hard mute.
-
-**note** — text note module for writing patch ideas, reminders, and performance cues directly on the rack. notes are saved with the patch.
-
-**scope** — waveform display. connects to any signal port and displays the last few milliseconds of signal in real time. a timescale knob zooms the display.
-
-**freq spectrum** — real-time spectral display. connects to any signal port and shows a continuously updated log-frequency energy curve with DC rejection for cleaner low-end bars.
-
-**output** — the final module in any patch. routes audio to the browser's audio output. has a master volume knob and a peak meter. one output module is typically sufficient for a complete patch.
+This opens the command palette. Type to search by name or category, then press `enter` to place the module at your cursor position.
 
 ---
 
-## subpatches
+## Patching
 
-subpatches let you group related modules into a reusable, named container. the container appears as a single panel on the rack with exposed ports and optional macro knobs.
+- **Drag from any output port** to start drawing a cable
+- **Release on an input port** to complete the connection
+- Cables are color-coded by signal type
+- **Right-click any cable** to disconnect it
+- **Drag an existing cable's input end** to re-patch it
 
-**creating a subpatch**
+### Connection Rules
 
-- select two or more modules → right-click empty rack space → **group as subpatch** — wraps the selection into a container, preserving internal cables.
-- open the command palette → **subpatch** — creates an empty container you can drill into and build from scratch.
-
-**editing a subpatch**
-
-- **double-click** a container to drill into it. the breadcrumb at the top shows the current context; click any segment or press `esc` to exit.
-- inside the subpatch, add modules normally with `space`/`/` or right-click.
-- **exposing ports**: place a **in** or **out** module inside the subpatch. its ports appear on the container face. click the label to rename; click the type badge to cycle audio → cv → gate → trigger.
-- **exposing macros**: right-click any knob while inside a subpatch → **expose as macro**. a macro knob appears on the container face. right-click again → **remove macro** to unexpose it.
-
-**linked instances**
-
-all instances of the same subpatch definition share the same internal structure. editing the internals of one (while drilled in) updates all instances when you exit.
-
-**naming**
-
-double-click the name in the container header to rename it.
+- Audio <-> cv: allowed. Since all signals are the same data type under the hood (`Float32Array` at audio rate), mixing them enables audio-rate modulation and other expressive techniques.
+- Gate <-> trigger: allowed. Both carry on/off signals and are electrically compatible.
+- Audio/cv -> gate/trigger: not allowed. These signal families are logically incompatible.
 
 ---
 
-## controls
+## Modules
 
-| action                    | how                                                 |
-| ------------------------- | --------------------------------------------------- |
-| add module                | `space` or `/` on rack                              |
-| delete selected modules   | `delete` or `backspace`                             |
-| select module             | click on it                                         |
-| select multiple modules   | click-drag empty rack area                          |
-| copy selected modules     | `cmd/ctrl + c`                                      |
-| paste modules             | `cmd/ctrl + v`                                      |
-| move module(s)            | drag selected module header                         |
-| drag a cable              | mousedown on any port                               |
-| disconnect a cable        | right-click the cable                               |
-| rename patch              | click the patch name in the top bar                 |
-| new patch                 | top bar → new                                       |
-| export patch              | top bar → export                                    |
-| import patch              | top bar → import                                    |
-| settings                  | gear icon in the top bar                            |
-| group modules as subpatch | select ≥2 modules → right-click empty space         |
-| enter subpatch            | double-click container header                       |
-| exit subpatch             | `esc` or click breadcrumb                           |
-| expose port in subpatch   | add **in** / **out** module while drilled in        |
-| expose knob as macro      | right-click knob while drilled in → expose as macro |
+There are **50 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
+
+### Source
+
+- **vco** - audio-rate oscillator with `sine`, `saw`, and `pulse` outputs, plus v/oct, fm, and pulse-width modulation inputs.
+- **lfo** - low-frequency modulator with `sine`, `saw`, `pulse`, and `triangle` cv outputs and cv-modulatable rate.
+- **chaos** - lorenz-attractor chaos source with correlated `x`, `y`, `z` cv outputs.
+- **noise** - white, pink, and brown noise outputs.
+- **fm op** - single fm operator with ratio, index, self-feedback, and phase-modulation input.
+- **pluck** - karplus-strong plucked-string voice with trigger excitation, v/oct pitch, and optional external excitation audio.
+- **resonator** - resonant string/body model excited by trigger or audio, with pitch cv support.
+
+### Control
+
+- **button** - manual gate + 10ms trigger generator.
+- **clock** - bpm clock with swing, reset, gate output, 10ms trigger output, and divided gate output.
+- **clock div** - clock divider/multiplier (`/8` to `/2`, `×2` to `×8`) with reset.
+- **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, plus accent output.
+- **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
+- **keyboard** - computer-keyboard note entry (`a w s e d f t g y h u j k`, octave via `z`/`x`) with pitch, gate, and trigger outs.
+- **cv** - constant cv source (`-1` to `+1`).
+- **chord dice** - generated 4-chord progression source with clock step input and root transposition input.
+
+### Envelope
+
+- **adsr** - attack/decay/sustain/release envelope with gate input.
+- **ar** - attack/release envelope with `eoc` trigger output at release end.
+- **ad** - attack/decay one-shot envelope with `eoc` trigger output.
+
+### Filter
+
+- **vcf** - multimode state-variable filter (lowpass, highpass, bandpass) with cv-modulated cutoff/resonance and envelope input.
+
+### Dynamics
+
+- **vca** - cv-controlled amplifier for amplitude shaping.
+- **compressor** - compressor with sidechain input, threshold/ratio/attack/release/makeup/knee/mix controls, and gain-reduction cv output.
+- **env flwr** - envelope follower that converts audio level into cv with attack/release control.
+
+### FX
+
+- **reverb** - algorithmic reverb with `room` and `plate` modes plus mix/decay/damping control.
+- **feedback delay** - delay with cv time modulation, feedback, tone filtering, and wet/dry mix.
+- **tape delay** - character delay with wow/flutter modulation, tone, drive, feedback, and mix.
+- **flanger** - flanger/chorus module with rate, depth, feedback, and mix.
+- **wavefold** - wavefolder with gain, symmetry, and fold cv input.
+- **ring mod** - ring modulator with dry/wet mix.
+- **crush** - bitcrusher with bit-depth and sample-rate reduction.
+- **dist** - multi-mode distortion (`soft`, `hard`, `fuzz`) with drive, tone, and output level.
+
+### Utility
+
+- **mixer** - 4-channel mixer with per-channel level and mute, master level, master mute, and dual output metering.
+- **mult** - 1-to-4 cv splitter.
+- **atten** - attenuverter for cv scaling and inversion.
+- **s&h** - sample-and-hold (sample cv on trigger, hold until next trigger).
+- **quant** - cv quantizer for musical scales.
+- **octave** - octave transposer for v/oct cv.
+- **chord** - chord voice generator from one root cv input (four v/oct outputs).
+- **panner** - constant-power mono-to-stereo panner with cv input.
+- **prob gate** - probabilistic gate router with pass and skip outputs.
+- **comparator** - compares two cv inputs and outputs `gt`, `lt`, `eq` gates.
+- **logic** - gate logic (`and`, `or`, `xor`, `not`).
+- **slew** - rise/fall slew limiter for cv smoothing and glide.
+- **delay** - clean delay line with cv-modulated delay time (no feedback stage).
+- **mute** - one-button audio mute utility.
+- **note** - text note panel saved with the patch.
+- **output** - final stereo output module (left/right in, meter, master level).
+
+### Display
+
+- **scope** - real-time waveform scope.
+- **freq spectrum** - log-frequency spectrum analyzer.
+- **tuner** - note + cents tuner display.
+- **xy scope** - x/y oscilloscope for lissajous-style signal visualization.
 
 ---
 
-## settings
+## Subpatches
 
-- **cable tautness** — controls how much cables sag between ports (0 = taut, 1 = loose)
-- **tooltips** — toggle port tooltips on hover
-- **theme** — 11 themes total: base (`dark`, `light`), dark variants (`forest`, `abyss`, `volcanic`), light variants (`braun`), stylized variants (`synthwave`, `ice`, `arcade`), and monochrome variants (`slate`, `paper`)
+Subpatches let you group related modules into a reusable, named container. The container appears as a single panel on the rack with exposed ports and optional macro knobs.
+
+**Creating a subpatch**
+
+- Select two or more modules -> right-click empty rack space -> **Group as subpatch** (wraps the selection into a container, preserving internal cables)
+- Open the command palette -> **subpatch** (creates an empty container you can drill into and build from scratch)
+
+**Editing a subpatch**
+
+- **Double-click** a container to drill into it. The breadcrumb at the top shows the current context; click any segment or press `esc` to exit.
+- Inside the subpatch, add modules normally with `space` or `/`.
+- **Exposing ports**: place an **in** or **out** module inside the subpatch. Its ports appear on the container face. Click the label to rename; click the type badge to cycle audio -> cv -> gate -> trigger.
+- **Exposing macros**: right-click any knob while inside a subpatch -> **Expose as macro**. A macro knob appears on the container face. Right-click again -> **Remove macro** to unexpose it.
+
+**Library + reuse**
+
+- **Save subpatch to library**: right-click a subpatch container -> **Save to library**
+- **Insert saved subpatch**: click **Presets** in the top bar, search, then click or press `enter` to insert
+- **Delete saved preset**: open **Presets**, then click the `✕` next to an entry
+- **Ungroup a container**: right-click a subpatch container -> **Ungroup**
+
+**Linked instances**
+
+All instances of the same subpatch definition share the same internal structure. Editing the internals of one (while drilled in) updates all instances when you exit.
+
+**Naming**
+
+Double-click the name in the container header to rename it.
 
 ---
 
-## tech stack
+## Controls
 
-- react + typescript
-- vite
-- zustand (state management)
-- web audio api / audioworklet (audio processing)
-- svg (cable rendering)
+| Action                    | How                                                  |
+| ------------------------- | ---------------------------------------------------- |
+| Add module                | `space` or `/` on rack                               |
+| Delete selected modules   | `delete` or `backspace`                              |
+| Select module             | Click on it                                          |
+| Select multiple modules   | Click-drag empty rack area                           |
+| Add to selection          | Hold `shift` while marquee-selecting                 |
+| Copy selected modules     | `cmd/ctrl + c`                                       |
+| Paste modules             | `cmd/ctrl + v`                                       |
+| Undo                      | `cmd/ctrl + z` or top bar `↩`                        |
+| Redo                      | `cmd/ctrl + shift + z` or top bar `↪`                |
+| Move module(s)            | Drag selected module header                          |
+| Drag a cable              | Mousedown on any port                                |
+| Disconnect a cable        | Right-click the cable                                |
+| Rename patch              | Click the patch name in the top bar                  |
+| New patch                 | Top bar -> New                                       |
+| Export patch              | Top bar -> Export                                    |
+| Import patch              | Top bar -> Import                                    |
+| Open subpatch presets     | Top bar -> Presets                                   |
+| Settings                  | Gear icon in the top bar                             |
+| Zoom in/out               | Pinch trackpad or `cmd/ctrl + scroll`                |
+| Reset zoom                | Click zoom percent in the top bar                    |
+| Group modules as subpatch | Select >=2 modules -> right-click empty space        |
+| Ungroup subpatch          | Right-click subpatch container -> Ungroup            |
+| Enter subpatch            | Double-click container header                        |
+| Exit subpatch             | `esc` or click breadcrumb                            |
+| Expose port in subpatch   | Add **in** / **out** module while drilled in         |
+| Expose knob as macro      | Right-click knob while drilled in -> Expose as macro |
+| Save subpatch preset      | Right-click subpatch container -> Save to library    |
+
+---
+
+## Settings
+
+- **Cable tautness** - controls how much cables sag between ports (`0` = loose, `1` = taut)
+- **Tooltips** - toggle port tooltips on hover
+- **Theme** - 11 themes total: base (`dark`, `light`), dark variants (`forest`, `abyss`, `volcanic`), light variants (`braun`), stylized variants (`synthwave`, `ice`, `arcade`), and monochrome variants (`slate`, `paper`)
+
+---
+
+## Tech Stack
+
+- React + TypeScript
+- Vite
+- Zustand (state management)
+- Web Audio API / AudioWorklet (audio processing)
+- SVG (cable rendering)
