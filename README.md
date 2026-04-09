@@ -32,7 +32,9 @@ This instrument runs entirely in the browser. There is no server. Patches autosa
 
 - Press `space` or `/` anywhere in the rack
 
-This opens the command palette. Type to search by name or category, then press `enter` to place the module at your cursor position.
+This opens the command palette. It defaults to the `all` tab, and you can switch tabs for `common`, `most used`, or specific module categories, then press `enter` to place the highlighted module at your cursor position.
+
+Type in the search field at any time to search across all modules by name, category, or id.
 
 ---
 

@@ -4,7 +4,10 @@ import type { SerializedPatch } from './serialization'
 
 const STORAGE_KEY = 'modsynth:patch'
 const SETTINGS_KEY = 'modsynth:settings'
+const MODULE_USAGE_KEY = 'modsynth:module-usage'
 const DEBOUNCE_MS = 500
+
+export type ModuleUsageStats = Record<string, number>
 
 export function savePatchToStorage(): void {
   const state = useStore.getState()
@@ -62,6 +65,35 @@ export function loadSettingsFromStorage(): {
   } catch {
     return null
   }
+}
+
+export function loadModuleUsageStats(): ModuleUsageStats {
+  try {
+    const raw = localStorage.getItem(MODULE_USAGE_KEY)
+    if (!raw) return {}
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return {}
+    const out: ModuleUsageStats = {}
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value !== 'number') continue
+      if (!Number.isFinite(value) || value <= 0) continue
+      out[key] = Math.floor(value)
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+export function incrementModuleUsageStat(definitionId: string): ModuleUsageStats {
+  const next = { ...loadModuleUsageStats() }
+  next[definitionId] = (next[definitionId] ?? 0) + 1
+  try {
+    localStorage.setItem(MODULE_USAGE_KEY, JSON.stringify(next))
+  } catch {
+    console.warn('failed to save module usage stats')
+  }
+  return next
 }
 
 /**

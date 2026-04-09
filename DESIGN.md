@@ -568,6 +568,17 @@ click-drag on empty rack space draws an accent-colored marquee selection box. an
 
 selected modules can be copied and pasted with `cmd/ctrl+c` and `cmd/ctrl+v`. paste preserves relative layout and recreates cables where both ends were in the copied set.
 
+### command palette
+
+the module picker (`src/components/CommandPalette.tsx`) supports:
+
+- tabbed browsing (`common`, `most used`, `all`, and per-category tabs)
+- `all` is the default first tab when the palette opens
+- search by module name, category, or id (search scans the full available module set, regardless of active tab)
+- keyboard placement flow (`arrow up/down` + `enter`)
+
+`most used` is derived from persistent local usage stats (stored in localStorage) by definition id, so it carries across sessions. when no usage data exists yet, it falls back to the `common` starter set.
+
 ### module panel structure
 
 each module renders as an absolutely-positioned div on the rack canvas. `ModulePanel.tsx` owns the shared shell (header, drag behavior, selection border, and ports):
