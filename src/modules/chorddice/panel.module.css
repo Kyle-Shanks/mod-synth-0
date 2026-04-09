@@ -1,0 +1,57 @@
+.root {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.die {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--shade2);
+  border-radius: 6px;
+  background: var(--shade3);
+  cursor: pointer;
+  transition: background 80ms, border-color 80ms, transform 80ms;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.die[data-rolling='true'] {
+  border-color: var(--accent3);
+  background: var(--accent3);
+}
+
+.die[data-rolling='true'][data-parity='even'] {
+  transform: rotate(6deg) scale(0.95);
+}
+
+.die[data-rolling='true'][data-parity='odd'] {
+  transform: rotate(-6deg) scale(0.95);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 1;
+}
+
+.pip[data-active='true'][data-rolling='false'] {
+  background: var(--shade1);
+}
+
+.pip[data-active='true'][data-rolling='true'] {
+  background: var(--shade0);
+  opacity: 0.75;
+}

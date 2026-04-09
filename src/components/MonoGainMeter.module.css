@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.barFrame {
+  width: 12px;
+  height: 52px;
+  background: var(--shade0);
+  border: 1px solid var(--shade2);
+  border-radius: 1px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: var(--accent1);
+}
+
+.clipLine {
+  position: absolute;
+  bottom: 47px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent2);
+  opacity: 0.5;
+}
+
+.label {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  line-height: 1;
+}

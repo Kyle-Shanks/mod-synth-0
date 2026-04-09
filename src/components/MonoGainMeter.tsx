@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import styles from './MonoGainMeter.module.css'
 
 const BAR_HEIGHT = 52
 const ATTACK = 0.9
@@ -55,56 +56,12 @@ export function MonoGainMeter({
   }, [])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-      }}
-    >
-      <div
-        style={{
-          width: 12,
-          height: BAR_HEIGHT,
-          background: 'var(--shade0)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 1,
-          position: 'relative',
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
-        <div
-          ref={fillRef}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 0,
-            background: 'var(--accent1)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: Math.round(0.9 * BAR_HEIGHT),
-            left: 0,
-            right: 0,
-            height: 1,
-            background: 'var(--accent2)',
-            opacity: 0.5,
-          }}
-        />
+    <div className={styles.root}>
+      <div className={styles.barFrame}>
+        <div ref={fillRef} className={styles.fill} />
+        <div className={styles.clipLine} />
       </div>
-      <span
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-        }}
-      >
+      <span className={styles.label}>
         {label}
       </span>
     </div>

@@ -1,6 +1,7 @@
 import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
+import styles from './panel.module.css'
 
 interface ChaosPanelProps {
   moduleId: string
@@ -15,36 +16,11 @@ export function ChaosPanel({ moduleId }: ChaosPanelProps) {
   if (!mod || !def) return null
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        padding: '6px 4px',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade2)',
-          letterSpacing: '0.04em',
-        }}
-      >
+    <div className={styles.root}>
+      <div className={styles.title}>
         lorenz
       </div>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
+      <div className={styles.controls}>
         {PARAM_ORDER.map((paramId) => {
           const paramDef = def.params[paramId]
           if (!paramDef) return null

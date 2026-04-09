@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react'
 import type React from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { renderModuleBodyPanel } from '../modules/panelRegistry'
@@ -8,6 +9,11 @@ import { SubpatchPanel } from './SubpatchPanel'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 import { isSubpatchContainer } from '../store/subpatchSlice'
+import styles from './ModulePanel.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 interface ModulePanelProps {
   moduleId: string
@@ -151,6 +157,14 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
 
   const isSelected = selectedModuleIds.includes(moduleId)
 
+  const panelPositionStyle = (width: number, height: number) =>
+    ({
+      '--panel-left': `${mod.position.x * GRID_UNIT}px`,
+      '--panel-top': `${mod.position.y * GRID_UNIT}px`,
+      '--panel-width': `${width}px`,
+      '--panel-height': `${height}px`,
+    }) as CSSProperties
+
   // missing module — definition not in registry, show placeholder
   if (!def) {
     const placeholderW = 3 * GRID_UNIT
@@ -160,48 +174,24 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         ref={panelRef}
         data-module-panel=''
         data-module-panel-id={moduleId}
-        style={{
-          position: 'absolute',
-          left: mod.position.x * GRID_UNIT,
-          top: mod.position.y * GRID_UNIT,
-          width: placeholderW,
-          height: placeholderH,
-          background: 'var(--shade1)',
-          border: `1px dashed ${isSelected ? 'var(--accent0)' : 'var(--shade2)'}`,
-          borderRadius: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          opacity: 0.6,
-        }}
+        className={classes(
+          styles.missingPanel,
+          isSelected && styles.missingPanelSelected,
+        )}
+        style={panelPositionStyle(placeholderW, placeholderH)}
         onMouseDown={handlePanelMouseDown}
       >
         <div
           onMouseDown={handleHeaderMouseDown}
-          style={{
-            padding: '4px 6px',
-            fontSize: 'var(--text-sm)',
-            color: isSelected ? 'var(--accent0)' : 'var(--shade2)',
-            cursor: 'grab',
-            borderBottom: `1px dashed ${isSelected ? 'var(--accent0)' : 'var(--shade2)'}`,
-            flexShrink: 0,
-          }}
+          className={classes(
+            styles.missingHeader,
+            isSelected && styles.missingHeaderSelected,
+          )}
         >
           missing
         </div>
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 8,
-            textAlign: 'center',
-          }}
-        >
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
-            {mod.definitionId}
-          </span>
+        <div className={styles.missingBody}>
+          <span className={styles.missingDefId}>{mod.definitionId}</span>
         </div>
       </div>
     )
@@ -233,65 +223,26 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       ref={panelRef}
       data-module-panel=''
       data-module-panel-id={moduleId}
-      style={{
-        position: 'absolute',
-        left: mod.position.x * GRID_UNIT,
-        top: mod.position.y * GRID_UNIT,
-        width: widthPx,
-        height: heightPx,
-        background: 'var(--shade1)',
-        border: `1px solid ${isSelected ? 'var(--accent0)' : 'var(--shade2)'}`,
-        borderRadius: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
+      className={classes(styles.panel, isSelected && styles.panelSelected)}
+      style={panelPositionStyle(widthPx, heightPx)}
       onMouseDown={handlePanelMouseDown}
     >
       {/* header */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        style={{
-          padding: '4px 6px',
-          fontSize: 'var(--text-sm)',
-          color: 'var(--shade3)',
-          cursor: 'grab',
-          borderBottom: '1px solid var(--shade2)',
-          flexShrink: 0,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
+        className={styles.header}
       >
         <span>{def.name}</span>
-        {/* <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
-          {def.category}
-        </span> */}
       </div>
 
       {renderModuleBodyPanel(def.id, moduleId)}
 
       {/* ports section */}
       {(inputPorts.length > 0 || outputPorts.length > 0) && (
-        <div
-          style={{
-            borderTop: '1px solid var(--shade2)',
-            display: 'flex',
-            flexShrink: 0,
-          }}
-        >
+        <div className={styles.portsSection}>
           {/* inputs */}
           {inputPorts.length > 0 && (
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 4,
-                padding: '6px 4px',
-                justifyContent: 'center',
-              }}
-            >
+            <div className={styles.inputPorts}>
               {inputPorts.map(([id, portDef]) => (
                 <div key={id}>
                   <Port
@@ -310,17 +261,12 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
           {/* output inset */}
           {outputPorts.length > 0 && (
             <div
-              style={{
-                flex: inputPorts.length > 0 ? undefined : 1,
-                background: 'var(--shade3)',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 4,
-                padding: '6px 4px',
-                justifyContent: 'center',
-                borderLeft:
-                  inputPorts.length > 0 ? '1px solid var(--shade2)' : undefined,
-              }}
+              className={classes(
+                styles.outputPorts,
+                inputPorts.length > 0
+                  ? styles.outputPortsWithInputs
+                  : styles.outputPortsFull,
+              )}
             >
               {outputPorts.map(([id, portDef]) => (
                 <div key={id}>

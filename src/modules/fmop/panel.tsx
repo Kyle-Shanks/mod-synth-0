@@ -3,7 +3,9 @@ import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { useTheme } from '../../theme/themeContext'
 import { Knob } from '../../components/Knob'
+import { SizedCanvas } from '../../components/SizedCanvas'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from './panel.module.css'
 
 export function FMOpPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
@@ -70,28 +72,22 @@ export function FMOpPanel({ moduleId }: { moduleId: string }) {
   const paramEntries = Object.entries(def.params)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 8px', gap: 4, overflow: 'hidden' }}>
+    <div className={styles.root}>
       {/* ratio readout */}
-      <div style={{
-        fontSize: 'var(--text-md)',
-        color: 'var(--accent1)',
-        letterSpacing: '0.1em',
-        lineHeight: 1,
-        paddingTop: 2,
-      }}>
+      <div className={styles.ratioReadout}>
         {ratioLabel}
       </div>
 
       {/* fm waveform preview */}
-      <canvas
+      <SizedCanvas
         ref={canvasRef}
-        width={canvasW}
-        height={44}
-        style={{ width: canvasW, height: 44, borderRadius: 2, display: 'block' }}
+        pixelWidth={canvasW}
+        pixelHeight={44}
+        className={styles.canvas}
       />
 
       {/* knobs */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className={styles.knobsRow}>
         {paramEntries.map(([paramId, paramDef]) => (
           <Knob
             key={paramId}

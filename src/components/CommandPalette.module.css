@@ -1,0 +1,50 @@
+.overlay {
+  composes: overlayBase from '../styles/modalBase.module.css';
+}
+
+.modal {
+  composes: modalBase from '../styles/modalBase.module.css';
+}
+
+.inputRow {
+  composes: inputRowBase from '../styles/modalBase.module.css';
+}
+
+.input {
+  composes: inputBase from '../styles/modalBase.module.css';
+}
+
+.results {
+  composes: resultsBase from '../styles/modalBase.module.css';
+}
+
+.categoryHeader {
+  padding: 4px 12px 2px;
+  font-size: var(--text-xs);
+  color: var(--shade2);
+  letter-spacing: 0.08em;
+}
+
+.categoryHeaderWithMargin {
+  margin-top: 4px;
+}
+
+.moduleRow {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: transparent;
+  color: var(--shade3);
+  font-size: var(--text-sm);
+}
+
+.moduleRowActive {
+  background: var(--accent0);
+  color: var(--shade0);
+}
+
+.emptyState {
+  composes: emptyStateBase from '../styles/modalBase.module.css';
+}

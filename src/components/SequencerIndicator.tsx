@@ -1,5 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
+import styles from './SequencerIndicator.module.css'
 
 interface SequencerIndicatorProps {
   moduleId: string
@@ -57,27 +58,15 @@ export function SequencerIndicator({
   }, [indicatorBuffer, stepCount])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 3,
-        justifyContent: 'center',
-        padding: '2px 0',
-      }}
-    >
+    <div className={styles.root}>
       {Array.from({ length: 8 }, (_, i) => (
         <div
           key={i}
           ref={(el) => {
             dotsRef.current[i] = el
           }}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: i < stepCount ? 'var(--shade2)' : 'var(--shade1)',
-            transition: 'background 30ms',
-          }}
+          className={styles.dot}
+          data-enabled={i < stepCount ? 'true' : 'false'}
         />
       ))}
     </div>

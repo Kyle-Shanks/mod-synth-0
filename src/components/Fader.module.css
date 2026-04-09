@@ -1,0 +1,105 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.root[data-orientation='vertical'] {
+  cursor: ns-resize;
+}
+
+.root[data-orientation='horizontal'] {
+  cursor: ew-resize;
+}
+
+.control {
+  position: relative;
+}
+
+.control[data-orientation='vertical'] {
+  width: calc(var(--handle-size) + 8px);
+  height: var(--fader-length);
+}
+
+.control[data-orientation='horizontal'] {
+  width: var(--fader-length);
+  height: calc(var(--handle-size) + 8px);
+}
+
+.track {
+  position: absolute;
+  background: var(--shade2);
+  border-radius: 1px;
+}
+
+.track[data-orientation='vertical'] {
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--track-width);
+  top: calc(var(--handle-size) / 2);
+  height: var(--track-length);
+}
+
+.track[data-orientation='horizontal'] {
+  top: 50%;
+  transform: translateY(-50%);
+  height: var(--track-width);
+  left: calc(var(--handle-size) / 2);
+  width: var(--track-length);
+}
+
+.handle {
+  position: absolute;
+  background: var(--shade3);
+  border-radius: 1px;
+  transition: background 100ms;
+}
+
+.handleActive {
+  background: var(--accent0);
+}
+
+.handle[data-orientation='vertical'] {
+  left: 50%;
+  transform: translateX(-50%);
+  top: var(--handle-offset);
+  width: calc(var(--handle-size) + 6px);
+  height: var(--handle-size);
+}
+
+.handle[data-orientation='horizontal'] {
+  top: 50%;
+  transform: translateY(-50%);
+  left: var(--handle-offset);
+  height: calc(var(--handle-size) + 6px);
+  width: var(--handle-size);
+}
+
+.labelArea {
+  position: relative;
+  height: 11px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.labelText {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  line-height: 1;
+  white-space: nowrap;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+  transition: opacity 80ms;
+  pointer-events: none;
+}
+
+.labelHidden {
+  opacity: 0;
+}
+
+.labelVisible {
+  opacity: 1;
+}

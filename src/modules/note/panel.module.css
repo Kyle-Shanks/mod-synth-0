@@ -1,0 +1,20 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+
+.textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  background: var(--shade0);
+  color: var(--shade3);
+  font-family: var(--font);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  padding: 6px;
+  outline: none;
+}

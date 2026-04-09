@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import styles from './MixerMasterFader.module.css'
 
 const DRAG_SENSITIVITY = 0.004
 const FINE_MULTIPLIER = 0.1
@@ -10,9 +11,6 @@ const RELEASE = 0.18
 const TRACK_HEIGHT = 76
 const TRACK_INSET = 1
 const TRACK_ACTIVE_HEIGHT = TRACK_HEIGHT - TRACK_INSET * 2
-const BAR_WIDTH = 5
-const BAR_GAP = 1
-const METER_WIDTH = BAR_WIDTH * 2 + BAR_GAP
 
 interface MixerMasterFaderProps {
   moduleId: string
@@ -21,6 +19,10 @@ interface MixerMasterFaderProps {
   value: number
   muteParamId: string
   muted: boolean
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 export function MixerMasterFader({
@@ -160,22 +162,9 @@ export function MixerMasterFader({
   )
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        minWidth: 22,
-      }}
-    >
+    <div className={styles.root}>
       <div
-        style={{
-          width: METER_WIDTH + 8,
-          height: TRACK_HEIGHT,
-          position: 'relative',
-          cursor: 'ns-resize',
-        }}
+        className={styles.control}
         ref={elRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -187,117 +176,45 @@ export function MixerMasterFader({
           resetToDefault()
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: BAR_WIDTH,
-            height: TRACK_HEIGHT,
-            border: '1px solid var(--shade2)',
-            borderRadius: 1,
-            overflow: 'hidden',
-            background: 'var(--shade0)',
-          }}
-        >
+        <div className={classes(styles.meterBar, styles.meterBarLeft)}>
           <div
             ref={fillLRef}
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: TRACK_INSET,
-              height: 0,
-              background: 'var(--accent1)',
-            }}
+            className={styles.meterFill}
           />
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: BAR_WIDTH + BAR_GAP,
-            width: BAR_WIDTH,
-            height: TRACK_HEIGHT,
-            border: '1px solid var(--shade2)',
-            borderRadius: 1,
-            overflow: 'hidden',
-            background: 'var(--shade0)',
-          }}
-        >
+        <div className={classes(styles.meterBar, styles.meterBarRight)}>
           <div
             ref={fillRRef}
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: TRACK_INSET,
-              height: 0,
-              background: 'var(--accent1)',
-            }}
+            className={styles.meterFill}
           />
         </div>
 
         <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            width: METER_WIDTH,
-            top: Math.round(thumbTop),
-            height: 1,
-            background:
-              dragging || hovered ? 'var(--accent0)' : 'var(--shade3)',
-            transition: 'background 100ms',
-          }}
+          className={classes(
+            styles.thumbLine,
+            (dragging || hovered) && styles.thumbActive,
+          )}
+          style={{ top: Math.round(thumbTop) }}
         />
         <div
-          style={{
-            position: 'absolute',
-            top: Math.round(thumbTop - 4) + 0.5,
-            left: METER_WIDTH - 1,
-            width: 8,
-            height: 8,
-            background:
-              dragging || hovered ? 'var(--accent0)' : 'var(--shade3)',
-            clipPath: 'polygon(100% 15%, 28% 15%, 0 50%, 28% 85%, 100% 85%)',
-            transition: 'background 100ms',
-          }}
+          className={classes(
+            styles.thumbHandle,
+            (dragging || hovered) && styles.thumbActive,
+          )}
+          style={{ top: Math.round(thumbTop - 4) + 0.5 }}
         />
       </div>
 
       <div
         onPointerDown={toggleMute}
         onDoubleClick={(e) => e.stopPropagation()}
-        style={{
-          width: 20,
-          height: 18,
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: 3,
-          border: `1px solid ${muted ? 'var(--accent3)' : 'var(--shade2)'}`,
-          color: muted ? 'var(--accent3)' : 'var(--shade3)',
-          fontSize: 'var(--text-xs)',
-          lineHeight: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--shade1)',
-          cursor: 'pointer',
-          transition: 'color 100ms, border-color 100ms',
-        }}
+        className={styles.muteButton}
+        data-muted={muted ? 'true' : 'false'}
       >
         {muted && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'var(--accent3)',
-              opacity: 0.2,
-              pointerEvents: 'none',
-            }}
-          />
+          <div className={styles.muteOverlay} />
         )}
-        <span style={{ position: 'relative' }}>m</span>
+        <span className={styles.muteLabel}>m</span>
       </div>
     </div>
   )

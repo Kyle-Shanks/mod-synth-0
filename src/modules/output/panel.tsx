@@ -1,6 +1,7 @@
 import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { GainMeter } from '../../components/GainMeter'
+import styles from './panel.module.css'
 
 interface OutputPanelProps {
   moduleId: string
@@ -13,16 +14,7 @@ export function OutputPanel({ moduleId }: OutputPanelProps) {
   if (!mod || !def) return null
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 0,
-        padding: '6px 4px',
-      }}
-    >
+    <div className={styles.root}>
       <GainMeter moduleId={moduleId} />
     </div>
   )

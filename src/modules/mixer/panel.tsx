@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { MixerInputStrip } from '../../components/MixerInputStrip'
 import { MixerMasterFader } from '../../components/MixerMasterFader'
+import styles from './panel.module.css'
 
 interface MixerPanelProps {
   moduleId: string
@@ -24,24 +25,8 @@ export function MixerPanel({ moduleId }: MixerPanelProps) {
   const masterMuted = (mod.params.masterMute ?? masterMuteDef?.default ?? 0) >= 0.5
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: 10,
-        padding: '4px 4px',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: 6,
-        }}
-      >
+    <div className={styles.root}>
+      <div className={styles.channels}>
         {channels.map((channel) => {
           const paramDef = def.params[channel.levelParamId]
           const muteDef = def.params[channel.muteParamId]

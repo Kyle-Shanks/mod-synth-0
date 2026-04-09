@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useTheme } from '../theme/themeContext'
 import { drawTunerCents } from './canvasPrimitives'
+import styles from './TunerDisplay.module.css'
 
 const NOTE_NAMES = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b']
 
@@ -130,39 +131,14 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
   }, [tunerBuffer])
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        padding: '6px 8px',
-      }}
-    >
+    <div className={styles.root}>
       {/* note name */}
-      <div
-        ref={noteRef}
-        style={{
-          fontSize: 'var(--text-lg)',
-          color: 'var(--accent0)',
-          letterSpacing: '0.05em',
-          lineHeight: 1,
-        }}
-      >
+      <div ref={noteRef} className={styles.note}>
         --
       </div>
 
       {/* cents offset */}
-      <div
-        ref={centsRef}
-        style={{
-          fontSize: 'var(--text-sm)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-        }}
-      >
+      <div ref={centsRef} className={styles.cents}>
         --
       </div>
 
@@ -171,25 +147,11 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
         ref={canvasRef}
         width={128}
         height={8}
-        style={{
-          width: '100%',
-          height: 8,
-          display: 'block',
-          borderRadius: 1,
-          background: 'var(--shade0)',
-          border: '1px solid var(--shade2)',
-        }}
+        className={styles.centsCanvas}
       />
 
       {/* frequency readout */}
-      <div
-        ref={freqRef}
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-        }}
-      >
+      <div ref={freqRef} className={styles.frequency}>
         -- hz
       </div>
     </div>

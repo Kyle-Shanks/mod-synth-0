@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { TextInput } from './TextInput'
 import { computeContainerSize } from '../store/subpatchSlice'
+import styles from './SubpatchBreadcrumb.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 // TextInput is kept for the name field
 
@@ -56,63 +61,38 @@ export function SubpatchBreadcrumb() {
   }
 
   return (
-    <div
-      style={{
-        position: 'sticky',
-        top: 0,
-        left: 0,
-        zIndex: 10,
-        height: 28,
-        borderBottom: '1px solid var(--shade2)',
-        background: 'var(--shade0)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 12px',
-        gap: 4,
-        flexShrink: 0,
-        fontSize: 'var(--text-xs)',
-      }}
-    >
+    <div className={styles.bar}>
       {/* breadcrumb navigation */}
       <span
         onClick={handleExitToRoot}
-        style={{ color: 'var(--accent1)', cursor: 'pointer', opacity: 0.7 }}
+        className={styles.rootLink}
         title='exit to root patch'
       >
         root
       </span>
 
       {subpatchContext.map((entry, i) => (
-        <span
-          key={entry.instanceId}
-          style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-        >
-          <span style={{ color: 'var(--shade2)' }}>›</span>
+        <span key={entry.instanceId} className={styles.crumbGroup}>
+          <span className={styles.separator}>›</span>
           {i < subpatchContext.length - 1 ? (
             <span
               onClick={() => handleExitToLevel(i)}
-              style={{
-                color: 'var(--accent1)',
-                cursor: 'pointer',
-                opacity: 0.7,
-              }}
+              className={styles.crumbLink}
             >
               {entry.name}
             </span>
           ) : (
-            <span style={{ color: 'var(--shade3)', fontWeight: 600 }}>
-              {entry.name}
-            </span>
+            <span className={styles.crumbCurrent}>{entry.name}</span>
           )}
         </span>
       ))}
 
       {/* spacer */}
-      <span style={{ flex: 1 }} />
+      <span className={styles.spacer} />
 
       {/* settings for the current (deepest) subpatch */}
-      <span style={{ color: 'var(--shade2)', marginRight: 4 }}>name</span>
-      <div style={{ width: 80 }}>
+      <span className={classes(styles.label, styles.labelName)}>name</span>
+      <div className={styles.nameInputWrap}>
         <TextInput
           value={currentDef?.name ?? ''}
           onChange={(v) => {
@@ -123,9 +103,7 @@ export function SubpatchBreadcrumb() {
         />
       </div>
 
-      <span style={{ color: 'var(--shade2)', marginLeft: 8, marginRight: 4 }}>
-        w
-      </span>
+      <span className={classes(styles.label, styles.labelW)}>w</span>
       <input
         type='number'
         min={2}
@@ -138,31 +116,10 @@ export function SubpatchBreadcrumb() {
           e.stopPropagation()
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        style={{
-          width: 40,
-          background: 'var(--shade0)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 2,
-          color: 'var(--shade3)',
-          fontFamily: 'var(--font)',
-          fontSize: 'var(--text-xs)',
-          textAlign: 'center',
-          padding: '1px 2px',
-          outline: 'none',
-        }}
-        onFocus={(e) => {
-          ;(e.currentTarget as HTMLInputElement).style.borderColor =
-            'var(--accent0)'
-        }}
-        onBlur={(e) => {
-          ;(e.currentTarget as HTMLInputElement).style.borderColor =
-            'var(--shade2)'
-        }}
+        className={styles.numberInput}
       />
 
-      <span style={{ color: 'var(--shade2)', marginLeft: 4, marginRight: 4 }}>
-        h
-      </span>
+      <span className={classes(styles.label, styles.labelH)}>h</span>
       <input
         type='number'
         min={2}
@@ -175,30 +132,14 @@ export function SubpatchBreadcrumb() {
           e.stopPropagation()
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        style={{
-          width: 40,
-          background: 'var(--shade0)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 2,
-          color: 'var(--shade3)',
-          fontFamily: 'var(--font)',
-          fontSize: 'var(--text-xs)',
-          textAlign: 'center',
-          padding: '1px 2px',
-          outline: 'none',
-        }}
-        onFocus={(e) => {
-          ;(e.currentTarget as HTMLInputElement).style.borderColor =
-            'var(--accent0)'
-        }}
-        onBlur={(e) => {
-          ;(e.currentTarget as HTMLInputElement).style.borderColor =
-            'var(--shade2)'
-        }}
+        className={styles.numberInput}
       />
 
       <button
-        className='topbar-button'
+        className={classes(
+          styles.saveButton,
+          saved && styles.saveButtonSaved,
+        )}
         onClick={() => {
           const name = currentDef?.name ?? ''
           const conflict = Object.values(libraryPresets).find(
@@ -209,25 +150,12 @@ export function SubpatchBreadcrumb() {
           setSaved(true)
           setTimeout(() => setSaved(false), 1500)
         }}
-        style={{
-          marginLeft: 8,
-          border: 'none',
-          fontFamily: 'var(--font)',
-          fontSize: 'var(--text-xs)',
-          fontWeight: 600,
-          textTransform: 'lowercase',
-          padding: '2px 4px',
-          cursor: 'pointer',
-          color: saved ? 'var(--accent0)' : undefined,
-        }}
         title='save to library'
       >
         {saved ? 'saved!' : 'save to library'}
       </button>
 
-      <span style={{ marginLeft: 8, color: 'var(--shade2)' }}>
-        — esc to exit
-      </span>
+      <span className={styles.exitHint}>— esc to exit</span>
     </div>
   )
 }

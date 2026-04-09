@@ -3,6 +3,7 @@ import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { ListSelector } from '../../components/ListSelector'
 import { ClockIndicator } from '../../components/ClockIndicator'
+import styles from '../shared/defaultBodyPanel.module.css'
 
 interface ClockPanelProps {
   moduleId: string
@@ -20,18 +21,7 @@ export function ClockPanel({ moduleId }: ClockPanelProps) {
     <>
       <ClockIndicator moduleId={moduleId} />
       {paramEntries.length > 0 ? (
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            padding: '6px 4px',
-            overflow: 'hidden',
-          }}
-        >
+        <div className={styles.body}>
           {paramEntries.map(([paramId, paramDef]) => {
             if (paramDef.type === 'select') {
               return (
@@ -57,7 +47,7 @@ export function ClockPanel({ moduleId }: ClockPanelProps) {
           })}
         </div>
       ) : (
-        <div style={{ flex: 1 }} />
+        <div className={styles.emptyBody} />
       )}
     </>
   )

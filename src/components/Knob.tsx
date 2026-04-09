@@ -1,7 +1,9 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
+import styles from './Knob.module.css'
 
 interface KnobProps {
   moduleId: string
@@ -10,6 +12,10 @@ interface KnobProps {
   value: number
   // optional override: if provided, called instead of setParam
   onChangeOverride?: (value: number) => void
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 const KNOB_SIZE = 32
@@ -114,6 +120,7 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
     : value >= 1000
     ? `${(value / 1000).toFixed(1)}k`
     : value.toFixed(value < 10 ? 2 : 1)
+  const showValue = hovered || dragging
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     if (isMacroExposed) return
@@ -159,14 +166,7 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-        cursor: isMacroExposed ? 'default' : 'ns-resize',
-        position: 'relative',
-      }}
+      className={classes(styles.root, isMacroExposed && styles.rootLocked)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={handleDoubleClick}
@@ -174,42 +174,22 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
     >
       {macroMenu && createPortal(
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 300 }} onMouseDown={() => setMacroMenu(null)} />
+          <div className={styles.menuBackdrop} onMouseDown={() => setMacroMenu(null)} />
           <div
+            className={styles.menu}
             style={{
-              position: 'fixed',
               left: macroMenu.x,
               top: macroMenu.y,
-              zIndex: 301,
-              background: 'var(--shade1)',
-              border: '1px solid var(--shade2)',
-              borderRadius: 4,
-              overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-              minWidth: 160,
-            }}
+            } as CSSProperties}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div
-              style={{
-                padding: '4px 10px',
-                fontSize: 'var(--text-xs)',
-                color: 'var(--shade2)',
-                borderBottom: '1px solid var(--shade2)',
-              }}
-            >
+            <div className={styles.menuTitle}>
               {definition.label}
             </div>
             <div
               onClick={toggleMacro}
-              style={{
-                padding: '7px 10px',
-                fontSize: 'var(--text-sm)',
-                color: isMacroExposed ? 'var(--accent0)' : 'var(--shade3)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--accent0)'; (e.currentTarget as HTMLElement).style.color = 'var(--shade0)' }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = isMacroExposed ? 'var(--accent0)' : 'var(--shade3)' }}
+              className={styles.menuAction}
+              data-exposed={isMacroExposed ? 'true' : 'false'}
             >
               {isMacroExposed ? 'remove macro' : 'expose as macro'}
             </div>
@@ -223,7 +203,7 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
         width={KNOB_SIZE}
         height={KNOB_SIZE}
         viewBox="0 0 32 32"
-        style={{ opacity: isMacroExposed ? 0.65 : 1 }}
+        className={classes(styles.knobSvg, isMacroExposed && styles.knobSvgLocked)}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -249,39 +229,18 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
         <circle cx="16" cy="16" r="2" fill={isMacroExposed ? 'var(--accent1)' : 'var(--shade2)'} />
       </svg>
       {/* fixed-height label area to prevent layout shift */}
-      <div style={{
-        position: 'relative',
-        height: 11,
-        minWidth: 30,
-        textAlign: 'center',
-        opacity: isMacroExposed ? 0.65 : 1,
-      }}>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-          whiteSpace: 'nowrap',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: hovered || dragging ? 0 : 1,
-          transition: 'opacity 80ms',
-          pointerEvents: 'none',
-        }}>
+      <div
+        className={classes(styles.labelArea, isMacroExposed && styles.labelAreaLocked)}
+      >
+        <span className={classes(styles.labelText, showValue && styles.labelHidden)}>
           {definition.label}
         </span>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-          whiteSpace: 'nowrap',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: hovered || dragging ? 1 : 0,
-          transition: 'opacity 80ms',
-          pointerEvents: 'none',
-        }}>
+        <span
+          className={classes(
+            styles.labelText,
+            showValue ? styles.labelVisible : styles.labelHidden,
+          )}
+        >
           {`${displayValue}${definition.unit ? ` ${definition.unit}` : ''}`}
         </span>
       </div>

@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--shade2);
+  transition: background 30ms;
+}
+
+.label {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+}

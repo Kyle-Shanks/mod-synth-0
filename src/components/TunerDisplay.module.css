@@ -1,0 +1,37 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.note {
+  font-size: var(--text-lg);
+  color: var(--accent0);
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.cents {
+  font-size: var(--text-sm);
+  color: var(--shade3);
+  line-height: 1;
+}
+
+.centsCanvas {
+  width: 100%;
+  height: 8px;
+  display: block;
+  border-radius: 1px;
+  background: var(--shade0);
+  border: 1px solid var(--shade2);
+}
+
+.frequency {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  line-height: 1;
+}

@@ -4,9 +4,11 @@ import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { ListSelector } from '../../components/ListSelector'
+import { SizedCanvas } from '../../components/SizedCanvas'
 import { useTheme } from '../../theme/themeContext'
 import { GRID_UNIT } from '../../theme/tokens'
 import { createLogSpectrumKernel, analyzeLogSpectrum } from '../utils/logSpectrumAnalyzer'
+import styles from './panel.module.css'
 
 const VCF_N_BARS = 48
 const VCF_FFT_SIZE = 4096
@@ -268,31 +270,14 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
   const paramEntries = Object.entries(def.params)
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '6px 8px',
-        gap: 4,
-        overflow: 'hidden',
-      }}
-    >
-      <canvas
+    <div className={styles.root}>
+      <SizedCanvas
         ref={canvasRef}
-        width={canvasW}
-        height={80}
-        style={{ width: canvasW, height: 80, borderRadius: 2, display: 'block' }}
+        pixelWidth={canvasW}
+        pixelHeight={80}
+        className={styles.canvas}
       />
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}
-      >
+      <div className={styles.controls}>
         {paramEntries.map(([paramId, paramDef]) => {
           if (paramDef.type === 'select') {
             return (

@@ -1,0 +1,95 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.panel {
+  margin-top: 37px;
+  margin-right: 8px;
+  background: var(--shade1);
+  border: 1px solid var(--shade2);
+  border-radius: 4px;
+  width: 240px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+}
+
+.header {
+  font-size: var(--text-md);
+  color: var(--shade3);
+  border-bottom: 1px solid var(--shade2);
+  padding-bottom: 8px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--shade3);
+}
+
+.valueText {
+  color: var(--shade2);
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--accent0);
+}
+
+.sliderLegend {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--shade2);
+}
+
+.toggle {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--shade2);
+  cursor: pointer;
+  position: relative;
+  transition: background 150ms;
+}
+
+.toggle[data-enabled='true'] {
+  background: var(--accent0);
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--shade3);
+  transition: left 150ms;
+}
+
+.toggle[data-enabled='true'] .toggleThumb {
+  left: 16px;
+}
+
+.select {
+  composes: panelInputBase from '../styles/controlPrimitives.module.css';
+  font-size: var(--text-sm);
+  padding: 2px 4px;
+  cursor: pointer;
+}

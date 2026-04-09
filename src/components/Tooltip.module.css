@@ -1,0 +1,75 @@
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--shade1);
+  border: 1px solid var(--shade2);
+  backdrop-filter: blur(4px);
+  padding: 6px 8px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+  min-width: 120px;
+}
+
+.title {
+  font-size: var(--text-sm);
+  color: var(--shade3);
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.typeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeRowWithConnections {
+  margin-bottom: 4px;
+}
+
+.typeBadge {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.typeBadge[data-port-type='audio'] {
+  color: var(--cable-audio);
+}
+
+.typeBadge[data-port-type='cv'] {
+  color: var(--cable-cv);
+}
+
+.typeBadge[data-port-type='gate'] {
+  color: var(--cable-gate);
+}
+
+.typeBadge[data-port-type='trigger'] {
+  color: var(--cable-trigger);
+}
+
+.direction {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+  line-height: 1;
+}
+
+.connections {
+  border-top: 1px solid var(--shade2);
+  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.connectionItem {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  opacity: 0.7;
+  line-height: 1.3;
+}

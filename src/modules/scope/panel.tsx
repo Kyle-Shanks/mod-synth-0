@@ -6,6 +6,7 @@ import { CanvasZone } from '../../components/CanvasZone'
 import type { CanvasData } from '../../components/CanvasZone'
 import { drawScopeTrace, drawGrid } from '../../components/canvasPrimitives'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from '../shared/analyzerPanel.module.css'
 
 interface ScopePanelProps {
   moduleId: string
@@ -66,19 +67,7 @@ export function ScopePanel({ moduleId }: ScopePanelProps) {
   const heightPx = def.height * GRID_UNIT
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: 4,
-        gap: 4,
-        minHeight: 0,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={styles.root}>
       <CanvasZone
         width={widthPx - 10}
         height={heightPx - 130}

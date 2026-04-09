@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useStore } from '../store'
+import styles from './PushButton.module.css'
 
 interface PushButtonProps {
   moduleId: string
@@ -23,6 +24,8 @@ export function PushButton({ moduleId }: PushButtonProps) {
 
   return (
     <div
+      className={styles.button}
+      data-pressed={pressed ? 'true' : 'false'}
       onPointerDown={handleDown}
       onPointerUp={handleUp}
       onPointerLeave={() => {
@@ -31,27 +34,9 @@ export function PushButton({ moduleId }: PushButtonProps) {
           setGate(moduleId, 'gate', 0)
         }
       }}
-      style={{
-        width: 40,
-        height: 40,
-        border: '1.5px solid var(--shade2)',
-        borderRadius: 4,
-        background: pressed ? 'var(--accent0)' : 'var(--shade1)',
-        cursor: 'pointer',
-        transition: 'background 50ms',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
     >
       {pressed && (
-        <div style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          background: 'var(--shade0)',
-          opacity: 0.6,
-        }} />
+        <div className={styles.dot} />
       )}
     </div>
   )

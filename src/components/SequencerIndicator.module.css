@@ -1,0 +1,21 @@
+.root {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background 30ms;
+}
+
+.dot[data-enabled='true'] {
+  background: var(--shade2);
+}
+
+.dot[data-enabled='false'] {
+  background: var(--shade1);
+}

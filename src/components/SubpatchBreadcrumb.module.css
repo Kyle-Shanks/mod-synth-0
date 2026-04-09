@@ -1,0 +1,95 @@
+.bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  height: 28px;
+  border-bottom: 1px solid var(--shade2);
+  background: var(--shade0);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+}
+
+.rootLink {
+  color: var(--accent1);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.crumbGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.separator {
+  color: var(--shade2);
+}
+
+.crumbLink {
+  color: var(--accent1);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.crumbCurrent {
+  color: var(--shade3);
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.label {
+  color: var(--shade2);
+}
+
+.labelName {
+  margin-right: 4px;
+}
+
+.labelW {
+  margin-left: 8px;
+  margin-right: 4px;
+}
+
+.labelH {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.nameInputWrap {
+  width: 80px;
+}
+
+.numberInput {
+  composes: panelInputBase from '../styles/controlPrimitives.module.css';
+  composes: focusAccentBase from '../styles/controlPrimitives.module.css';
+  width: 40px;
+  font-size: var(--text-xs);
+  text-align: center;
+  padding: 1px 2px;
+}
+
+.saveButton {
+  composes: textButtonBase from '../styles/controlPrimitives.module.css';
+  margin-left: 8px;
+}
+
+.saveButtonSaved {
+  color: var(--accent0);
+}
+
+.saveButtonSaved:hover {
+  color: var(--accent0);
+}
+
+.exitHint {
+  margin-left: 8px;
+  color: var(--shade2);
+}

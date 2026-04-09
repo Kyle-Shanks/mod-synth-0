@@ -19,6 +19,11 @@ import {
 } from './persistence/serialization'
 import { getTheme } from './theme/themeRegistry'
 import './modules/registry' // ensure modules are registered
+import styles from './App.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 export default function App() {
   const [started, setStarted] = useState(false)
@@ -169,62 +174,18 @@ export default function App() {
     setEditingName(false)
   }, [nameInput, setPatchName])
 
-  const topBarBtnStyle: React.CSSProperties = {
-    border: 'none',
-    fontSize: 'var(--text-xs)',
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: 'var(--font)',
-    textTransform: 'lowercase',
-    padding: '2px 4px',
-    transition: 'background 120ms, color 120ms',
-  }
-
   return (
     <ThemeProvider theme={getTheme(themeId)}>
       {!started ? (
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <button
-            onClick={handleStart}
-            style={{
-              fontSize: 'var(--text-lg)',
-              padding: '16px 40px',
-              cursor: 'pointer',
-              background: 'var(--accent0)',
-              color: 'var(--shade0)',
-              border: 'none',
-              borderRadius: 4,
-              fontFamily: 'var(--font)',
-              fontWeight: 600,
-              textTransform: 'lowercase',
-              letterSpacing: 1,
-            }}
-          >
+        <div className={styles.startScreen}>
+          <button onClick={handleStart} className={styles.startButton}>
             start
           </button>
         </div>
       ) : (
         <>
           {/* top bar */}
-          <div
-            style={{
-              height: 36,
-              borderBottom: '1px solid var(--shade2)',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0 12px',
-              gap: 12,
-              flexShrink: 0,
-              background: 'var(--shade1)',
-            }}
-          >
+          <div className={styles.topBar}>
             {/* patch name — click to edit */}
             {editingName ? (
               <input
@@ -236,29 +197,12 @@ export default function App() {
                   if (e.key === 'Enter') handleNameCommit()
                   if (e.key === 'Escape') setEditingName(false)
                 }}
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--shade3)',
-                  fontWeight: 600,
-                  fontFamily: 'var(--font)',
-                  textTransform: 'lowercase',
-                  background: 'var(--shade0)',
-                  border: '1px solid var(--accent0)',
-                  borderRadius: 2,
-                  padding: '1px 4px',
-                  outline: 'none',
-                  width: 160,
-                }}
+                className={styles.patchNameInput}
               />
             ) : (
               <span
                 onClick={handleNameClick}
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--shade3)',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                className={styles.patchNameDisplay}
                 title='click to rename'
               >
                 {patchName}
@@ -266,34 +210,24 @@ export default function App() {
             )}
 
             {/* separator dot */}
-            <span
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
-            >
-              ·
-            </span>
+            <span className={styles.separator}>·</span>
 
             {/* new */}
             <button
-              className='topbar-button'
+              className={styles.topbarButton}
               onClick={handleNewPatch}
-              style={topBarBtnStyle}
               title='new patch'
             >
               new
             </button>
 
             {/* separator dot */}
-            <span
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
-            >
-              ·
-            </span>
+            <span className={styles.separator}>·</span>
 
             {/* export */}
             <button
-              className='topbar-button'
+              className={styles.topbarButton}
               onClick={handleExport}
-              style={topBarBtnStyle}
               title='export patch as json'
             >
               export
@@ -301,9 +235,8 @@ export default function App() {
 
             {/* import */}
             <button
-              className='topbar-button'
+              className={styles.topbarButton}
               onClick={() => fileInputRef.current?.click()}
-              style={topBarBtnStyle}
               title='import patch from json'
             >
               import
@@ -312,16 +245,15 @@ export default function App() {
               ref={fileInputRef}
               type='file'
               accept='.json'
-              style={{ display: 'none' }}
+              className={styles.hiddenFileInput}
               onChange={handleImport}
             />
 
             {/* presets — hidden when inside a subpatch */}
             {!isInsideSubpatch && (
               <button
-                className='topbar-button'
+                className={styles.topbarButton}
                 onClick={() => setPresetsOpen(true)}
-                style={topBarBtnStyle}
                 title='subpatch library'
               >
                 presets
@@ -329,22 +261,17 @@ export default function App() {
             )}
 
             {/* separator dot */}
-            <span
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
-            >
-              ·
-            </span>
+            <span className={styles.separator}>·</span>
 
             {/* undo */}
             <button
-              className='topbar-button'
+              className={classes(
+                styles.topbarButton,
+                styles.historyButton,
+                pastLength === 0 && styles.historyButtonDisabled,
+              )}
               onClick={() => useStore.getState().undo()}
               disabled={pastLength === 0}
-              style={{
-                ...topBarBtnStyle,
-                fontSize: 'var(--text-md)',
-                opacity: pastLength === 0 ? 0.3 : 1,
-              }}
               title='undo (cmd+z)'
             >
               ↩
@@ -352,61 +279,42 @@ export default function App() {
 
             {/* redo */}
             <button
-              className='topbar-button'
+              className={classes(
+                styles.topbarButton,
+                styles.historyButton,
+                futureLength === 0 && styles.historyButtonDisabled,
+              )}
               onClick={() => useStore.getState().redo()}
               disabled={futureLength === 0}
-              style={{
-                ...topBarBtnStyle,
-                fontSize: 'var(--text-md)',
-                opacity: futureLength === 0 ? 0.3 : 1,
-              }}
               title='redo (cmd+shift+z)'
             >
               ↪
             </button>
 
             {/* separator dot */}
-            <span
-              style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}
-            >
-              ·
-            </span>
+            <span className={styles.separator}>·</span>
 
             {/* zoom indicator — click to reset */}
             <button
-              className='topbar-button'
+              className={styles.topbarButton}
               onClick={() => setZoom(1)}
-              style={topBarBtnStyle}
               title='click to reset zoom'
             >
               {Math.round(zoom * 100)}%
             </button>
 
             {/* spacer */}
-            <div style={{ flex: 1 }} />
+            <div className={styles.spacer} />
 
             {/* hint */}
-            <span
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--shade2)',
-              }}
-            >
+            <span className={styles.hint}>
               space to add modules
             </span>
 
             {/* settings gear */}
             <button
-              className='topbar-button settings-button'
+              className={classes(styles.topbarButton, styles.settingsButton)}
               onClick={() => setSettingsPanelOpen(true)}
-              style={{
-                border: 'none',
-                fontSize: 'var(--text-md)',
-                cursor: 'pointer',
-                padding: '2px 4px',
-                lineHeight: 1,
-                transition: 'background 120ms, color 120ms',
-              }}
               title='settings'
             >
               &#9881;

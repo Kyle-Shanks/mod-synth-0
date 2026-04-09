@@ -5,6 +5,7 @@ import { CanvasZone } from '../../components/CanvasZone'
 import type { CanvasData } from '../../components/CanvasZone'
 import { GRID_UNIT } from '../../theme/tokens'
 import { createLogSpectrumKernel, analyzeLogSpectrum } from '../utils/logSpectrumAnalyzer'
+import styles from '../shared/analyzerPanel.module.css'
 
 interface SpectrumPanelProps {
   moduleId: string
@@ -137,19 +138,7 @@ export function SpectrumPanel({ moduleId }: SpectrumPanelProps) {
   const heightPx = def.height * GRID_UNIT
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: 4,
-        gap: 4,
-        minHeight: 0,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={styles.root}>
       <CanvasZone
         width={widthPx - 10}
         height={Math.max(56, heightPx - 72)}

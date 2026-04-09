@@ -1,5 +1,6 @@
 import { useStore } from '../store'
 import { themes } from '../theme/themeRegistry'
+import styles from './SettingsPanel.module.css'
 
 export function SettingsPanel() {
   const open = useStore((s) => s.settingsPanelOpen)
@@ -14,58 +15,15 @@ export function SettingsPanel() {
   if (!open) return null
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 150,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'flex-end',
-      }}
-      onMouseDown={() => setOpen(false)}
-    >
-      <div
-        style={{
-          marginTop: 37,
-          marginRight: 8,
-          background: 'var(--shade1)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 4,
-          width: 240,
-          padding: '12px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div
-          style={{
-            fontSize: 'var(--text-md)',
-            color: 'var(--shade3)',
-            borderBottom: '1px solid var(--shade2)',
-            paddingBottom: 8,
-          }}
-        >
-          settings
-        </div>
+    <div className={styles.overlay} onMouseDown={() => setOpen(false)}>
+      <div className={styles.panel} onMouseDown={(e) => e.stopPropagation()}>
+        <div className={styles.header}>settings</div>
 
         {/* cable tautness */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 'var(--text-sm)',
-              color: 'var(--shade3)',
-            }}
-          >
+        <div className={styles.section}>
+          <div className={styles.row}>
             <span>cable tautness</span>
-            <span style={{ color: 'var(--shade2)' }}>
-              {tautness.toFixed(2)}
-            </span>
+            <span className={styles.valueText}>{tautness.toFixed(2)}</span>
           </div>
           <input
             type='range'
@@ -74,83 +32,33 @@ export function SettingsPanel() {
             step={0.05}
             value={tautness}
             onChange={(e) => setCableTautness(parseFloat(e.target.value))}
-            style={{ width: '100%', accentColor: 'var(--accent0)' }}
+            className={styles.slider}
           />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--shade2)',
-            }}
-          >
+          <div className={styles.sliderLegend}>
             <span>loose</span>
             <span>taut</span>
           </div>
         </div>
 
         {/* tooltips toggle */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--shade3)',
-          }}
-        >
+        <div className={styles.row}>
           <span>tooltips</span>
           <div
             onClick={() => setTooltipsEnabled(!tooltipsEnabled)}
-            style={{
-              width: 32,
-              height: 18,
-              borderRadius: 9,
-              background: tooltipsEnabled ? 'var(--accent0)' : 'var(--shade2)',
-              cursor: 'pointer',
-              position: 'relative',
-              transition: 'background 150ms',
-            }}
+            className={styles.toggle}
+            data-enabled={tooltipsEnabled}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 2,
-                left: tooltipsEnabled ? 16 : 2,
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                background: 'var(--shade3)',
-                transition: 'left 150ms',
-              }}
-            />
+            <div className={styles.toggleThumb} />
           </div>
         </div>
 
         {/* theme selector */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--shade3)',
-          }}
-        >
+        <div className={styles.row}>
           <span>theme</span>
           <select
             value={themeId}
             onChange={(e) => setTheme(e.target.value)}
-            style={{
-              fontFamily: 'var(--font)',
-              fontSize: 'var(--text-sm)',
-              color: 'var(--shade3)',
-              background: 'var(--shade0)',
-              border: '1px solid var(--shade2)',
-              borderRadius: 2,
-              padding: '2px 4px',
-              cursor: 'pointer',
-            }}
+            className={styles.select}
           >
             {Object.keys(themes).map((id) => (
               <option key={id} value={id}>{id}</option>

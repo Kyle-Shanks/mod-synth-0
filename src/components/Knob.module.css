@@ -1,0 +1,73 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: ns-resize;
+  position: relative;
+}
+
+.rootLocked {
+  cursor: default;
+}
+
+.menuBackdrop {
+  composes: backdrop from '../styles/contextMenuBase.module.css';
+}
+
+.menu {
+  composes: menu from '../styles/contextMenuBase.module.css';
+}
+
+.menuTitle {
+  composes: menuTitle from '../styles/contextMenuBase.module.css';
+}
+
+.menuAction {
+  composes: menuItem from '../styles/contextMenuBase.module.css';
+}
+
+.menuAction[data-exposed='true'] {
+  color: var(--accent0);
+}
+
+.knobSvg {
+  opacity: 1;
+}
+
+.knobSvgLocked {
+  opacity: 0.65;
+}
+
+.labelArea {
+  position: relative;
+  height: 11px;
+  min-width: 30px;
+  text-align: center;
+  opacity: 1;
+}
+
+.labelAreaLocked {
+  opacity: 0.65;
+}
+
+.labelText {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  line-height: 1;
+  white-space: nowrap;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+  transition: opacity 80ms;
+  pointer-events: none;
+}
+
+.labelHidden {
+  opacity: 0;
+}
+
+.labelVisible {
+  opacity: 1;
+}

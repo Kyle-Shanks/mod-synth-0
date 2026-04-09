@@ -1,0 +1,66 @@
+.root {
+  composes: rootBase from '../styles/mixerControlBase.module.css';
+  min-width: 22px;
+}
+
+.control {
+  composes: controlBase from '../styles/mixerControlBase.module.css';
+  width: 19px;
+}
+
+.meterBar {
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 76px;
+  border: 1px solid var(--shade2);
+  border-radius: 1px;
+  overflow: hidden;
+  background: var(--shade0);
+}
+
+.meterBarLeft {
+  left: 0;
+}
+
+.meterBarRight {
+  left: 6px;
+}
+
+.meterFill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  height: 0;
+  background: var(--accent1);
+}
+
+.thumbLine {
+  composes: thumbLineBase from '../styles/mixerControlBase.module.css';
+  left: 0;
+  width: 11px;
+}
+
+.thumbHandle {
+  composes: thumbHandleBase from '../styles/mixerControlBase.module.css';
+  left: 10px;
+  clip-path: polygon(100% 15%, 28% 15%, 0 50%, 28% 85%, 100% 85%);
+}
+
+.thumbActive {
+  composes: thumbActiveBase from '../styles/mixerControlBase.module.css';
+}
+
+.muteButton {
+  composes: muteButtonBase from '../styles/mixerControlBase.module.css';
+  width: 20px;
+}
+
+.muteOverlay {
+  composes: muteOverlayBase from '../styles/mixerControlBase.module.css';
+}
+
+.muteLabel {
+  composes: muteLabelBase from '../styles/mixerControlBase.module.css';
+}

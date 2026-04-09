@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { MonoGainMeter } from '../../components/MonoGainMeter'
+import styles from './panel.module.css'
 
 interface VCAPanelProps {
   moduleId: string
@@ -16,16 +17,7 @@ export function VCAPanel({ moduleId }: VCAPanelProps) {
   const paramEntries = Object.entries(def.params)
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-        padding: '6px 6px',
-      }}
-    >
+    <div className={styles.root}>
       <MonoGainMeter moduleId={moduleId} portId='out' label='out' />
       {paramEntries.map(([paramId, paramDef]) => (
         <Knob

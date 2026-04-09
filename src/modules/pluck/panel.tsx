@@ -3,7 +3,9 @@ import { useStore } from '../../store'
 import { getModule } from '../registry'
 import { useTheme } from '../../theme/themeContext'
 import { Knob } from '../../components/Knob'
+import { SizedCanvas } from '../../components/SizedCanvas'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from '../shared/visualKnobCanvasPanel.module.css'
 
 export function PluckPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
@@ -120,14 +122,14 @@ export function PluckPanel({ moduleId }: { moduleId: string }) {
   const paramEntries = Object.entries(def.params)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 8px', gap: 6, overflow: 'hidden' }}>
-      <canvas
+    <div className={styles.root}>
+      <SizedCanvas
         ref={canvasRef}
-        width={canvasW}
-        height={56}
-        style={{ width: canvasW, height: 56, borderRadius: 2, display: 'block' }}
+        pixelWidth={canvasW}
+        pixelHeight={56}
+        className={styles.canvas}
       />
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className={styles.knobsRow}>
         {paramEntries.map(([paramId, paramDef]) => (
           <Knob
             key={paramId}

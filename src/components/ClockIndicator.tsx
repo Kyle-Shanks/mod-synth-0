@@ -1,5 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
+import styles from './ClockIndicator.module.css'
 
 interface ClockIndicatorProps {
   moduleId: string
@@ -52,42 +53,22 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
   }, [indicatorBuffer])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2px 0',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+    <div className={styles.root}>
+      <div className={styles.group}>
         <div
           ref={gateDotRef}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: 'var(--shade2)',
-            transition: 'background 30ms',
-          }}
+          className={styles.dot}
         />
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
+        <span className={styles.label}>
           clk
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <div className={styles.group}>
         <div
           ref={divDotRef}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: 'var(--shade2)',
-            transition: 'background 30ms',
-          }}
+          className={styles.dot}
         />
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
+        <span className={styles.label}>
           div
         </span>
       </div>

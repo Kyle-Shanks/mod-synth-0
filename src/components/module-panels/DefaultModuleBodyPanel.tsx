@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { getModule } from '../../modules/registry'
 import { Knob } from '../Knob'
 import { ListSelector } from '../ListSelector'
+import styles from './DefaultModuleBodyPanel.module.css'
 
 interface DefaultModuleBodyPanelProps {
   moduleId: string
@@ -16,22 +17,11 @@ export function DefaultModuleBodyPanel({ moduleId }: DefaultModuleBodyPanelProps
   const paramEntries = Object.entries(def.params)
 
   if (paramEntries.length === 0) {
-    return <div style={{ flex: 1 }} />
+    return <div className={styles.emptyBody} />
   }
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        padding: '6px 4px',
-        overflow: 'hidden',
-      }}
-    >
+    <div className={styles.body}>
       {paramEntries.map(([paramId, paramDef]) => {
         if (paramDef.type === 'select') {
           return (

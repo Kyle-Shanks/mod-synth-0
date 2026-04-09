@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import styles from './panel.module.css'
 
 interface ChordDicePanelProps {
   moduleId: string
@@ -67,59 +68,24 @@ export function ChordDicePanel({ moduleId }: ChordDicePanelProps) {
   const activePips = FACE_PIPS[face] ?? FACE_PIPS[1] ?? [4]
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className={styles.root}>
       <div
         onPointerDown={handlePress}
-        style={{
-          width: 40,
-          height: 40,
-          border: `1.5px solid ${rolling ? 'var(--accent3)' : 'var(--shade2)'}`,
-          borderRadius: 6,
-          background: rolling ? 'var(--accent3)' : 'var(--shade3)',
-          cursor: 'pointer',
-          transition: 'background 80ms, border-color 80ms, transform 80ms',
-          transform: rolling
-            ? face % 2 === 0
-              ? 'rotate(6deg) scale(0.95)'
-              : 'rotate(-6deg) scale(0.95)'
-            : 'none',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gridTemplateRows: 'repeat(3, 1fr)',
-          padding: 6,
-          boxSizing: 'border-box',
-        }}
+        className={styles.die}
+        data-rolling={rolling ? 'true' : 'false'}
+        data-parity={face % 2 === 0 ? 'even' : 'odd'}
       >
         {CELL_INDICES.map((cellIdx) => {
           const isActive = activePips.includes(cellIdx)
           return (
             <div
               key={cellIdx}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className={styles.cell}
             >
               <div
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: '50%',
-                  background: isActive
-                    ? rolling
-                      ? 'var(--shade0)'
-                      : 'var(--shade1)'
-                    : 'transparent',
-                  opacity: rolling && isActive ? 0.75 : 1,
-                }}
+                className={styles.pip}
+                data-active={isActive ? 'true' : 'false'}
+                data-rolling={rolling ? 'true' : 'false'}
               />
             </div>
           )

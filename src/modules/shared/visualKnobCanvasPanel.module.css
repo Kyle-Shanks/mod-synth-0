@@ -1,0 +1,21 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.canvas {
+  border-radius: 2px;
+  display: block;
+}
+
+.knobsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}

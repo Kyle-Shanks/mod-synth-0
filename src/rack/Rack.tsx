@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
 import { SubpatchBreadcrumb } from '../components/SubpatchBreadcrumb'
@@ -7,6 +8,7 @@ import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
+import styles from './Rack.module.css'
 
 const RACK_COLS = 64
 const RACK_ROWS = 32
@@ -319,23 +321,29 @@ export function Rack() {
     return true
   })
 
+  const scaledViewportStyle = {
+    '--viewport-width': `${rackWidth * zoom}px`,
+    '--viewport-height': `${rackHeight * zoom}px`,
+  } as CSSProperties
+
+  const rackStyle = {
+    '--rack-width': `${rackWidth}px`,
+    '--rack-height': `${rackHeight}px`,
+    '--rack-transform': `scale(${zoom})`,
+    '--grid-size': `${GRID_UNIT}px`,
+  } as CSSProperties
+
+  const selectionStyle = {
+    left: selectionLeft,
+    top: selectionTop,
+    width: selectionWidth,
+    height: selectionHeight,
+  } as CSSProperties
+
   return (
-    <div
-      ref={outerRef}
-      style={{
-        flex: 1,
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <div ref={outerRef} className={styles.outer}>
       <SubpatchBreadcrumb />
-      <div
-        style={{
-          width: rackWidth * zoom,
-          height: rackHeight * zoom,
-        }}
-      >
+      <div className={styles.scaledViewport} style={scaledViewportStyle}>
         <div
           ref={rackRef}
           data-rack=""
@@ -343,32 +351,11 @@ export function Rack() {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onContextMenu={handleContextMenu}
-          style={{
-            position: 'relative',
-            width: rackWidth,
-            height: rackHeight,
-            transform: `scale(${zoom})`,
-            transformOrigin: '0 0',
-            backgroundImage: `
-              linear-gradient(var(--shade2) 1px, transparent 1px),
-              linear-gradient(90deg, var(--shade2) 1px, transparent 1px)
-            `,
-            backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
-            backgroundPosition: '-1px -1px',
-          }}
+          className={styles.rack}
+          style={rackStyle}
         >
           {/* grid overlay at 0.15 opacity */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `
-              linear-gradient(rgba(42,42,46,0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(42,42,46,0.3) 1px, transparent 1px)
-            `,
-            backgroundSize: `${GRID_UNIT}px ${GRID_UNIT}px`,
-            backgroundPosition: '-1px -1px',
-            pointerEvents: 'none',
-          }} />
+          <div className={styles.gridOverlay} />
 
           {/* modules */}
           {visibleModuleIds.map((moduleId) => (
@@ -377,19 +364,7 @@ export function Rack() {
 
           {/* marquee selection rectangle */}
           {selectionDrag && (
-            <div
-              style={{
-                position: 'absolute',
-                left: selectionLeft,
-                top: selectionTop,
-                width: selectionWidth,
-                height: selectionHeight,
-                border: '1px solid var(--accent0)',
-                background: 'color-mix(in srgb, var(--accent0) 18%, transparent)',
-                pointerEvents: 'none',
-                zIndex: 4,
-              }}
-            />
+            <div className={styles.selectionRect} style={selectionStyle} />
           )}
 
           {/* cable overlay */}
@@ -403,32 +378,15 @@ export function Rack() {
       {/* "group as subpatch" context menu */}
       {groupContextMenu && (
         <>
+          <div className={styles.menuBackdrop} onMouseDown={() => setGroupContextMenu(null)} />
           <div
-            style={{ position: 'fixed', inset: 0, zIndex: 200 }}
-            onMouseDown={() => setGroupContextMenu(null)}
-          />
-          <div
+            className={styles.menu}
             style={{
-              position: 'fixed',
               left: groupContextMenu.x,
               top: groupContextMenu.y,
-              zIndex: 201,
-              background: 'var(--shade1)',
-              border: '1px solid var(--shade2)',
-              borderRadius: 4,
-              overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-              minWidth: 180,
             }}
           >
-            <div
-              style={{
-                padding: '8px 12px',
-                fontSize: 'var(--text-xs)',
-                color: 'var(--shade2)',
-                borderBottom: '1px solid var(--shade2)',
-              }}
-            >
+            <div className={styles.menuHeader}>
               {selectedModuleIds.length} modules selected
             </div>
             <div
@@ -438,14 +396,7 @@ export function Rack() {
                 setGroupContextMenu(null)
                 setSelectedModules([])
               }}
-              style={{
-                padding: '8px 12px',
-                fontSize: 'var(--text-sm)',
-                color: 'var(--shade3)',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'var(--accent0)'; (e.target as HTMLElement).style.color = 'var(--shade0)' }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = ''; (e.target as HTMLElement).style.color = 'var(--shade3)' }}
+              className={styles.menuAction}
             >
               group as subpatch
             </div>

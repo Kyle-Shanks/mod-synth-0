@@ -54,21 +54,3 @@ body {
   display: flex;
   flex-direction: column;
 }
-
-.topbar-button {
-  background: transparent;
-  color: var(--shade3);
-}
-
-.topbar-button:hover:not(:disabled) {
-  background: var(--shade3);
-  color: var(--shade0);
-}
-
-.topbar-button:disabled {
-  cursor: default;
-}
-
-.settings-button {
-  color: var(--shade3);
-}

@@ -1,0 +1,68 @@
+.panel {
+  composes: panelBase from '../styles/modulePanelBase.module.css';
+}
+
+.panelSelected {
+  border-color: var(--accent0);
+}
+
+.header {
+  composes: headerBase from '../styles/modulePanelBase.module.css';
+  color: var(--shade3);
+  justify-content: space-between;
+}
+
+.portsSection {
+  composes: portsSectionBase from '../styles/modulePanelBase.module.css';
+}
+
+.inputPorts {
+  composes: inputPortsBase from '../styles/modulePanelBase.module.css';
+}
+
+.outputPorts {
+  composes: outputPortsBase from '../styles/modulePanelBase.module.css';
+}
+
+.outputPortsWithInputs {
+  composes: outputPortsWithInputsBase from '../styles/modulePanelBase.module.css';
+}
+
+.outputPortsFull {
+  composes: outputPortsFullBase from '../styles/modulePanelBase.module.css';
+}
+
+.missingPanel {
+  composes: panelBase from '../styles/modulePanelBase.module.css';
+  border: 1px dashed var(--shade2);
+  opacity: 0.6;
+}
+
+.missingPanelSelected {
+  border-color: var(--accent0);
+}
+
+.missingHeader {
+  composes: headerBase from '../styles/modulePanelBase.module.css';
+  color: var(--shade2);
+  border-bottom: 1px dashed var(--shade2);
+}
+
+.missingHeaderSelected {
+  color: var(--accent0);
+  border-bottom-color: var(--accent0);
+}
+
+.missingBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+}
+
+.missingDefId {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+}

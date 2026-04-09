@@ -1,6 +1,8 @@
 import { useRef, useEffect } from 'react'
 import { useTheme } from '../theme/themeContext'
 import type { Theme } from '../theme/tokens'
+import { SizedCanvas } from './SizedCanvas'
+import styles from './CanvasZone.module.css'
 
 interface CanvasZoneProps {
   width: number   // px
@@ -75,17 +77,11 @@ export function CanvasZone({
   }, [width, height, scopeBuffer, writeIndexBuffer, xBuffer, yBuffer])
 
   return (
-    <canvas
+    <SizedCanvas
       ref={canvasRef}
-      width={width}
-      height={height}
-      style={{
-        width,
-        height,
-        display: 'block',
-        borderRadius: 2,
-        background: 'var(--shade0)',
-      }}
+      pixelWidth={width}
+      pixelHeight={height}
+      className={styles.canvas}
     />
   )
 }

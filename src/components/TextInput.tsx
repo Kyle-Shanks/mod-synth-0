@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import styles from './TextInput.module.css'
 
 interface TextInputProps {
   value: string
@@ -22,6 +23,7 @@ export function TextInput({ value, onChange, placeholder }: TextInputProps) {
   return (
     <input
       ref={ref}
+      className={styles.input}
       value={draft}
       placeholder={placeholder}
       onChange={(e) => setDraft(e.target.value)}
@@ -32,22 +34,6 @@ export function TextInput({ value, onChange, placeholder }: TextInputProps) {
         e.stopPropagation()
       }}
       onMouseDown={(e) => e.stopPropagation()}
-      style={{
-        width: '100%',
-        background: 'var(--shade0)',
-        border: '1px solid var(--shade2)',
-        borderRadius: 2,
-        color: 'var(--shade3)',
-        fontFamily: 'var(--font)',
-        fontSize: 'var(--text-xs)',
-        textAlign: 'center',
-        padding: '2px 4px',
-        outline: 'none',
-        boxSizing: 'border-box',
-        transition: 'border-color 80ms',
-      }}
-      onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--accent0)' }}
-      onBlurCapture={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = 'var(--shade2)' }}
     />
   )
 }

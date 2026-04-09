@@ -1,0 +1,14 @@
+.emptyBodyBase {
+  flex: 1;
+}
+
+.bodyBase {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 4px;
+  overflow: hidden;
+}

@@ -19,7 +19,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "styles:audit:inline": "rg -n --glob \"*.{ts,tsx}\" \"style=\\\\{\" src || true",
+    "styles:audit:imperative": "rg -n --glob \"*.{ts,tsx}\" \"\\\\.style\\\\.\" src || true",
+    "styles:audit": "npm run styles:audit:inline && npm run styles:audit:imperative"
   },
   "dependencies": {
     "immer": "^11.1.4",

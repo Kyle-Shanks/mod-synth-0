@@ -1,0 +1,59 @@
+.overlay {
+  composes: overlayBase from '../styles/modalBase.module.css';
+}
+
+.modal {
+  composes: modalBase from '../styles/modalBase.module.css';
+}
+
+.inputRow {
+  composes: inputRowBase from '../styles/modalBase.module.css';
+}
+
+.input {
+  composes: inputBase from '../styles/modalBase.module.css';
+}
+
+.results {
+  composes: resultsBase from '../styles/modalBase.module.css';
+}
+
+.emptyState {
+  composes: emptyStateBase from '../styles/modalBase.module.css';
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  color: var(--shade3);
+}
+
+.rowSelected {
+  background: var(--accent0);
+  color: var(--shade0);
+}
+
+.rowMain {
+  flex: 1;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.deleteButton {
+  padding: 6px 10px;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  opacity: 0.6;
+  color: var(--shade2);
+  transition: opacity 80ms;
+}
+
+.deleteButton:hover {
+  opacity: 1;
+}
+
+.deleteButtonSelected {
+  color: var(--shade0);
+}

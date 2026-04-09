@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 56px;
+}
+
+.label {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.option {
+  padding: 2px 6px;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  background: transparent;
+  color: var(--shade2);
+  transition: background 80ms, color 80ms;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.optionSelected {
+  background: var(--shade3);
+  color: var(--shade0);
+}

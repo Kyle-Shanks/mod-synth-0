@@ -3,6 +3,7 @@ import type { PortType } from '../engine/types'
 import { useStore } from '../store'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { getModule } from '../modules/registry'
+import styles from './Port.module.css'
 
 interface PortProps {
   moduleId: string
@@ -12,8 +13,6 @@ interface PortProps {
   label: string
   connected: boolean
 }
-
-const PORT_RADIUS = 8
 
 export function Port({
   moduleId,
@@ -186,7 +185,7 @@ export function Port({
     !validTarget
 
   // For connected ports, match ring color to the actual connected cable source type.
-  let connectedRingColor: string | null = null
+  let connectedRingToken: PortType | null = null
   if (connected) {
     for (const cable of Object.values(cables)) {
       const isFrom =
@@ -195,47 +194,39 @@ export function Port({
       if (!isFrom && !isTo) continue
 
       if (isFrom) {
-        connectedRingColor = `var(--cable-${type})`
+        connectedRingToken = type
       } else {
         const srcMod = modules[cable.from.moduleId]
         const srcDef = srcMod ? getModule(srcMod.definitionId) : undefined
         const srcPort =
           srcDef?.outputs[cable.from.portId] ??
           srcDef?.inputs[cable.from.portId]
-        connectedRingColor = `var(--cable-${srcPort?.type ?? type})`
+        connectedRingToken = srcPort?.type ?? type
       }
       break
     }
   }
 
-  const typeRingColor = `var(--cable-${type})`
-
-  let ringColor: string
+  type RingToken = 'shade0' | 'shade2' | PortType
+  let ringToken: RingToken
   if (dragState && isInvalidTarget) {
-    ringColor = 'var(--shade2)'
+    ringToken = 'shade2'
   } else if (dragState && (validTarget || dragState.fromPortId === portId)) {
-    ringColor = typeRingColor
+    ringToken = type
   } else if (isHovered) {
-    ringColor = typeRingColor
-  } else if (connectedRingColor) {
-    ringColor = connectedRingColor
+    ringToken = type
+  } else if (connectedRingToken) {
+    ringToken = connectedRingToken
   } else if (isOutput) {
-    ringColor = 'var(--shade0)'
+    ringToken = 'shade0'
   } else {
-    ringColor = 'var(--shade2)'
+    ringToken = 'shade2'
   }
 
+  const isInvalidInputTarget = dragState && isInvalidTarget && !isOutput
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-        position: 'relative',
-        zIndex: 4,
-      }}
-    >
+    <div className={styles.wrapper} data-output={isOutput}>
       <div
         ref={ref}
         data-port-id={portId}
@@ -243,43 +234,17 @@ export function Port({
         onMouseUp={handleMouseUp}
         onMouseEnter={() => setHoveredPort(portKey)}
         onMouseLeave={() => setHoveredPort(null)}
-        style={{
-          width: PORT_RADIUS * 2 + 4,
-          height: PORT_RADIUS * 2 + 4,
-          borderRadius: '50%',
-          opacity: dragState && isInvalidTarget && !isOutput ? 0.5 : 1,
-          border: `1.5px solid ${ringColor}`,
-          background: isOutput ? 'var(--shade3)' : 'var(--shade1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'crosshair',
-          transition: 'border-color 100ms',
-          position: 'relative',
-          zIndex: 5,
-        }}
+        className={styles.node}
+        data-output={isOutput}
+        data-invalid-target={isInvalidInputTarget}
+        data-ring-token={ringToken}
+        data-dot-token={isOutput ? 'shade0' : type}
       >
         {connected && (
-          <div
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: isOutput ? 'var(--shade0)' : `var(--cable-${type})`,
-            }}
-          />
+          <div className={styles.connectedDot} />
         )}
       </div>
-      <span
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: isOutput ? 'var(--shade0)' : 'var(--shade3)',
-          lineHeight: 1,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {label}
-      </span>
+      <span className={styles.label}>{label}</span>
     </div>
   )
 }

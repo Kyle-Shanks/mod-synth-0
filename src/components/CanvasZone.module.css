@@ -1,0 +1,5 @@
+.canvas {
+  display: block;
+  border-radius: 2px;
+  background: var(--shade0);
+}

@@ -4,7 +4,9 @@ import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { useTheme } from '../../theme/themeContext'
 import { Knob } from '../../components/Knob'
+import { SizedCanvas } from '../../components/SizedCanvas'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from './panel.module.css'
 
 const GR_ATTACK = 0.9
 const GR_RELEASE = 0.18
@@ -167,45 +169,31 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
   const paramEntries = Object.entries(def.params)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '6px 8px', gap: 6, overflow: 'hidden' }}>
+    <div className={styles.root}>
       {/* top row: curve + GR meter */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-        <canvas
+      <div className={styles.topRow}>
+        <SizedCanvas
           ref={canvasRef}
-          width={canvasW}
-          height={96}
-          style={{ width: canvasW, height: 96, borderRadius: 2, display: 'block', flexShrink: 0 }}
+          pixelWidth={canvasW}
+          pixelHeight={96}
+          className={styles.curveCanvas}
         />
         {/* GR meter */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)', lineHeight: 1 }}>gr</div>
-          <div style={{
-            flex: 1,
-            width: 14,
-            background: 'var(--shade0)',
-            borderRadius: 1,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
+        <div className={styles.grColumn}>
+          <div className={styles.grLabel}>gr</div>
+          <div className={styles.grMeter}>
             {/* gain reduction bar fills from top */}
             <div
               ref={grFillRef}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 0,
-                background: 'var(--accent3)',
-              }}
+              className={styles.grFill}
             />
           </div>
-          <div ref={grValueRef} style={{ fontSize: 7, color: 'var(--shade2)', lineHeight: 1 }}>0</div>
+          <div ref={grValueRef} className={styles.grValue}>0</div>
         </div>
       </div>
 
       {/* knobs */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className={styles.knobsRow}>
         {paramEntries.map(([paramId, paramDef]) => (
           <Knob
             key={paramId}

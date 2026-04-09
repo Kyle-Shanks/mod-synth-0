@@ -6,6 +6,7 @@ import { cablePath } from './CableBezier'
 import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
+import styles from './CableLayer.module.css'
 
 // Wider invisible stroke used purely for hit detection — makes cables much easier to hover
 const HIT_STROKE_WIDTH = 14
@@ -110,7 +111,7 @@ export function CableLayer() {
             tautness,
           ),
         )
-        preview.style.display = ''
+        preview.style.display = 'block'
       }
     } else if (preview) {
       preview.style.display = 'none'
@@ -165,16 +166,7 @@ export function CableLayer() {
     <>
       <svg
         ref={svgRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 2,
-          pointerEvents: 'none',
-          overflow: 'visible',
-        }}
+        className={styles.svg}
       >
         {visibleCables.map((cable) => {
           const isHovered = hoveredCableId === cable.id
@@ -194,7 +186,8 @@ export function CableLayer() {
                 stroke='transparent'
                 strokeWidth={HIT_STROKE_WIDTH}
                 strokeLinecap='round'
-                style={{ pointerEvents: cablePointerEvents, cursor: 'pointer' }}
+                className={styles.hitPath}
+                pointerEvents={cablePointerEvents}
                 onMouseEnter={() => setHoveredCable(cable.id)}
                 onMouseLeave={() => setHoveredCable(null)}
                 onContextMenu={(e) => handleCableContextMenu(e, cable.id)}
@@ -211,10 +204,7 @@ export function CableLayer() {
                 strokeLinecap='round'
                 strokeDasharray={isFeedback ? '8 4' : undefined}
                 opacity={hasHover && !isHovered ? 0.25 : 0.9}
-                style={{
-                  pointerEvents: 'none',
-                  transition: 'opacity 100ms, stroke-width 80ms',
-                }}
+                className={styles.visualPath}
               />
             </g>
           )
@@ -231,7 +221,7 @@ export function CableLayer() {
           strokeLinecap='round'
           strokeDasharray='6 4'
           opacity={0.6}
-          style={{ display: 'none' }}
+          className={styles.previewPath}
         />
       </svg>
 
@@ -239,42 +229,20 @@ export function CableLayer() {
       {contextMenu &&
         createPortal(
           <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 200,
-            }}
+            className={styles.menuOverlay}
             onMouseDown={() => setContextMenu(null)}
           >
             <div
+              className={styles.menu}
               style={{
-                position: 'fixed',
                 left: contextMenu.x,
                 top: contextMenu.y,
-                background: 'var(--shade1)',
-                border: '1px solid var(--shade2)',
-                borderRadius: 3,
-                padding: '2px 0',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                zIndex: 201,
               }}
               onMouseDown={(e) => e.stopPropagation()}
             >
               <div
                 onClick={handleDisconnect}
-                style={{
-                  padding: '4px 16px',
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--accent2)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  ;(e.target as HTMLDivElement).style.background =
-                    'var(--shade2)'
-                }}
-                onMouseLeave={(e) => {
-                  ;(e.target as HTMLDivElement).style.background = 'transparent'
-                }}
+                className={styles.menuItem}
               >
                 disconnect
               </div>

@@ -4,7 +4,9 @@ import { getModule } from '../registry'
 import { useTheme } from '../../theme/themeContext'
 import { Knob } from '../../components/Knob'
 import { ListSelector } from '../../components/ListSelector'
+import { SizedCanvas } from '../../components/SizedCanvas'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from './panel.module.css'
 
 // Chord intervals in semitones (root=0)
 const CHORD_INTERVALS: number[][] = [
@@ -113,22 +115,23 @@ export function ChordGenPanel({ moduleId }: { moduleId: string }) {
 
   if (!mod || !def) return null
 
+  const canvasW = widthPx - 16
   const chordDef = def.params['chord']
   const octaveDef = def.params['octave']
   const spreadDef = def.params['spread']
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '6px 8px', gap: 6, overflow: 'hidden' }}>
+    <div className={styles.root}>
       {/* piano keyboard */}
-      <canvas
+      <SizedCanvas
         ref={canvasRef}
-        width={widthPx - 16}
-        height={44}
-        style={{ width: widthPx - 16, height: 44, borderRadius: 2, display: 'block' }}
+        pixelWidth={canvasW}
+        pixelHeight={44}
+        className={styles.canvas}
       />
 
       {/* controls row */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', justifyContent: 'center', flex: 1 }}>
+      <div className={styles.controlsRow}>
         {chordDef && (
           <ListSelector
             moduleId={moduleId}
@@ -137,7 +140,7 @@ export function ChordGenPanel({ moduleId }: { moduleId: string }) {
             value={mod.params['chord'] ?? chordDef.default}
           />
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className={styles.knobColumn}>
           {octaveDef && (
             <Knob
               moduleId={moduleId}

@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { getModule } from '../modules/registry'
 import { portPositionCache } from '../cables/PortPositionCache'
 import type { PortType } from '../engine/types'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
+import styles from './Tooltip.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 const TOOLTIP_DELAY = 300
 
-// Human-readable type labels and their CSS var colors
-const PORT_TYPE_STYLE: Record<PortType, { label: string; color: string }> = {
-  audio:   { label: 'audio',   color: 'var(--cable-audio)' },
-  cv:      { label: 'cv',      color: 'var(--cable-cv)' },
-  gate:    { label: 'gate',    color: 'var(--cable-gate)' },
-  trigger: { label: 'trigger', color: 'var(--cable-trigger)' },
+// Human-readable type labels
+const PORT_TYPE_STYLE: Record<PortType, { label: string }> = {
+  audio:   { label: 'audio' },
+  cv:      { label: 'cv' },
+  gate:    { label: 'gate' },
+  trigger: { label: 'trigger' },
 }
 
 // Expand short port labels to more descriptive names where sensible
@@ -156,76 +162,34 @@ export function Tooltip() {
   if (!pos) return null
 
   const expandedLabel = expandLabel(portId, portLabel)
+  const tooltipStyle = {
+    left: `${pos.x}px`,
+    top: `${pos.y - 8}px`,
+  } as CSSProperties
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: pos.x,
-        top: pos.y - 8,
-        transform: 'translate(-50%, -100%)',
-        background: 'var(--shade1)',
-        border: '1px solid var(--shade2)',
-        backdropFilter: 'blur(4px)',
-        padding: '6px 8px',
-        borderRadius: 3,
-        pointerEvents: 'none',
-        zIndex: 100,
-        whiteSpace: 'nowrap',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-        minWidth: 120,
-      }}
-    >
+    <div className={styles.tooltip} style={tooltipStyle}>
       {/* port name */}
-      <div style={{
-        fontSize: 'var(--text-sm)',
-        color: 'var(--shade3)',
-        lineHeight: 1.4,
-        marginBottom: 2,
-      }}>
-        {expandedLabel}
-      </div>
+      <div className={styles.title}>{expandedLabel}</div>
 
       {/* type badge + direction */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        marginBottom: connections.length > 0 ? 4 : 0,
-      }}>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: typeStyle?.color ?? 'var(--shade3)',
-          fontWeight: 600,
-          lineHeight: 1,
-        }}>
+      <div
+        className={classes(
+          styles.typeRow,
+          connections.length > 0 && styles.typeRowWithConnections,
+        )}
+      >
+        <span className={styles.typeBadge} data-port-type={portType}>
           {typeStyle?.label ?? portType}
         </span>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade2)',
-          lineHeight: 1,
-        }}>
-          {direction}
-        </span>
+        <span className={styles.direction}>{direction}</span>
       </div>
 
       {/* connections list */}
       {connectedLabels.length > 0 && (
-        <div style={{
-          borderTop: '1px solid var(--shade2)',
-          paddingTop: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-        }}>
+        <div className={styles.connections}>
           {connectedLabels.map((label, i) => (
-            <div key={i} style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--shade3)',
-              opacity: 0.7,
-              lineHeight: 1.3,
-            }}>
+            <div key={i} className={styles.connectionItem}>
               ↔ {label}
             </div>
           ))}

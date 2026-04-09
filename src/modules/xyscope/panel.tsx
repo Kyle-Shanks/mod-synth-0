@@ -6,6 +6,7 @@ import { CanvasZone } from '../../components/CanvasZone'
 import type { CanvasData } from '../../components/CanvasZone'
 import { drawXYTrace } from '../../components/canvasPrimitives'
 import { GRID_UNIT } from '../../theme/tokens'
+import styles from './panel.module.css'
 
 interface XYScopePanelProps {
   moduleId: string
@@ -72,18 +73,7 @@ export function XYScopePanel({ moduleId }: XYScopePanelProps) {
   const heightPx = def.height * GRID_UNIT
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: 4,
-        minHeight: 0,
-        overflow: 'hidden',
-      }}
-    >
+    <div className={styles.root}>
       <CanvasZone
         width={widthPx - 10}
         height={heightPx - 130}
@@ -93,18 +83,7 @@ export function XYScopePanel({ moduleId }: XYScopePanelProps) {
         yBuffer={xyScopeBuffers?.yBuffer ?? null}
         writeIndexBuffer={xyScopeBuffers?.writeIndexBuffer ?? null}
       />
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          padding: '6px 4px',
-          overflow: 'hidden',
-        }}
-      >
+      <div className={styles.controls}>
         {Object.entries(def.params).map(([paramId, paramDef]) => (
           <Knob
             key={paramId}

@@ -1,0 +1,63 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+}
+
+.armStatus {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+}
+
+.armStatus[data-selected='true'] {
+  color: var(--accent0);
+}
+
+.noteText {
+  font-size: var(--text-sm);
+  color: var(--shade3);
+}
+
+.octaveText {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+}
+
+.keysGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 3px;
+  padding: 0 4px;
+}
+
+.keyCell {
+  height: 24px;
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  background: var(--shade1);
+}
+
+.keyCell[data-black='true'] {
+  background: var(--shade2);
+}
+
+.keyCell[data-active='true'] {
+  background: var(--shade3);
+  color: var(--shade0);
+}
+
+.footer {
+  font-size: var(--text-xs);
+  color: var(--shade2);
+  letter-spacing: 0.04em;
+}

@@ -1,0 +1,64 @@
+.outer {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.scaledViewport {
+  width: var(--viewport-width);
+  height: var(--viewport-height);
+}
+
+.rack {
+  position: relative;
+  width: var(--rack-width);
+  height: var(--rack-height);
+  transform: var(--rack-transform);
+  transform-origin: 0 0;
+  background-image:
+    linear-gradient(var(--shade2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--shade2) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: -1px -1px;
+}
+
+.gridOverlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(42 42 46 / 30%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(42 42 46 / 30%) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: -1px -1px;
+  pointer-events: none;
+}
+
+.selectionRect {
+  position: absolute;
+  border: 1px solid var(--accent0);
+  background: color-mix(in srgb, var(--accent0) 18%, transparent);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.menuBackdrop {
+  composes: backdrop from '../styles/contextMenuBase.module.css';
+  --context-menu-overlay-z: 200;
+}
+
+.menu {
+  composes: menu from '../styles/contextMenuBase.module.css';
+  --context-menu-z: 201;
+  --context-menu-min-width: 180px;
+}
+
+.menuHeader {
+  composes: menuTitle from '../styles/contextMenuBase.module.css';
+  --context-menu-title-padding: 8px 12px;
+}
+
+.menuAction {
+  composes: menuItem from '../styles/contextMenuBase.module.css';
+  --context-menu-item-padding: 8px 12px;
+}

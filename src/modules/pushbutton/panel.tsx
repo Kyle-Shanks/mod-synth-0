@@ -1,4 +1,5 @@
 import { PushButton } from '../../components/PushButton'
+import styles from './panel.module.css'
 
 interface PushButtonPanelProps {
   moduleId: string
@@ -6,14 +7,7 @@ interface PushButtonPanelProps {
 
 export function PushButtonPanel({ moduleId }: PushButtonPanelProps) {
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className={styles.root}>
       <PushButton moduleId={moduleId} />
     </div>
   )

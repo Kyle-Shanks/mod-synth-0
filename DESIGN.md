@@ -546,6 +546,10 @@ interface Theme {
 
 **all colors in the ui must reference css custom properties** (e.g., `var(--shade0)`, `var(--accent0)`, `var(--cable-audio)`). never use raw hex values in components.
 
+### css modules policy
+
+component styling is co-located via `*.module.css` files next to each `tsx` file. static/predictable styles should live in css modules, while ts/tsx should only keep runtime-driven exceptions (geometry, high-frequency dom writes, and theme token injection). see `src/styles/CSS_MODULES_GUIDE.md` for the migration conventions and audit commands.
+
 ### rack grid
 
 the rack is a finite, scrollable canvas (`64 × 32` grid units = `3072 × 1536px` at default zoom). modules snap to a 48px grid unit (`GRID_UNIT` in `src/theme/tokens.ts`).
@@ -665,6 +669,8 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 8. **sub-grid discipline** — all ui element positions in module declarations are in sub-grid units (8px base at 100% zoom). never use arbitrary pixel values for element placement within a module panel.
 
 9. **standardized port label vocabulary** — use neutral, consistent jack labels. prefer `in`/`out` for primary signal flow, full words (`clock`, `reset`, `trigger`, `gate`) for timing signals, and stable target names for modulation inputs (`time`, `rate`, `pan`, etc.).
+
+10. **css modules are the default styling surface** — place static styles in co-located `*.module.css` files. keep inline styles only for runtime geometry (position/size/scale), and keep imperative `.style.*` writes only for known performance paths (meters/indicators/cable preview) or theme token injection in `ThemeProvider`.
 
 ---
 

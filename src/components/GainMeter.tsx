@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import styles from './GainMeter.module.css'
 
 const BAR_HEIGHT = 52
 // Smoothing coefficients per animation frame (~16ms at 60fps).
@@ -16,58 +17,14 @@ interface MeterBarProps {
 
 function MeterBar({ label, fillRef }: MeterBarProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-      }}
-    >
-      <div
-        style={{
-          width: 12,
-          height: BAR_HEIGHT,
-          background: 'var(--shade0)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 1,
-          position: 'relative',
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
+    <div className={styles.bar}>
+      <div className={styles.barFrame}>
         {/* fill bar — height driven directly by the rAF loop, no React re-renders */}
-        <div
-          ref={fillRef}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 0,
-            background: 'var(--accent1)',
-          }}
-        />
+        <div ref={fillRef} className={styles.fill} />
         {/* clipping threshold line */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: Math.round(0.9 * BAR_HEIGHT),
-            left: 0,
-            right: 0,
-            height: 1,
-            background: 'var(--accent2)',
-            opacity: 0.5,
-          }}
-        />
+        <div className={styles.clipLine} />
       </div>
-      <span
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-        }}
-      >
+      <span className={styles.barLabel}>
         {label}
       </span>
     </div>
@@ -134,14 +91,7 @@ export function GainMeter({ moduleId }: GainMeterProps) {
   }, [])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 6,
-        alignItems: 'flex-end',
-        padding: '0px 6px',
-      }}
-    >
+    <div className={styles.root}>
       <MeterBar label='L' fillRef={fillLRef} />
       <MeterBar label='R' fillRef={fillRRef} />
     </div>

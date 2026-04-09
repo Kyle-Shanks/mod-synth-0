@@ -1,0 +1,45 @@
+.svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.hitPath {
+  cursor: pointer;
+}
+
+.visualPath {
+  pointer-events: none;
+  transition: opacity 100ms, stroke-width 80ms;
+}
+
+.previewPath {
+  display: none;
+}
+
+.menuOverlay {
+  composes: backdrop from '../styles/contextMenuBase.module.css';
+  --context-menu-overlay-z: 200;
+}
+
+.menu {
+  composes: menu from '../styles/contextMenuBase.module.css';
+  --context-menu-z: 201;
+  --context-menu-radius: 3px;
+  --context-menu-padding: 2px 0;
+  --context-menu-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+  --context-menu-min-width: 0;
+}
+
+.menuItem {
+  composes: menuItem from '../styles/contextMenuBase.module.css';
+  --context-menu-item-padding: 4px 16px;
+  --context-menu-item-color: var(--accent2);
+  --context-menu-item-hover-bg: var(--shade2);
+  --context-menu-item-hover-color: var(--accent2);
+}

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useStore } from '../../store'
+import styles from './panel.module.css'
 
 interface MutePanelProps {
   moduleId: string
@@ -24,53 +25,17 @@ export function MutePanel({ moduleId }: MutePanelProps) {
   if (!mod) return null
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div className={styles.root}>
       <div
         onPointerDown={toggleMute}
-        style={{
-          width: 40,
-          height: 40,
-          border: `1.5px solid ${muted ? 'var(--accent3)' : 'var(--shade2)'}`,
-          borderRadius: 4,
-          background: 'var(--shade1)',
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          transition: 'border-color 80ms',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className={styles.button}
+        data-muted={muted ? 'true' : 'false'}
       >
         {muted && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'var(--accent3)',
-              opacity: 0.2,
-              pointerEvents: 'none',
-            }}
-          />
+          <div className={styles.overlay} />
         )}
         {muted && (
-          <div
-            style={{
-              position: 'relative',
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: 'var(--accent3)',
-              opacity: 0.9,
-            }}
-          />
+          <div className={styles.dot} />
         )}
       </div>
     </div>

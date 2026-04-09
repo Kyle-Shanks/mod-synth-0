@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type React from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import {
   isSubpatchContainer,
@@ -13,6 +14,11 @@ import { Port } from './Port'
 import { Knob } from './Knob'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
+import styles from './SubpatchPanel.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 interface SubpatchPanelProps {
   moduleId: string
@@ -194,6 +200,14 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
   const inputPorts = definition.exposedInputs
   const outputPorts = definition.exposedOutputs
 
+  const panelStyle = {
+    '--panel-left': `${container.position.x * GRID_UNIT}px`,
+    '--panel-top': `${container.position.y * GRID_UNIT}px`,
+    '--panel-width': `${widthPx}px`,
+    '--panel-height': `${heightPx}px`,
+    '--subpatch-border-color': isSelected ? 'var(--accent0)' : 'var(--accent1)',
+  } as CSSProperties
+
   function commitName() {
     const trimmed = nameInput.trim()
     if (trimmed) updateDefinitionName(container!.subpatchDefinitionId, trimmed)
@@ -205,20 +219,8 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       ref={panelRef}
       data-module-panel=''
       data-module-panel-id={moduleId}
-      style={{
-        position: 'absolute',
-        left: container.position.x * GRID_UNIT,
-        top: container.position.y * GRID_UNIT,
-        width: widthPx,
-        height: heightPx,
-        background: 'var(--shade1)',
-        border: `1px solid ${isSelected ? 'var(--accent0)' : 'var(--accent1)'}`,
-        borderRadius: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        boxShadow: `0 0 0 1px ${isSelected ? 'var(--accent0)' : 'var(--accent1)'}22`,
-      }}
+      className={styles.panel}
+      style={panelStyle}
       onMouseDown={handlePanelMouseDown}
       onDoubleClick={handleEnterSubpatch}
       onContextMenu={handleContextMenu}
@@ -227,32 +229,18 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
         createPortal(
           <>
             <div
-              style={{ position: 'fixed', inset: 0, zIndex: 300 }}
+              className={styles.menuBackdrop}
               onMouseDown={() => setContextMenu(null)}
             />
             <div
+              className={styles.menu}
               style={{
-                position: 'fixed',
                 left: contextMenu.x,
                 top: contextMenu.y,
-                zIndex: 301,
-                background: 'var(--shade1)',
-                border: '1px solid var(--shade2)',
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-                minWidth: 160,
               }}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              <div
-                style={{
-                  padding: '4px 10px',
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--shade2)',
-                  borderBottom: '1px solid var(--shade2)',
-                }}
-              >
+              <div className={styles.menuTitle}>
                 {definition.name}
               </div>
               <div
@@ -265,23 +253,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
                   if (conflict && !window.confirm(`overwrite preset "${name}"?`)) return
                   saveDefinitionToLibrary(container.subpatchDefinitionId)
                 }}
-                style={{
-                  padding: '7px 10px',
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--shade3)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background =
-                    'var(--accent0)'
-                  ;(e.currentTarget as HTMLElement).style.color =
-                    'var(--shade0)'
-                }}
-                onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background = ''
-                  ;(e.currentTarget as HTMLElement).style.color =
-                    'var(--shade3)'
-                }}
+                className={styles.menuAction}
               >
                 save to library
               </div>
@@ -290,23 +262,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
                   setContextMenu(null)
                   ungroupSubpatch(moduleId)
                 }}
-                style={{
-                  padding: '7px 10px',
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--shade3)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background =
-                    'var(--accent0)'
-                  ;(e.currentTarget as HTMLElement).style.color =
-                    'var(--shade0)'
-                }}
-                onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background = ''
-                  ;(e.currentTarget as HTMLElement).style.color =
-                    'var(--shade3)'
-                }}
+                className={styles.menuAction}
               >
                 ungroup
               </div>
@@ -317,19 +273,9 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       {/* header — drag handle + name */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        style={{
-          padding: '4px 6px',
-          fontSize: 'var(--text-sm)',
-          color: 'var(--accent1)',
-          cursor: 'grab',
-          borderBottom: '1px solid var(--shade2)',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
+        className={styles.header}
       >
-        <span style={{ fontSize: 'var(--text-xs)', opacity: 0.6 }}>▶</span>
+        <span className={styles.caret}>▶</span>
         {editingName ? (
           <input
             autoFocus
@@ -342,22 +288,11 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
-            style={{
-              flex: 1,
-              background: 'var(--shade0)',
-              border: '1px solid var(--accent0)',
-              borderRadius: 2,
-              color: 'var(--shade3)',
-              fontFamily: 'var(--font)',
-              fontSize: 'var(--text-sm)',
-              textTransform: 'lowercase',
-              padding: '0 2px',
-              outline: 'none',
-            }}
+            className={styles.nameInput}
           />
         ) : (
           <span
-            style={{ flex: 1, textTransform: 'lowercase', userSelect: 'none' }}
+            className={styles.nameText}
             onDoubleClick={(e) => {
               e.stopPropagation()
               e.preventDefault()
@@ -373,18 +308,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
 
       {/* macro knobs */}
       {definition.macros.length > 0 && (
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            padding: '4px',
-            overflow: 'hidden',
-          }}
-        >
+        <div className={styles.macroArea}>
           {definition.macros.map((macro) => {
             // look up the target param definition for range
             const targetMod = definition.modules[macro.targetModuleId]
@@ -411,25 +335,14 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       {/* ports section */}
       {(inputPorts.length > 0 || outputPorts.length > 0) && (
         <div
-          style={{
-            borderTop: '1px solid var(--shade2)',
-            display: 'flex',
-            flexShrink: 0,
-            marginTop: definition.macros.length === 0 ? 'auto' : undefined,
-          }}
+          className={classes(
+            styles.portsSection,
+            definition.macros.length === 0 && styles.portsSectionPushBottom,
+          )}
         >
           {/* exposed inputs */}
           {inputPorts.length > 0 && (
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 4,
-                padding: '6px 4px',
-                justifyContent: 'center',
-              }}
-            >
+            <div className={styles.inputs}>
               {inputPorts.map((exposed, i) => (
                 <div key={exposed.proxyModuleId}>
                   <Port
@@ -448,17 +361,10 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
           {/* exposed outputs */}
           {outputPorts.length > 0 && (
             <div
-              style={{
-                flex: inputPorts.length > 0 ? undefined : 1,
-                background: 'var(--shade3)',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 4,
-                padding: '6px 4px',
-                justifyContent: 'center',
-                borderLeft:
-                  inputPorts.length > 0 ? '1px solid var(--shade2)' : undefined,
-              }}
+              className={classes(
+                styles.outputs,
+                inputPorts.length > 0 ? styles.outputsWithInputs : styles.outputsFull,
+              )}
             >
               {outputPorts.map((exposed, i) => (
                 <div key={exposed.proxyModuleId}>
@@ -481,18 +387,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       {inputPorts.length === 0 &&
         outputPorts.length === 0 &&
         definition.macros.length === 0 && (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--shade2)',
-              padding: 8,
-              textAlign: 'center',
-            }}
-          >
+          <div className={styles.emptyHint}>
             double-click to edit
           </div>
         )}

@@ -1,0 +1,55 @@
+.panelBase {
+  position: absolute;
+  left: var(--panel-left);
+  top: var(--panel-top);
+  width: var(--panel-width);
+  height: var(--panel-height);
+  background: var(--shade1);
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.headerBase {
+  padding: 4px 6px;
+  font-size: var(--text-sm);
+  cursor: grab;
+  border-bottom: 1px solid var(--shade2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.portsSectionBase {
+  border-top: 1px solid var(--shade2);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.inputPortsBase {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 4px;
+  justify-content: center;
+}
+
+.outputPortsBase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 4px;
+  justify-content: center;
+  background: var(--shade3);
+}
+
+.outputPortsWithInputsBase {
+  border-left: 1px solid var(--shade2);
+}
+
+.outputPortsFullBase {
+  flex: 1;
+}

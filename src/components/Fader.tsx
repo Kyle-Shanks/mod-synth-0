@@ -1,6 +1,8 @@
 import { useRef, useState, useCallback } from 'react'
+import type { CSSProperties } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
+import styles from './Fader.module.css'
 
 interface FaderProps {
   moduleId: string
@@ -9,6 +11,10 @@ interface FaderProps {
   value: number
   orientation?: 'vertical' | 'horizontal'
   length?: number // in px, default 64
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 const DRAG_SENSITIVITY = 0.004
@@ -78,6 +84,7 @@ export function Fader({
     : value >= 1000
     ? `${(value / 1000).toFixed(1)}k`
     : value.toFixed(value < 10 ? 2 : 1)
+  const showValue = hovered || dragging
 
   const isVertical = orientation === 'vertical'
 
@@ -86,16 +93,18 @@ export function Fader({
   const handleOffset = isVertical
     ? trackLength * (1 - normalized) // vertical: bottom=min, top=max
     : trackLength * normalized       // horizontal: left=min, right=max
+  const controlStyle = {
+    '--handle-size': `${HANDLE_SIZE}px`,
+    '--track-width': `${TRACK_WIDTH}px`,
+    '--fader-length': `${length}px`,
+    '--track-length': `${trackLength}px`,
+    '--handle-offset': `${handleOffset}px`,
+  } as CSSProperties
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-        cursor: isVertical ? 'ns-resize' : 'ew-resize',
-      }}
+      className={styles.root}
+      data-orientation={orientation}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={(e) => {
@@ -113,91 +122,34 @@ export function Fader({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        style={{
-          position: 'relative',
-          width: isVertical ? HANDLE_SIZE + 8 : length,
-          height: isVertical ? length : HANDLE_SIZE + 8,
-        }}
+        className={styles.control}
+        data-orientation={orientation}
+        style={controlStyle}
       >
         {/* track */}
-        <div style={{
-          position: 'absolute',
-          background: 'var(--shade2)',
-          borderRadius: 1,
-          ...(isVertical
-            ? {
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: TRACK_WIDTH,
-                top: HANDLE_SIZE / 2,
-                height: trackLength,
-              }
-            : {
-                top: '50%',
-                transform: 'translateY(-50%)',
-                height: TRACK_WIDTH,
-                left: HANDLE_SIZE / 2,
-                width: trackLength,
-              }),
-        }} />
+        <div
+          className={styles.track}
+          data-orientation={orientation}
+        />
 
         {/* handle */}
-        <div style={{
-          position: 'absolute',
-          background: dragging || hovered ? 'var(--accent0)' : 'var(--shade3)',
-          borderRadius: 1,
-          transition: 'background 100ms',
-          ...(isVertical
-            ? {
-                left: '50%',
-                transform: 'translateX(-50%)',
-                top: handleOffset,
-                width: HANDLE_SIZE + 6,
-                height: HANDLE_SIZE,
-              }
-            : {
-                top: '50%',
-                transform: 'translateY(-50%)',
-                left: handleOffset,
-                height: HANDLE_SIZE + 6,
-                width: HANDLE_SIZE,
-              }),
-        }} />
+        <div
+          className={classes(styles.handle, (dragging || hovered) && styles.handleActive)}
+          data-orientation={orientation}
+        />
       </div>
 
       {/* label / value display */}
-      <div style={{
-        position: 'relative',
-        height: 11,
-        minWidth: 30,
-        textAlign: 'center',
-      }}>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-          whiteSpace: 'nowrap',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: hovered || dragging ? 0 : 1,
-          transition: 'opacity 80ms',
-          pointerEvents: 'none',
-        }}>
+      <div className={styles.labelArea}>
+        <span className={classes(styles.labelText, showValue && styles.labelHidden)}>
           {definition.label}
         </span>
-        <span style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade3)',
-          lineHeight: 1,
-          whiteSpace: 'nowrap',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: hovered || dragging ? 1 : 0,
-          transition: 'opacity 80ms',
-          pointerEvents: 'none',
-        }}>
+        <span
+          className={classes(
+            styles.labelText,
+            showValue ? styles.labelVisible : styles.labelHidden,
+          )}
+        >
           {`${displayValue}${definition.unit ? ` ${definition.unit}` : ''}`}
         </span>
       </div>

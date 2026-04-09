@@ -1,5 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store'
+import styles from './PresetsModal.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 interface PresetsModalProps {
   onClose: () => void
@@ -54,57 +59,24 @@ export function PresetsModal({ onClose }: PresetsModalProps) {
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        paddingTop: 80,
-      }}
-      onMouseDown={onClose}
-    >
-      <div
-        style={{
-          background: 'var(--shade1)',
-          border: '1px solid var(--shade2)',
-          borderRadius: 4,
-          width: 340,
-          maxHeight: 400,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+    <div className={styles.overlay} onMouseDown={onClose}>
+      <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
         {/* search input */}
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--shade2)' }}>
+        <div className={styles.inputRow}>
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
             onKeyDown={handleKeyDown}
             placeholder='search presets...'
-            style={{
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: 'var(--shade3)',
-              fontFamily: 'var(--font)',
-              fontSize: 'var(--text-md)',
-              textTransform: 'lowercase',
-            }}
+            className={styles.input}
           />
         </div>
 
         {/* results */}
-        <div style={{ overflowY: 'auto', flex: 1 }}>
+        <div className={styles.results}>
           {filtered.length === 0 ? (
-            <div style={{ padding: 12, color: 'var(--shade2)', fontSize: 'var(--text-sm)', textAlign: 'center' }}>
+            <div className={styles.emptyState}>
               {allPresets.length === 0
                 ? 'no saved presets yet — use save to library inside a subpatch view'
                 : 'no presets match'}
@@ -113,31 +85,21 @@ export function PresetsModal({ onClose }: PresetsModalProps) {
             filtered.map((preset, i) => (
               <div
                 key={preset.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: i === clamped ? 'var(--accent0)' : 'transparent',
-                  color: i === clamped ? 'var(--shade0)' : 'var(--shade3)',
-                }}
+                className={classes(styles.row, i === clamped && styles.rowSelected)}
               >
                 <div
-                  style={{ flex: 1, padding: '6px 12px', cursor: 'pointer', fontSize: 'var(--text-sm)' }}
+                  className={styles.rowMain}
                   onClick={() => handleInsert(preset.id)}
                   onMouseEnter={() => setSelectedIndex(i)}
                 >
                   {preset.name}
                 </div>
                 <div
-                  style={{
-                    padding: '6px 10px',
-                    fontSize: 'var(--text-xs)',
-                    cursor: 'pointer',
-                    opacity: 0.6,
-                    color: i === clamped ? 'var(--shade0)' : 'var(--shade2)',
-                  }}
+                  className={classes(
+                    styles.deleteButton,
+                    i === clamped && styles.deleteButtonSelected,
+                  )}
                   onClick={(e) => { e.stopPropagation(); deleteLibraryPreset(preset.id) }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '0.6' }}
                   title='delete preset'
                 >
                   ✕

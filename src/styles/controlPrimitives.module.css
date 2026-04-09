@@ -1,0 +1,30 @@
+.textButtonBase {
+  border: none;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  text-transform: lowercase;
+  padding: 2px 4px;
+  transition: background 120ms, color 120ms;
+  background: transparent;
+  color: var(--shade3);
+}
+
+.textButtonBase:hover:not(:disabled) {
+  background: var(--shade3);
+  color: var(--shade0);
+}
+
+.panelInputBase {
+  background: var(--shade0);
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  color: var(--shade3);
+  font-family: var(--font);
+  outline: none;
+}
+
+.focusAccentBase:focus {
+  border-color: var(--accent0);
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import styles from './panel.module.css'
 
 interface KeyboardPanelProps {
   moduleId: string
@@ -180,74 +181,37 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
   }, [isSelected, moduleId, setGate])
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 6,
-        padding: '8px 6px',
-      }}
-    >
+    <div className={styles.root}>
       <div
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: isSelected ? 'var(--accent0)' : 'var(--shade2)',
-        }}
+        className={styles.armStatus}
+        data-selected={isSelected ? 'true' : 'false'}
       >
         {isSelected ? 'armed' : 'select to arm'}
       </div>
-      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--shade3)' }}>
+      <div className={styles.noteText}>
         {activeNote === null
           ? 'note: -'
           : `note: ${formatMidiNote(activeNote)}`}
       </div>
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--shade2)' }}>
+      <div className={styles.octaveText}>
         {`oct: ${octaveShift >= 0 ? '+' : ''}${octaveShift}`}
       </div>
-      <div
-        style={{
-          width: '100%',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(13, minmax(0, 1fr))',
-          gap: 3,
-          padding: '0 4px',
-        }}
-      >
+      <div className={styles.keysGrid}>
         {KEY_LAYOUT.map((entry) => {
           const isActive = isSelected && activeKey === entry.key
-          let keyBackground = 'var(--shade1)'
-          if (entry.isBlack) keyBackground = 'var(--shade2)'
-          if (isActive) keyBackground = 'var(--shade3)'
           return (
             <div
               key={entry.key}
-              style={{
-                height: 24,
-                border: '1px solid var(--shade2)',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 'var(--text-xs)',
-                background: keyBackground,
-                color: isActive ? 'var(--shade0)' : 'var(--shade3)',
-              }}
+              className={styles.keyCell}
+              data-black={entry.isBlack ? 'true' : 'false'}
+              data-active={isActive ? 'true' : 'false'}
             >
               {entry.key}
             </div>
           )
         })}
       </div>
-      <div
-        style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--shade2)',
-          letterSpacing: '0.04em',
-        }}
-      >
+      <div className={styles.footer}>
         z/x octave
       </div>
     </div>

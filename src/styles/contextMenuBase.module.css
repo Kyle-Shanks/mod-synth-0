@@ -1,0 +1,36 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--context-menu-overlay-z, 300);
+}
+
+.menu {
+  position: fixed;
+  z-index: var(--context-menu-z, 301);
+  background: var(--shade1);
+  border: 1px solid var(--shade2);
+  border-radius: var(--context-menu-radius, 4px);
+  overflow: hidden;
+  box-shadow: var(--context-menu-shadow, 0 4px 20px rgb(0 0 0 / 40%));
+  min-width: var(--context-menu-min-width, 160px);
+  padding: var(--context-menu-padding, 0);
+}
+
+.menuTitle {
+  padding: var(--context-menu-title-padding, 4px 10px);
+  font-size: var(--text-xs);
+  color: var(--shade2);
+  border-bottom: 1px solid var(--shade2);
+}
+
+.menuItem {
+  padding: var(--context-menu-item-padding, 7px 10px);
+  font-size: var(--context-menu-item-font-size, var(--text-sm));
+  color: var(--context-menu-item-color, var(--shade3));
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--context-menu-item-hover-bg, var(--accent0));
+  color: var(--context-menu-item-hover-color, var(--shade0));
+}

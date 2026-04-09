@@ -2,14 +2,13 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import styles from './MixerInputStrip.module.css'
 
 const DRAG_SENSITIVITY = 0.004
 const FINE_MULTIPLIER = 0.1
 const ATTACK = 0.9
 const RELEASE = 0.18
-const STRIP_WIDTH = 24
 const STRIP_HEIGHT = 76
-const STRIP_LEFT = 10
 const ACTIVE_TOP = 1
 const ACTIVE_BOTTOM = 1
 const TICK_COUNT = 6
@@ -24,6 +23,10 @@ interface MixerInputStripProps {
   meterLeftId: string
   meterRightId: string
   label: string
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 export function MixerInputStrip({
@@ -172,13 +175,7 @@ export function MixerInputStrip({
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        minWidth: 32,
-      }}
+      className={styles.root}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={(e) => {
@@ -191,69 +188,19 @@ export function MixerInputStrip({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        style={{
-          position: 'relative',
-          width: STRIP_WIDTH + STRIP_LEFT,
-          height: STRIP_HEIGHT,
-          cursor: 'ns-resize',
-        }}
+        className={styles.control}
       >
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: STRIP_LEFT,
-            width: STRIP_WIDTH,
-            height: STRIP_HEIGHT,
-            background: 'var(--shade0)',
-            border: '1px solid var(--shade2)',
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
+        <div className={styles.track}>
           <div
             ref={meterFillLRef}
-            style={{
-              position: 'absolute',
-              left: 0,
-              width: '50%',
-              bottom: ACTIVE_BOTTOM,
-              height: 0,
-              background: 'var(--accent1)',
-            }}
+            className={styles.meterFillLeft}
           />
           <div
             ref={meterFillRRef}
-            style={{
-              position: 'absolute',
-              right: 0,
-              width: '50%',
-              bottom: ACTIVE_BOTTOM,
-              height: 0,
-              background: 'var(--accent1)',
-            }}
+            className={styles.meterFillRight}
           />
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: '50%',
-              width: 1,
-              background: 'var(--shade2)',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: ACTIVE_BOTTOM + Math.round(0.9 * activeHeight),
-              height: 1,
-              background: 'var(--accent2)',
-              opacity: 0.4,
-            }}
-          />
+          <div className={styles.trackCenterLine} />
+          <div className={styles.clipLine} />
         </div>
 
         {Array.from({ length: Math.max(0, TICK_COUNT - 2) }).map((_, idx) => {
@@ -265,80 +212,38 @@ export function MixerInputStrip({
           return (
             <div
               key={tickIdx}
-              style={{
-                position: 'absolute',
-                left: STRIP_LEFT,
-                top: y,
-                width: 4,
-                height: 1,
-                background: 'var(--shade2)',
-                opacity: 0.8,
-              }}
+              className={styles.tick}
+              style={{ top: y }}
             />
           )
         })}
 
         <div
-          style={{
-            position: 'absolute',
-            left: STRIP_LEFT,
-            right: 0,
-            top: Math.round(controlY),
-            height: 1,
-            background:
-              dragging || hovered ? 'var(--accent0)' : 'var(--shade3)',
-            transition: 'background 100ms',
-          }}
+          className={classes(
+            styles.thumbLine,
+            (dragging || hovered) && styles.thumbActive,
+          )}
+          style={{ top: Math.round(controlY) }}
         />
         <div
-          style={{
-            position: 'absolute',
-            left: STRIP_LEFT - 7,
-            top: Math.round(controlY - 4) + 0.5,
-            width: 8,
-            height: 8,
-            background:
-              dragging || hovered ? 'var(--accent0)' : 'var(--shade3)',
-            clipPath: 'polygon(0 15%, 72% 15%, 100% 50%, 72% 85%, 0 85%)',
-            transition: 'background 100ms',
-          }}
+          className={classes(
+            styles.thumbHandle,
+            (dragging || hovered) && styles.thumbActive,
+          )}
+          style={{ top: Math.round(controlY - 4) + 0.5 }}
         />
       </div>
 
       <div
         onPointerDown={toggleMute}
         onDoubleClick={(e) => e.stopPropagation()}
-        style={{
-          width: 18,
-          height: 18,
-          marginLeft: STRIP_LEFT / 2,
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: 3,
-          border: `1px solid ${muted ? 'var(--accent3)' : 'var(--shade2)'}`,
-          color: muted ? 'var(--accent3)' : 'var(--shade3)',
-          fontSize: 'var(--text-xs)',
-          lineHeight: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--shade1)',
-          cursor: 'pointer',
-          transition: 'color 100ms, border-color 100ms',
-        }}
+        className={styles.muteButton}
+        data-muted={muted ? 'true' : 'false'}
       >
         {muted && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'var(--accent3)',
-              opacity: 0.2,
-              pointerEvents: 'none',
-            }}
-          />
+          <div className={styles.muteOverlay} />
         )}
-        <span style={{ position: 'relative' }}>{label}</span>
+        <span className={styles.muteLabel}>{label}</span>
       </div>
     </div>
   )

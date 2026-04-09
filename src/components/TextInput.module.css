@@ -1,0 +1,10 @@
+.input {
+  composes: panelInputBase from '../styles/controlPrimitives.module.css';
+  composes: focusAccentBase from '../styles/controlPrimitives.module.css';
+  width: 100%;
+  font-size: var(--text-xs);
+  text-align: center;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  transition: border-color 80ms;
+}

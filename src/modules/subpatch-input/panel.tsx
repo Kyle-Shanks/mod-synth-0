@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { ListSelector } from '../../components/ListSelector'
 import { TextInput } from '../../components/TextInput'
 import type { PortType } from '../../engine/types'
+import styles from '../shared/subpatchIoPanel.module.css'
 
 const PORT_TYPES: PortType[] = ['audio', 'cv', 'gate', 'trigger']
 
@@ -24,17 +25,7 @@ export function SubpatchInputPanel({ moduleId }: { moduleId: string }) {
   const selectedIndex = PORT_TYPES.indexOf(portType)
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        padding: '4px 6px',
-      }}
-    >
+    <div className={styles.root}>
       <TextInput
         value={label}
         onChange={(v) => setModuleDataValue(moduleId, 'label', v)}
