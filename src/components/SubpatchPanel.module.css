@@ -1,6 +1,6 @@
 .panel {
   composes: panelBase from '../styles/modulePanelBase.module.css';
-  border: 1px solid var(--subpatch-border-color, var(--accent1));
+  --panel-border-color: var(--subpatch-border-color, var(--accent1));
   box-shadow:
     0 0 0 1px
     color-mix(

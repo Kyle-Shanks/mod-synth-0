@@ -3,7 +3,7 @@
 }
 
 .panelSelected {
-  border-color: var(--accent0);
+  --panel-border-color: var(--accent0);
 }
 
 .header {
@@ -34,12 +34,13 @@
 
 .missingPanel {
   composes: panelBase from '../styles/modulePanelBase.module.css';
-  border: 1px dashed var(--shade2);
+  --panel-border-style: dashed;
+  --panel-border-color: var(--shade2);
   opacity: 0.6;
 }
 
 .missingPanelSelected {
-  border-color: var(--accent0);
+  --panel-border-color: var(--accent0);
 }
 
 .missingHeader {
