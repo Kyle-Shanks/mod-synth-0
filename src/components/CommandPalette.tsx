@@ -7,13 +7,10 @@ import {
   loadModuleUsageStats,
   type ModuleUsageStats,
 } from '../persistence/storage'
+import { classes } from '../utils/classes'
 import styles from './CommandPalette.module.css'
 import modalBaseStyles from '../styles/modalBase.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 // synthetic "add subpatch container" entry shown only at root level
 const SUBPATCH_ENTRY: ModuleDefinition = {

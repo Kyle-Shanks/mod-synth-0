@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { classes } from '../utils/classes'
 import styles from './MixerMasterFader.module.css'
 import mixerBaseStyles from '../styles/mixerControlBase.module.css'
 
@@ -20,10 +21,6 @@ interface MixerMasterFaderProps {
   value: number
   muteParamId: string
   muted: boolean
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 export function MixerMasterFader({

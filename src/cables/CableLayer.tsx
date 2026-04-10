@@ -6,6 +6,7 @@ import { cablePath } from './CableBezier'
 import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
+import { classes } from '../utils/classes'
 import styles from './CableLayer.module.css'
 import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
@@ -17,10 +18,6 @@ const CABLE_COLORS: Record<PortType, string> = {
   cv: 'var(--cable-cv)',
   gate: 'var(--cable-gate)',
   trigger: 'var(--cable-trigger)',
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 export function CableLayer() {

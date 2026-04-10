@@ -14,14 +14,11 @@ import { Port } from './Port'
 import { Knob } from './Knob'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
+import { classes } from '../utils/classes'
 import styles from './SubpatchPanel.module.css'
 import modulePanelBaseStyles from '../styles/modulePanelBase.module.css'
 import contextMenuStyles from '../styles/contextMenuBase.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 interface SubpatchPanelProps {
   moduleId: string

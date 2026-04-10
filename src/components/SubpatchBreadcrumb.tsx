@@ -2,12 +2,9 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { TextInput } from './TextInput'
 import { computeContainerSize } from '../store/subpatchSlice'
+import { classes } from '../utils/classes'
 import styles from './SubpatchBreadcrumb.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 // TextInput is kept for the name field
 

@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { getLessonsForMode, getTutorialLesson } from '../tutorials/lessons'
 import type { TutorialFocusTarget } from '../tutorials/model'
+import { classes } from '../utils/classes'
 import styles from './TutorialOverlay.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 import floatingPanelBaseStyles from '../styles/floatingPanelBase.module.css'
@@ -13,10 +14,6 @@ interface FocusRect {
   top: number
   width: number
   height: number
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 function resolveElements(targets: TutorialFocusTarget[]): HTMLElement[] {

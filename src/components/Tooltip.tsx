@@ -5,11 +5,8 @@ import { getModule } from '../modules/registry'
 import { portPositionCache } from '../cables/PortPositionCache'
 import type { PortType } from '../engine/types'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
+import { classes } from '../utils/classes'
 import styles from './Tooltip.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 const TOOLTIP_DELAY = 300
 

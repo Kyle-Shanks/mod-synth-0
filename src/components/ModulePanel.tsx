@@ -9,12 +9,9 @@ import { SubpatchPanel } from './SubpatchPanel'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 import { isSubpatchContainer } from '../store/subpatchSlice'
+import { classes } from '../utils/classes'
 import styles from './ModulePanel.module.css'
 import modulePanelBaseStyles from '../styles/modulePanelBase.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 interface ModulePanelProps {
   moduleId: string

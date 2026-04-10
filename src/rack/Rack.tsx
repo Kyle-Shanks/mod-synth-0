@@ -8,6 +8,7 @@ import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
+import { classes } from '../utils/classes'
 import styles from './Rack.module.css'
 import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
@@ -21,10 +22,6 @@ interface SelectionDrag {
   startY: number
   currentX: number
   currentY: number
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 export function Rack() {

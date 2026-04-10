@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
+import { classes } from '../utils/classes'
 import styles from './Knob.module.css'
 import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
@@ -13,10 +14,6 @@ interface KnobProps {
   value: number
   // optional override: if provided, called instead of setParam
   onChangeOverride?: (value: number) => void
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 const KNOB_SIZE = 32

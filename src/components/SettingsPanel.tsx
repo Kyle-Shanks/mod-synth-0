@@ -1,12 +1,9 @@
 import { useStore } from '../store'
 import { themes } from '../theme/themeRegistry'
+import { classes } from '../utils/classes'
 import styles from './SettingsPanel.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 import floatingPanelBaseStyles from '../styles/floatingPanelBase.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 export function SettingsPanel() {
   const open = useStore((s) => s.settingsPanelOpen)

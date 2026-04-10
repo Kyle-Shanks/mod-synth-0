@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import type { CSSProperties } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
+import { classes } from '../utils/classes'
 import styles from './Fader.module.css'
 
 interface FaderProps {
@@ -11,10 +12,6 @@ interface FaderProps {
   value: number
   orientation?: 'vertical' | 'horizontal'
   length?: number // in px, default 64
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 const DRAG_SENSITIVITY = 0.004

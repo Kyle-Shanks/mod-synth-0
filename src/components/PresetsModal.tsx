@@ -1,11 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store'
+import { classes } from '../utils/classes'
 import styles from './PresetsModal.module.css'
 import modalBaseStyles from '../styles/modalBase.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 interface PresetsModalProps {
   onClose: () => void

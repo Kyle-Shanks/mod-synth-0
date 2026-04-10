@@ -7,6 +7,7 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { TutorialOverlay } from './components/TutorialOverlay'
 import { engine } from './engine/EngineController'
 import { useStore } from './store'
+import { classes } from './utils/classes'
 import {
   restoreSavedPatch,
   setupAutosave,
@@ -22,10 +23,6 @@ import { getTheme } from './theme/themeRegistry'
 import './modules/registry' // ensure modules are registered
 import styles from './App.module.css'
 import controlPrimitiveStyles from './styles/controlPrimitives.module.css'
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
-}
 
 export default function App() {
   const [started, setStarted] = useState(false)

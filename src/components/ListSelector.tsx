@@ -1,5 +1,6 @@
 import { useStore } from '../store'
 import type { ParamDefinition } from '../engine/types'
+import { classes } from '../utils/classes'
 import styles from './ListSelector.module.css'
 
 interface ListSelectorProps {
@@ -9,10 +10,6 @@ interface ListSelectorProps {
   value: number
   // optional override: if provided, called instead of setParam (index passed as argument)
   onChangeOverride?: (index: number) => void
-}
-
-function classes(...tokens: Array<string | false | null | undefined>): string {
-  return tokens.filter(Boolean).join(' ')
 }
 
 export function ListSelector({ moduleId, paramId, definition, value, onChangeOverride }: ListSelectorProps) {
