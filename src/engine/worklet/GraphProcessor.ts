@@ -27,8 +27,13 @@ class WorkletModule {
     // stable per-module objects reused every tick
     this.inputBuffers = {}
     this.outputBuffers = {}
-    for (const portId of inputPortIds) this.inputBuffers[portId] = null
+    this.connectedInputs = {}
+    for (const portId of inputPortIds) {
+      this.inputBuffers[portId] = null
+      this.connectedInputs[portId] = false
+    }
     for (const portId of outputPortIds) this.outputBuffers[portId] = null
+    this.state._connectedInputs = this.connectedInputs
   }
 
   getSmoothedParams() {
@@ -324,7 +329,9 @@ class GraphProcessorNode extends AudioWorkletProcessor {
         this.acquiredBuffers.push(buf)
 
         const connected = incomingPorts?.get(portId)
-        if (connected) {
+        const isConnected = !!(connected && connected.length > 0)
+        m.connectedInputs[portId] = isConnected
+        if (isConnected) {
           for (const cable of connected) {
             const srcBuf = this.feedbackBuffers.has(cable.id)
               ? this.feedbackBuffers.get(cable.id)

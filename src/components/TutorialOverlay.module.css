@@ -118,7 +118,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  color: var(--shade3);
+  color: var(--accent0);
   font-size: var(--text-sm);
 }
 

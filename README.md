@@ -71,7 +71,7 @@ There are **50 user-visible modules** in the command palette. While drilled into
 ### Control
 
 - **button** - manual gate + 4ms trigger generator.
-- **clock** - bpm clock with swing, reset, gate output, 4ms trigger output, and divided gate output.
+- **clock** - bpm clock with swing, reset, gate output, and 4ms trigger output.
 - **clock div** - clock divider/multiplier (`/8` to `/2`, `×2` to `×8`) with reset.
 - **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, plus accent output.
 - **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
@@ -91,7 +91,7 @@ There are **50 user-visible modules** in the command palette. While drilled into
 
 ### Dynamics
 
-- **vca** - cv-controlled amplifier for amplitude shaping.
+- **vca** - cv-controlled amplifier for amplitude shaping (`gain` sets base level; cv adds modulation on top).
 - **compressor** - compressor with sidechain input, threshold/ratio/attack/release/makeup/knee/mix controls, and gain-reduction cv output.
 - **env flwr** - envelope follower that converts audio level into cv with attack/release control.
 

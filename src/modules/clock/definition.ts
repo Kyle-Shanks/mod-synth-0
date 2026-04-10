@@ -2,9 +2,7 @@ import type { ModuleDefinition } from '../../engine/types'
 
 interface ClockState {
   phase: number
-  divCount: number
-  gateHigh: boolean
-  divGateHigh: boolean
+  beatCount: number
   triggerTimer: number
   [key: string]: unknown
 }
@@ -16,7 +14,6 @@ export const ClockDefinition: ModuleDefinition<
   {
     gate: { type: 'gate'; default: 0; label: 'gate' }
     trigger: { type: 'trigger'; default: 0; label: 'trig' }
-    div: { type: 'gate'; default: 0; label: 'div' }
   },
   {
     bpm: {
@@ -34,20 +31,14 @@ export const ClockDefinition: ModuleDefinition<
       default: 0
       label: 'swing'
     }
-    division: {
-      type: 'select'
-      default: 0
-      label: 'div'
-      options: ['/2', '/4', '/8', '/16']
-    }
   },
   ClockState
 > = {
   id: 'clock',
   name: 'clock',
   category: 'control',
-  width: 4,
-  height: 4,
+  width: 3,
+  height: 3,
 
   inputs: {
     reset: { type: 'trigger', default: 0, label: 'reset' },
@@ -55,7 +46,6 @@ export const ClockDefinition: ModuleDefinition<
   outputs: {
     gate: { type: 'gate', default: 0, label: 'gate' },
     trigger: { type: 'trigger', default: 0, label: 'trig' },
-    div: { type: 'gate', default: 0, label: 'div' },
   },
   params: {
     bpm: {
@@ -73,20 +63,12 @@ export const ClockDefinition: ModuleDefinition<
       default: 0,
       label: 'swing',
     },
-    division: {
-      type: 'select',
-      default: 0,
-      label: 'div',
-      options: ['/2', '/4', '/8', '/16'],
-    },
   },
 
   initialize(): ClockState {
     return {
       phase: 0,
-      divCount: 0,
-      gateHigh: false,
-      divGateHigh: false,
+      beatCount: 0,
       triggerTimer: 0,
     }
   },
@@ -96,22 +78,18 @@ export const ClockDefinition: ModuleDefinition<
     // bpm to Hz: quarter notes per second
     const freq = params.bpm / 60
     const phaseInc = freq / sampleRate
-    // division ratios: /2, /4, /8, /16
-    const divRatios = [2, 4, 8, 16]
-    const divRatio = divRatios[Math.round(params.division)] ?? 4
     // gate duration: 50% duty cycle (adjusted by swing on even beats)
     const gateDuty = 0.5
     // 4ms trigger pulse duration (matches pushbutton behavior)
     const triggerDuration = Math.round(sampleRate * 0.004)
+    let triggerHighInBlock = 0
 
     for (let i = 0; i < 128; i++) {
       // reset on trigger
       const resetVal = inputs.reset[i] ?? 0
       if (resetVal > 0.5) {
         state.phase = 0
-        state.divCount = 0
-        state.gateHigh = false
-        state.divGateHigh = false
+        state.beatCount = 0
       }
 
       const prevPhase = state.phase
@@ -120,11 +98,11 @@ export const ClockDefinition: ModuleDefinition<
 
       if (wrapped) {
         state.phase -= 1
-        state.divCount = (state.divCount + 1) % divRatio
+        state.beatCount = (state.beatCount + 1) % 2
       }
 
       // swing: offset even beats by swing amount (0-75% of beat duration)
-      const isEvenBeat = state.divCount % 2 === 1
+      const isEvenBeat = state.beatCount % 2 === 1
       const swingOffset = isEvenBeat ? params.swing * 0.5 : 0
       const effectivePhase = state.phase - swingOffset
 
@@ -139,20 +117,17 @@ export const ClockDefinition: ModuleDefinition<
       if (state.triggerTimer > 0) {
         outputs.trigger[i] = 1
         state.triggerTimer--
+        triggerHighInBlock = 1
       } else {
         outputs.trigger[i] = 0
       }
-
-      // divided output: high for first half of the division cycle
-      const divPhase = state.divCount / divRatio
-      outputs.div[i] = divPhase < 0.5 ? 1 : 0
     }
 
     // write indicator state for UI lights (last sample's state)
     const indBuf = state._indicatorBuffer as Int32Array | undefined
     if (indBuf) {
       Atomics.store(indBuf, 0, outputs.gate[127]! > 0.5 ? 1 : 0)
-      Atomics.store(indBuf, 1, outputs.div[127]! > 0.5 ? 1 : 0)
+      Atomics.store(indBuf, 1, triggerHighInBlock)
     }
   },
 }

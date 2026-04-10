@@ -10,9 +10,9 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
   const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
   const gateDotRef = useRef<HTMLDivElement>(null)
-  const divDotRef = useRef<HTMLDivElement>(null)
 
-  // create SharedArrayBuffer for 2 Int32 values: [gateHigh, divGateHigh]
+  // create SharedArrayBuffer for 2 Int32 values: [gateHigh, triggerHigh]
+  // trigger value is currently unused in the UI indicator.
   const indicatorBuffer = useMemo(() => {
     try {
       const sab = new SharedArrayBuffer(2 * Int32Array.BYTES_PER_ELEMENT)
@@ -37,14 +37,9 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
     let rafId: number
     const update = () => {
       const gate = Atomics.load(indicatorBuffer, 0)
-      const div = Atomics.load(indicatorBuffer, 1)
       if (gateDotRef.current) {
         gateDotRef.current.style.background =
           gate > 0 ? 'var(--accent2)' : 'var(--shade2)'
-      }
-      if (divDotRef.current) {
-        divDotRef.current.style.background =
-          div > 0 ? 'var(--accent3)' : 'var(--shade2)'
       }
       rafId = requestAnimationFrame(update)
     }
@@ -61,15 +56,6 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
         />
         <span className={styles.label}>
           clk
-        </span>
-      </div>
-      <div className={styles.group}>
-        <div
-          ref={divDotRef}
-          className={styles.dot}
-        />
-        <span className={styles.label}>
-          div
         </span>
       </div>
     </div>

@@ -737,7 +737,7 @@ _52 modules currently shipped (50 user-visible + 2 internal proxy modules)._
 | `chaos`           | chaos          | source   | —                                                 | x, y, z (cv)                    |
 | `noise`           | noise          | source   | —                                                 | white, pink, brown (audio)      |
 | `samplehold`      | s&h            | utility  | in (cv), trigger                                  | out (cv)                        |
-| `clock`           | clock          | control  | —                                                 | clock, div2, div4, div8 (gate)  |
+| `clock`           | clock          | control  | reset (trigger)                                   | gate (gate), trigger (trigger)  |
 | `sequencer`       | seq            | control  | clock (gate), reset (trigger)                     | out (cv), gate                  |
 | `keyboard`        | keyboard       | control  | —                                                 | out (cv), gate, trigger         |
 | `attenuverter`    | atten          | utility  | in (cv)                                           | out (cv)                        |

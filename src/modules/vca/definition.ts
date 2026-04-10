@@ -39,10 +39,9 @@ export const VCADefinition: ModuleDefinition<
     let peak = 0
 
     for (let i = 0; i < 128; i++) {
-      // if cv is connected (non-zero), use it; otherwise use gain param
-      const cvVal = inputs.cv[i] ?? 0
-      const cv = cvVal !== 0 ? Math.max(0, cvVal) : params.gain
-      const out = (inputs.audio[i] ?? 0) * cv
+      const cv = inputs.cv[i] ?? 0
+      const gain = Math.max(0, Math.min(1, params.gain + cv))
+      const out = (inputs.audio[i] ?? 0) * gain
       outputs.out[i] = out
 
       const abs = Math.abs(out)
