@@ -24,8 +24,6 @@ Everything else should be migrated to CSS Modules.
 
 ## Audit Commands
 
-Run these from `modular-synth/`:
-
 - `npm run styles:audit:inline`
 - `npm run styles:audit:imperative`
 - `npm run styles:audit`

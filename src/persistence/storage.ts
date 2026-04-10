@@ -2,9 +2,9 @@ import { useStore } from '../store'
 import { serializePatch, deserializePatch, validatePatchJson } from './serialization'
 import type { SerializedPatch } from './serialization'
 
-const STORAGE_KEY = 'modsynth:patch'
-const SETTINGS_KEY = 'modsynth:settings'
-const MODULE_USAGE_KEY = 'modsynth:module-usage'
+const STORAGE_KEY = 'modsynth0:patch'
+const SETTINGS_KEY = 'modsynth0:settings'
+const MODULE_USAGE_KEY = 'modsynth0:module-usage'
 const DEBOUNCE_MS = 500
 
 export type ModuleUsageStats = Record<string, number>

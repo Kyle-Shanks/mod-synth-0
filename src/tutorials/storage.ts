@@ -1,6 +1,6 @@
 import type { TutorialCompletionMap } from './model'
 
-const TUTORIAL_COMPLETION_KEY = 'modsynth:tutorial-completion'
+const TUTORIAL_COMPLETION_KEY = 'modsynth0:tutorial-completion'
 
 export function loadTutorialCompletion(): TutorialCompletionMap {
   try {

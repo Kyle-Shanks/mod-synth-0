@@ -1,4 +1,4 @@
-# modular synth — design & architecture
+# mod synth 0 — design & architecture
 
 this document is the authoritative technical reference for anyone working on this project. it describes the architecture as implemented, the invariants that must be maintained, and the reasoning behind key design decisions.
 

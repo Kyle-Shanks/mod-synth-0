@@ -6,7 +6,7 @@ import { findFreePosition } from './patchSlice'
 import { engine } from '../engine/EngineController'
 import { getModule } from '../modules/registry'
 
-const LIBRARY_KEY = 'modsynth:subpatch-library'
+const LIBRARY_KEY = 'modsynth0:subpatch-library'
 
 export function loadLibraryFromStorage(): Record<string, SubpatchDefinition> {
   try {

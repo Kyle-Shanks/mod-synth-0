@@ -1,4 +1,4 @@
-# Modular Synth
+# Mod Synth 0
 
 A browser-based modular synthesizer. Build patches by connecting modules with virtual cables, the same way you would with a hardware Eurorack system.
 

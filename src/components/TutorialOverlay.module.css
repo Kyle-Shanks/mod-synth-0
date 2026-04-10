@@ -32,7 +32,7 @@
 
 .panel {
   --floating-panel-width: 330px;
-  --floating-panel-max-height: min(78vh, 720px);
+  --floating-panel-max-height: min(78vh, 780px);
   --floating-panel-z: 230;
   --floating-panel-shadow: 0 10px 28px color-mix(in srgb, var(--shade0) 62%, transparent);
   padding-top: 12px;
