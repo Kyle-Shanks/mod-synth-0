@@ -23,6 +23,7 @@ import { NotePanel } from './note/panel'
 import { ChaosPanel } from './chaos/panel'
 import { MutePanel } from './mute/panel'
 import { VCFPanel } from './vcf/panel'
+import { WavetableVCOPanel } from './wavetablevco/panel'
 import { SubpatchInputPanel } from './subpatch-input/panel'
 import { SubpatchOutputPanel } from './subpatch-output/panel'
 
@@ -52,6 +53,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   chaos: ChaosPanel,
   mute: MutePanel,
   vcf: VCFPanel,
+  wavetablevco: WavetableVCOPanel,
   'subpatch-input': SubpatchInputPanel,
   'subpatch-output': SubpatchOutputPanel,
 }

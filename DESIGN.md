@@ -719,11 +719,12 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_52 modules currently shipped (50 user-visible + 2 internal proxy modules)._
+_54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
 
 | id                | name           | category | inputs                                            | outputs                         |
 | ----------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
 | `vco`             | vco            | source   | frequency (cv), fm (cv), pw (cv)                  | sine, saw, pulse (audio)        |
+| `wavetablevco`    | wavetable vco  | source   | frequency (cv), fm (cv), waveCv (cv)              | out (audio)                     |
 | `vcf`             | vcf            | filter   | audio, cutoffCv, resonanceCv, envelope (cv)       | out (audio)                     |
 | `vca`             | vca            | dynamics | audio, cv                                         | out (audio, metered)            |
 | `mixer`           | mixer          | utility  | in1–in4 (audio; mute1–mute4 + masterMute params)  | out (audio)                     |
@@ -772,6 +773,7 @@ _52 modules currently shipped (50 user-visible + 2 internal proxy modules)._
 | `chorddice`       | chord dice     | control  | clock (trigger), root (cv)                        | v1–v4 (cv)                      |
 | `panner`          | panner         | utility  | in (audio), pan (cv)                              | left, right (audio)             |
 | `tapedelay`       | tape delay     | fx       | in (audio), time (cv)                             | out (audio)                     |
+| `granulator`      | granulator     | fx       | in (audio), freeze (gate), pos (cv), pitch (cv)   | out (audio)                     |
 | `note`            | note           | utility  | —                                                 | —                               |
 | `subpatch-input`  | in             | utility  | in (any)                                          | out (any) — internal proxy      |
 | `subpatch-output` | out            | utility  | in (any)                                          | out (any) — internal proxy      |
@@ -783,6 +785,18 @@ timing module parameter notes:
 - `clock.bpm` is an integer control in the `20–1000` range.
 - `clock div.div` is an integer divider control in the `2–10` range.
 - `euclid` and `clock div` expose output activity indicators via the shared indicator buffer path.
+
+granulator parameter notes:
+
+- `granulator.mode` selects `hybrid`, `ambient`, or `glitch` grain behavior presets.
+- `granulator` includes dedicated texture controls (`jitter`, `reverse`, `shape`, `tone`, `feedback`, `crush`) for cloud-like and stuttered artifacts.
+- `granulator.freeze` (gate input) pauses history-buffer writes so grains keep sampling from a held audio window until freeze is released.
+
+wavetable vco parameter notes:
+
+- `wavetablevco.bank` selects the wavetable family (`classic`, `hollow`, `digital`, `vocal`) while `position` morphs within the selected bank.
+- `wavetablevco.mult` (`1–4`) multiplies waveform cycles at table read time (higher values add repeated periods and raise perceived pitch/harmonic density).
+- the wavetable vco panel renders the live morphed shape and follows effective wave position under cv modulation for immediate visual feedback.
 
 ### panel component system
 

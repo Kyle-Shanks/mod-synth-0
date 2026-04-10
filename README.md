@@ -56,11 +56,12 @@ Type in the search field at any time to search across all modules by name, categ
 
 ## Modules
 
-There are **50 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
+There are **52 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
 
 ### Source
 
 - **vco** - audio-rate oscillator with `sine`, `saw`, and `pulse` outputs, plus v/oct, fm, and pulse-width modulation inputs.
+- **wavetable vco** - morphing wavetable oscillator with bank cycling (`classic`, `hollow`, `digital`, `vocal`), live wavetable display that follows wave-position modulation, v/oct + fm inputs, and a `mult` control (`1-4`) that multiplies waveform cycles (harmonic/octave shift behavior).
 - **lfo** - low-frequency modulator with `sine`, `saw`, `pulse`, and `triangle` cv outputs and cv-modulatable rate.
 - **chaos** - lorenz-attractor chaos source with correlated `x`, `y`, `z` cv outputs.
 - **noise** - white, pink, and brown noise outputs.
@@ -98,6 +99,7 @@ There are **50 user-visible modules** in the command palette. While drilled into
 ### FX
 
 - **reverb** - algorithmic reverb with `room` and `plate` modes plus mix/decay/damping control.
+- **granulator** - live-input granular processor with `hybrid/ambient/glitch` modes, freeze gate, position/pitch cv, reverse/jitter/shape controls, tone+feedback shaping, crush texture, and dry/wet mix.
 - **feedback delay** - delay with cv time modulation, feedback, tone filtering, and wet/dry mix.
 - **tape delay** - character delay with wow/flutter modulation, tone, drive, feedback, and mix.
 - **flanger** - flanger/chorus module with rate, depth, feedback, and mix.

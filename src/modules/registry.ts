@@ -1,5 +1,6 @@
 import type { ModuleDefinition } from '../engine/types'
 import { VCODefinition } from './vco/definition'
+import { WavetableVCODefinition } from './wavetablevco/definition'
 import { VCFDefinition } from './vcf/definition'
 import { VCADefinition } from './vca/definition'
 import { MixerDefinition } from './mixer/definition'
@@ -43,6 +44,7 @@ import { ChordGenDefinition } from './chordgen/definition'
 import { ChordDiceDefinition } from './chorddice/definition'
 import { PannerDefinition } from './panner/definition'
 import { TapeDelayDefinition } from './tapedelay/definition'
+import { GranulatorDefinition } from './granulator/definition'
 import { KeyboardDefinition } from './keyboard/definition'
 import { CVDefinition } from './cv/definition'
 import { OctaveDefinition } from './octave/definition'
@@ -75,6 +77,7 @@ const reg = (def: any) => registerModule(def as ModuleDefinition)
 
 // foundational modules
 reg(VCODefinition)
+reg(WavetableVCODefinition)
 reg(VCFDefinition)
 reg(VCADefinition)
 reg(MixerDefinition)
@@ -130,6 +133,7 @@ reg(ChordGenDefinition)
 reg(ChordDiceDefinition)
 reg(PannerDefinition)
 reg(TapeDelayDefinition)
+reg(GranulatorDefinition)
 reg(KeyboardDefinition)
 reg(CVDefinition)
 reg(OctaveDefinition)

@@ -1,0 +1,56 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.bankRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bankButton {
+  width: 20px;
+  height: 18px;
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  background: var(--shade0);
+  color: var(--accent1);
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.bankButton:hover {
+  border-color: var(--accent1);
+  color: var(--accent0);
+}
+
+.bankLabel {
+  flex: 1;
+  text-align: center;
+  font-size: var(--text-md);
+  color: var(--accent1);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.canvas {
+  border-radius: 2px;
+  display: block;
+}
+
+.knobsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
