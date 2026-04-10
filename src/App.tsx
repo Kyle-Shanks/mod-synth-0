@@ -21,6 +21,7 @@ import {
 import { getTheme } from './theme/themeRegistry'
 import './modules/registry' // ensure modules are registered
 import styles from './App.module.css'
+import controlPrimitiveStyles from './styles/controlPrimitives.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -199,7 +200,10 @@ export default function App() {
                   if (e.key === 'Enter') handleNameCommit()
                   if (e.key === 'Escape') setEditingName(false)
                 }}
-                className={styles.patchNameInput}
+                className={classes(
+                  controlPrimitiveStyles.panelInputBase,
+                  styles.patchNameInput,
+                )}
               />
             ) : (
               <span
@@ -216,7 +220,10 @@ export default function App() {
 
             {/* new */}
             <button
-              className={styles.topbarButton}
+              className={classes(
+                controlPrimitiveStyles.textButtonBase,
+                styles.topbarButton,
+              )}
               onClick={handleNewPatch}
               title='new patch'
             >
@@ -228,7 +235,10 @@ export default function App() {
 
             {/* export */}
             <button
-              className={styles.topbarButton}
+              className={classes(
+                controlPrimitiveStyles.textButtonBase,
+                styles.topbarButton,
+              )}
               onClick={handleExport}
               title='export patch as json'
             >
@@ -237,7 +247,10 @@ export default function App() {
 
             {/* import */}
             <button
-              className={styles.topbarButton}
+              className={classes(
+                controlPrimitiveStyles.textButtonBase,
+                styles.topbarButton,
+              )}
               onClick={() => fileInputRef.current?.click()}
               title='import patch from json'
             >
@@ -254,7 +267,10 @@ export default function App() {
             {/* presets — hidden when inside a subpatch */}
             {!isInsideSubpatch && (
               <button
-                className={styles.topbarButton}
+                className={classes(
+                  controlPrimitiveStyles.textButtonBase,
+                  styles.topbarButton,
+                )}
                 onClick={() => setPresetsOpen(true)}
                 title='subpatch library'
               >
@@ -264,7 +280,10 @@ export default function App() {
 
             {!isInsideSubpatch && (
               <button
-                className={styles.topbarButton}
+                className={classes(
+                  controlPrimitiveStyles.textButtonBase,
+                  styles.topbarButton,
+                )}
                 data-tutorial-launch=''
                 onClick={() => setTutorialPanelOpen(true)}
                 title='guided tutorials'
@@ -279,6 +298,7 @@ export default function App() {
             {/* undo */}
             <button
               className={classes(
+                controlPrimitiveStyles.textButtonBase,
                 styles.topbarButton,
                 styles.historyButton,
                 pastLength === 0 && styles.historyButtonDisabled,
@@ -293,6 +313,7 @@ export default function App() {
             {/* redo */}
             <button
               className={classes(
+                controlPrimitiveStyles.textButtonBase,
                 styles.topbarButton,
                 styles.historyButton,
                 futureLength === 0 && styles.historyButtonDisabled,
@@ -309,7 +330,10 @@ export default function App() {
 
             {/* zoom indicator — click to reset */}
             <button
-              className={styles.topbarButton}
+              className={classes(
+                controlPrimitiveStyles.textButtonBase,
+                styles.topbarButton,
+              )}
               onClick={() => setZoom(1)}
               title='click to reset zoom'
             >
@@ -326,7 +350,11 @@ export default function App() {
 
             {/* settings gear */}
             <button
-              className={classes(styles.topbarButton, styles.settingsButton)}
+              className={classes(
+                controlPrimitiveStyles.textButtonBase,
+                styles.topbarButton,
+                styles.settingsButton,
+              )}
               onClick={() => setSettingsPanelOpen(true)}
               title='settings'
             >

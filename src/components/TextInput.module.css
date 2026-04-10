@@ -1,6 +1,4 @@
 .input {
-  composes: panelInputBase from '../styles/controlPrimitives.module.css';
-  composes: focusAccentBase from '../styles/controlPrimitives.module.css';
   width: 100%;
   font-size: var(--text-xs);
   text-align: center;

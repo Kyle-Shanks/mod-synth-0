@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { TextInput } from './TextInput'
 import { computeContainerSize } from '../store/subpatchSlice'
 import styles from './SubpatchBreadcrumb.module.css'
+import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -116,7 +117,11 @@ export function SubpatchBreadcrumb() {
           e.stopPropagation()
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        className={styles.numberInput}
+        className={classes(
+          controlPrimitiveStyles.panelInputBase,
+          controlPrimitiveStyles.focusAccentBase,
+          styles.numberInput,
+        )}
       />
 
       <span className={classes(styles.label, styles.labelH)}>h</span>
@@ -132,11 +137,16 @@ export function SubpatchBreadcrumb() {
           e.stopPropagation()
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        className={styles.numberInput}
+        className={classes(
+          controlPrimitiveStyles.panelInputBase,
+          controlPrimitiveStyles.focusAccentBase,
+          styles.numberInput,
+        )}
       />
 
       <button
         className={classes(
+          controlPrimitiveStyles.textButtonBase,
           styles.saveButton,
           saved && styles.saveButtonSaved,
         )}

@@ -3,6 +3,7 @@ import { getModule } from '../../modules/registry'
 import { Knob } from '../Knob'
 import { ListSelector } from '../ListSelector'
 import styles from './DefaultModuleBodyPanel.module.css'
+import defaultBodyLayoutStyles from '../../styles/defaultBodyLayout.module.css'
 
 interface DefaultModuleBodyPanelProps {
   moduleId: string
@@ -17,11 +18,15 @@ export function DefaultModuleBodyPanel({ moduleId }: DefaultModuleBodyPanelProps
   const paramEntries = Object.entries(def.params)
 
   if (paramEntries.length === 0) {
-    return <div className={styles.emptyBody} />
+    return (
+      <div
+        className={`${defaultBodyLayoutStyles.emptyBodyBase} ${styles.emptyBody}`}
+      />
+    )
   }
 
   return (
-    <div className={styles.body}>
+    <div className={`${defaultBodyLayoutStyles.bodyBase} ${styles.body}`}>
       {paramEntries.map(([paramId, paramDef]) => {
         if (paramDef.type === 'select') {
           return (

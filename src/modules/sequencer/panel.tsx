@@ -5,6 +5,7 @@ import { Fader } from '../../components/Fader'
 import { ListSelector } from '../../components/ListSelector'
 import { SequencerIndicator } from '../../components/SequencerIndicator'
 import styles from '../shared/defaultBodyPanel.module.css'
+import defaultBodyLayoutStyles from '../../styles/defaultBodyLayout.module.css'
 
 interface SequencerPanelProps {
   moduleId: string
@@ -23,7 +24,7 @@ export function SequencerPanel({ moduleId }: SequencerPanelProps) {
     <>
       <SequencerIndicator moduleId={moduleId} stepCount={stepCount} />
       {paramEntries.length > 0 ? (
-        <div className={styles.body}>
+        <div className={`${defaultBodyLayoutStyles.bodyBase} ${styles.body}`}>
           {paramEntries.map(([paramId, paramDef]) => {
             if (paramDef.type === 'select') {
               return (
@@ -63,7 +64,9 @@ export function SequencerPanel({ moduleId }: SequencerPanelProps) {
           })}
         </div>
       ) : (
-        <div className={styles.emptyBody} />
+        <div
+          className={`${defaultBodyLayoutStyles.emptyBodyBase} ${styles.emptyBody}`}
+        />
       )}
     </>
   )

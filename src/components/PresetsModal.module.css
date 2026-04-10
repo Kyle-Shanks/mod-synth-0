@@ -1,25 +1,19 @@
 .overlay {
-  composes: overlayBase from '../styles/modalBase.module.css';
 }
 
 .modal {
-  composes: modalBase from '../styles/modalBase.module.css';
 }
 
 .inputRow {
-  composes: inputRowBase from '../styles/modalBase.module.css';
 }
 
 .input {
-  composes: inputBase from '../styles/modalBase.module.css';
 }
 
 .results {
-  composes: resultsBase from '../styles/modalBase.module.css';
 }
 
 .emptyState {
-  composes: emptyStateBase from '../styles/modalBase.module.css';
 }
 
 .row {

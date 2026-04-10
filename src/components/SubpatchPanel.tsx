@@ -15,6 +15,9 @@ import { Knob } from './Knob'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 import styles from './SubpatchPanel.module.css'
+import modulePanelBaseStyles from '../styles/modulePanelBase.module.css'
+import contextMenuStyles from '../styles/contextMenuBase.module.css'
+import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -219,7 +222,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       ref={panelRef}
       data-module-panel=''
       data-module-panel-id={moduleId}
-      className={styles.panel}
+      className={classes(modulePanelBaseStyles.panelBase, styles.panel)}
       style={panelStyle}
       onMouseDown={handlePanelMouseDown}
       onDoubleClick={handleEnterSubpatch}
@@ -229,18 +232,18 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
         createPortal(
           <>
             <div
-              className={styles.menuBackdrop}
+              className={classes(contextMenuStyles.backdrop, styles.menuBackdrop)}
               onMouseDown={() => setContextMenu(null)}
             />
             <div
-              className={styles.menu}
+              className={classes(contextMenuStyles.menu, styles.menu)}
               style={{
                 left: contextMenu.x,
                 top: contextMenu.y,
               }}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              <div className={styles.menuTitle}>
+              <div className={classes(contextMenuStyles.menuTitle, styles.menuTitle)}>
                 {definition.name}
               </div>
               <div
@@ -253,7 +256,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
                   if (conflict && !window.confirm(`overwrite preset "${name}"?`)) return
                   saveDefinitionToLibrary(container.subpatchDefinitionId)
                 }}
-                className={styles.menuAction}
+                className={classes(contextMenuStyles.menuItem, styles.menuAction)}
               >
                 save to library
               </div>
@@ -262,7 +265,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
                   setContextMenu(null)
                   ungroupSubpatch(moduleId)
                 }}
-                className={styles.menuAction}
+                className={classes(contextMenuStyles.menuItem, styles.menuAction)}
               >
                 ungroup
               </div>
@@ -273,7 +276,7 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       {/* header — drag handle + name */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        className={styles.header}
+        className={classes(modulePanelBaseStyles.headerBase, styles.header)}
       >
         <span className={styles.caret}>▶</span>
         {editingName ? (
@@ -288,7 +291,10 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
-            className={styles.nameInput}
+            className={classes(
+              controlPrimitiveStyles.panelInputBase,
+              styles.nameInput,
+            )}
           />
         ) : (
           <span
@@ -336,13 +342,14 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
       {(inputPorts.length > 0 || outputPorts.length > 0) && (
         <div
           className={classes(
+            modulePanelBaseStyles.portsSectionBase,
             styles.portsSection,
             definition.macros.length === 0 && styles.portsSectionPushBottom,
           )}
         >
           {/* exposed inputs */}
           {inputPorts.length > 0 && (
-            <div className={styles.inputs}>
+            <div className={classes(modulePanelBaseStyles.inputPortsBase, styles.inputs)}>
               {inputPorts.map((exposed, i) => (
                 <div key={exposed.proxyModuleId}>
                   <Port
@@ -362,7 +369,11 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
           {outputPorts.length > 0 && (
             <div
               className={classes(
+                modulePanelBaseStyles.outputPortsBase,
                 styles.outputs,
+                inputPorts.length > 0
+                  ? modulePanelBaseStyles.outputPortsWithInputsBase
+                  : modulePanelBaseStyles.outputPortsFullBase,
                 inputPorts.length > 0 ? styles.outputsWithInputs : styles.outputsFull,
               )}
             >

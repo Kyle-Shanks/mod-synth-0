@@ -10,6 +10,7 @@ import { portPositionCache } from '../cables/PortPositionCache'
 import { GRID_UNIT } from '../theme/tokens'
 import { isSubpatchContainer } from '../store/subpatchSlice'
 import styles from './ModulePanel.module.css'
+import modulePanelBaseStyles from '../styles/modulePanelBase.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -175,6 +176,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         data-module-panel=''
         data-module-panel-id={moduleId}
         className={classes(
+          modulePanelBaseStyles.panelBase,
           styles.missingPanel,
           isSelected && styles.missingPanelSelected,
         )}
@@ -184,6 +186,7 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
         <div
           onMouseDown={handleHeaderMouseDown}
           className={classes(
+            modulePanelBaseStyles.headerBase,
             styles.missingHeader,
             isSelected && styles.missingHeaderSelected,
           )}
@@ -223,14 +226,18 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
       ref={panelRef}
       data-module-panel=''
       data-module-panel-id={moduleId}
-      className={classes(styles.panel, isSelected && styles.panelSelected)}
+      className={classes(
+        modulePanelBaseStyles.panelBase,
+        styles.panel,
+        isSelected && styles.panelSelected,
+      )}
       style={panelPositionStyle(widthPx, heightPx)}
       onMouseDown={handlePanelMouseDown}
     >
       {/* header */}
       <div
         onMouseDown={handleHeaderMouseDown}
-        className={styles.header}
+        className={classes(modulePanelBaseStyles.headerBase, styles.header)}
       >
         <span>{def.name}</span>
       </div>
@@ -239,10 +246,10 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
 
       {/* ports section */}
       {(inputPorts.length > 0 || outputPorts.length > 0) && (
-        <div className={styles.portsSection}>
+        <div className={classes(modulePanelBaseStyles.portsSectionBase, styles.portsSection)}>
           {/* inputs */}
           {inputPorts.length > 0 && (
-            <div className={styles.inputPorts}>
+            <div className={classes(modulePanelBaseStyles.inputPortsBase, styles.inputPorts)}>
               {inputPorts.map(([id, portDef]) => (
                 <div key={id}>
                   <Port
@@ -262,7 +269,11 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
           {outputPorts.length > 0 && (
             <div
               className={classes(
+                modulePanelBaseStyles.outputPortsBase,
                 styles.outputPorts,
+                inputPorts.length > 0
+                  ? modulePanelBaseStyles.outputPortsWithInputsBase
+                  : modulePanelBaseStyles.outputPortsFullBase,
                 inputPorts.length > 0
                   ? styles.outputPortsWithInputs
                   : styles.outputPortsFull,

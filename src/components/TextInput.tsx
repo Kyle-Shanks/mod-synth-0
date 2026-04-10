@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './TextInput.module.css'
+import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 
 interface TextInputProps {
   value: string
@@ -23,7 +24,7 @@ export function TextInput({ value, onChange, placeholder }: TextInputProps) {
   return (
     <input
       ref={ref}
-      className={styles.input}
+      className={`${controlPrimitiveStyles.panelInputBase} ${controlPrimitiveStyles.focusAccentBase} ${styles.input}`}
       value={draft}
       placeholder={placeholder}
       onChange={(e) => setDraft(e.target.value)}

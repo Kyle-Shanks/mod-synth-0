@@ -63,13 +63,7 @@
 .lessonTitle {
   font-size: var(--text-sm);
   color: var(--accent0);
-}
-
-.linkButton,
-.actionButton,
-.secondaryButton,
-.modeButton {
-  composes: textButtonBase from '../styles/controlPrimitives.module.css';
+  padding: 0 8px;
 }
 
 .linkButton {
@@ -93,6 +87,10 @@
   color: var(--shade0);
   background: var(--accent0);
   border-color: var(--accent0);
+}
+
+.modeButton:hover {
+  border-color: var(--shade3);
 }
 
 .lessonList {
@@ -148,8 +146,12 @@
   display: flex;
   gap: 8px;
   border-top: 1px solid var(--shade2);
-  padding: 8px 0;
+  padding: 8px;
   flex-wrap: wrap;
+}
+
+.lessonActions {
+  padding: 8px 0;
 }
 
 .actionButton {
@@ -161,6 +163,7 @@
 
 .actionButton:hover {
   background: color-mix(in srgb, var(--accent0) 84%, var(--shade3));
+  border-color: var(--shade3);
   color: var(--shade0);
 }
 
@@ -169,11 +172,21 @@
   padding: 3px 8px;
 }
 
+.secondaryButton:hover {
+  border-color: var(--shade3);
+}
+
+.stepMeta {
+  color: var(--shade3);
+  font-size: var(--text-xs);
+  padding: 0 8px;
+}
+
 .sectionLabel,
-.stepMeta,
 .completeTitle {
   color: var(--shade2);
   font-size: var(--text-xs);
+  padding: 8px 8px 0;
 }
 
 .completeTitle {
@@ -184,12 +197,14 @@
   color: var(--shade3);
   font-size: var(--text-xs);
   line-height: 1.45;
+  padding: 0 8px;
 }
 
 .demoBox {
   border: 1px dashed var(--shade2);
   border-radius: 4px;
   padding: 8px;
+  margin: 0 8px;
   color: var(--shade3);
   font-size: var(--text-xs);
   line-height: 1.45;

@@ -4,6 +4,7 @@ import { Knob } from '../../components/Knob'
 import { ListSelector } from '../../components/ListSelector'
 import { ClockIndicator } from '../../components/ClockIndicator'
 import styles from '../shared/defaultBodyPanel.module.css'
+import defaultBodyLayoutStyles from '../../styles/defaultBodyLayout.module.css'
 
 interface ClockPanelProps {
   moduleId: string
@@ -21,7 +22,7 @@ export function ClockPanel({ moduleId }: ClockPanelProps) {
     <>
       <ClockIndicator moduleId={moduleId} />
       {paramEntries.length > 0 ? (
-        <div className={styles.body}>
+        <div className={`${defaultBodyLayoutStyles.bodyBase} ${styles.body}`}>
           {paramEntries.map(([paramId, paramDef]) => {
             if (paramDef.type === 'select') {
               return (
@@ -47,7 +48,9 @@ export function ClockPanel({ moduleId }: ClockPanelProps) {
           })}
         </div>
       ) : (
-        <div className={styles.emptyBody} />
+        <div
+          className={`${defaultBodyLayoutStyles.emptyBodyBase} ${styles.emptyBody}`}
+        />
       )}
     </>
   )

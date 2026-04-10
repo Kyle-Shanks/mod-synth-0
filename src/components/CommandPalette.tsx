@@ -8,6 +8,7 @@ import {
   type ModuleUsageStats,
 } from '../persistence/storage'
 import styles from './CommandPalette.module.css'
+import modalBaseStyles from '../styles/modalBase.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -277,10 +278,16 @@ export function CommandPalette() {
   }
 
   return (
-    <div className={styles.overlay} onMouseDown={() => setOpen(false)}>
-      <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      className={classes(modalBaseStyles.overlayBase, styles.overlay)}
+      onMouseDown={() => setOpen(false)}
+    >
+      <div
+        className={classes(modalBaseStyles.modalBase, styles.modal)}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         {/* input */}
-        <div className={styles.inputRow}>
+        <div className={classes(modalBaseStyles.inputRowBase, styles.inputRow)}>
           <input
             ref={inputRef}
             value={query}
@@ -292,7 +299,7 @@ export function CommandPalette() {
             }}
             onKeyDown={handleKeyDown}
             placeholder='add module...'
-            className={styles.input}
+            className={classes(modalBaseStyles.inputBase, styles.input)}
           />
         </div>
 
@@ -323,7 +330,7 @@ export function CommandPalette() {
         {/* results */}
         <div
           ref={resultsRef}
-          className={styles.results}
+          className={classes(modalBaseStyles.resultsBase, styles.results)}
           onMouseLeave={() => setHoveredIndex(null)}
           onMouseMove={(e) => {
             if (!hoverEnabled) setHoverEnabled(true)
@@ -379,7 +386,9 @@ export function CommandPalette() {
             ),
           )}
           {selectableModules.length === 0 && (
-            <div className={styles.emptyState}>no modules found</div>
+            <div className={classes(modalBaseStyles.emptyStateBase, styles.emptyState)}>
+              no modules found
+            </div>
           )}
         </div>
       </div>

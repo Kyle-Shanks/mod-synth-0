@@ -3,6 +3,7 @@ import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
 import styles from './MixerMasterFader.module.css'
+import mixerBaseStyles from '../styles/mixerControlBase.module.css'
 
 const DRAG_SENSITIVITY = 0.004
 const FINE_MULTIPLIER = 0.1
@@ -162,9 +163,9 @@ export function MixerMasterFader({
   )
 
   return (
-    <div className={styles.root}>
+    <div className={classes(mixerBaseStyles.rootBase, styles.root)}>
       <div
-        className={styles.control}
+        className={classes(mixerBaseStyles.controlBase, styles.control)}
         ref={elRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -191,14 +192,18 @@ export function MixerMasterFader({
 
         <div
           className={classes(
+            mixerBaseStyles.thumbLineBase,
             styles.thumbLine,
+            (dragging || hovered) && mixerBaseStyles.thumbActiveBase,
             (dragging || hovered) && styles.thumbActive,
           )}
           style={{ top: Math.round(thumbTop) }}
         />
         <div
           className={classes(
+            mixerBaseStyles.thumbHandleBase,
             styles.thumbHandle,
+            (dragging || hovered) && mixerBaseStyles.thumbActiveBase,
             (dragging || hovered) && styles.thumbActive,
           )}
           style={{ top: Math.round(thumbTop - 4) + 0.5 }}
@@ -208,13 +213,13 @@ export function MixerMasterFader({
       <div
         onPointerDown={toggleMute}
         onDoubleClick={(e) => e.stopPropagation()}
-        className={styles.muteButton}
+        className={classes(mixerBaseStyles.muteButtonBase, styles.muteButton)}
         data-muted={muted ? 'true' : 'false'}
       >
         {muted && (
-          <div className={styles.muteOverlay} />
+          <div className={classes(mixerBaseStyles.muteOverlayBase, styles.muteOverlay)} />
         )}
-        <span className={styles.muteLabel}>m</span>
+        <span className={classes(mixerBaseStyles.muteLabelBase, styles.muteLabel)}>m</span>
       </div>
     </div>
   )

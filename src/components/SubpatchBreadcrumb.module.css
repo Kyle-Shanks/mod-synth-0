@@ -68,8 +68,6 @@
 }
 
 .numberInput {
-  composes: panelInputBase from '../styles/controlPrimitives.module.css';
-  composes: focusAccentBase from '../styles/controlPrimitives.module.css';
   width: 40px;
   font-size: var(--text-xs);
   text-align: center;
@@ -77,7 +75,6 @@
 }
 
 .saveButton {
-  composes: textButtonBase from '../styles/controlPrimitives.module.css';
   margin-left: 8px;
 }
 

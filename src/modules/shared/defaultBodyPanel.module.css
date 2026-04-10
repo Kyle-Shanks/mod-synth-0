@@ -1,7 +1,5 @@
 .body {
-  composes: bodyBase from '../../styles/defaultBodyLayout.module.css';
 }
 
 .emptyBody {
-  composes: emptyBodyBase from '../../styles/defaultBodyLayout.module.css';
 }

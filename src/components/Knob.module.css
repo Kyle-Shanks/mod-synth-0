@@ -12,19 +12,15 @@
 }
 
 .menuBackdrop {
-  composes: backdrop from '../styles/contextMenuBase.module.css';
 }
 
 .menu {
-  composes: menu from '../styles/contextMenuBase.module.css';
 }
 
 .menuTitle {
-  composes: menuTitle from '../styles/contextMenuBase.module.css';
 }
 
 .menuAction {
-  composes: menuItem from '../styles/contextMenuBase.module.css';
 }
 
 .menuAction[data-exposed='true'] {

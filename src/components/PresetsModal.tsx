@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store'
 import styles from './PresetsModal.module.css'
+import modalBaseStyles from '../styles/modalBase.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -59,24 +60,30 @@ export function PresetsModal({ onClose }: PresetsModalProps) {
   }
 
   return (
-    <div className={styles.overlay} onMouseDown={onClose}>
-      <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      className={classes(modalBaseStyles.overlayBase, styles.overlay)}
+      onMouseDown={onClose}
+    >
+      <div
+        className={classes(modalBaseStyles.modalBase, styles.modal)}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         {/* search input */}
-        <div className={styles.inputRow}>
+        <div className={classes(modalBaseStyles.inputRowBase, styles.inputRow)}>
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0) }}
             onKeyDown={handleKeyDown}
             placeholder='search presets...'
-            className={styles.input}
+            className={classes(modalBaseStyles.inputBase, styles.input)}
           />
         </div>
 
         {/* results */}
-        <div className={styles.results}>
+        <div className={classes(modalBaseStyles.resultsBase, styles.results)}>
           {filtered.length === 0 ? (
-            <div className={styles.emptyState}>
+            <div className={classes(modalBaseStyles.emptyStateBase, styles.emptyState)}>
               {allPresets.length === 0
                 ? 'no saved presets yet — use save to library inside a subpatch view'
                 : 'no presets match'}

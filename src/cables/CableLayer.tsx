@@ -7,6 +7,7 @@ import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
 import styles from './CableLayer.module.css'
+import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
 // Wider invisible stroke used purely for hit detection — makes cables much easier to hover
 const HIT_STROKE_WIDTH = 14
@@ -16,6 +17,10 @@ const CABLE_COLORS: Record<PortType, string> = {
   cv: 'var(--cable-cv)',
   gate: 'var(--cable-gate)',
   trigger: 'var(--cable-trigger)',
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 export function CableLayer() {
@@ -229,11 +234,11 @@ export function CableLayer() {
       {contextMenu &&
         createPortal(
           <div
-            className={styles.menuOverlay}
+            className={classes(contextMenuStyles.backdrop, styles.menuOverlay)}
             onMouseDown={() => setContextMenu(null)}
           >
             <div
-              className={styles.menu}
+              className={classes(contextMenuStyles.menu, styles.menu)}
               style={{
                 left: contextMenu.x,
                 top: contextMenu.y,
@@ -242,7 +247,7 @@ export function CableLayer() {
             >
               <div
                 onClick={handleDisconnect}
-                className={styles.menuItem}
+                className={classes(contextMenuStyles.menuItem, styles.menuItem)}
               >
                 disconnect
               </div>

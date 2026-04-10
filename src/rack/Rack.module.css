@@ -34,22 +34,18 @@
 }
 
 .menuBackdrop {
-  composes: backdrop from '../styles/contextMenuBase.module.css';
   --context-menu-overlay-z: 200;
 }
 
 .menu {
-  composes: menu from '../styles/contextMenuBase.module.css';
   --context-menu-z: 201;
   --context-menu-min-width: 180px;
 }
 
 .menuHeader {
-  composes: menuTitle from '../styles/contextMenuBase.module.css';
   --context-menu-title-padding: 8px 12px;
 }
 
 .menuAction {
-  composes: menuItem from '../styles/contextMenuBase.module.css';
   --context-menu-item-padding: 8px 12px;
 }

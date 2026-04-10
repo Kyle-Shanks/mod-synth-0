@@ -23,12 +23,10 @@
 }
 
 .menuOverlay {
-  composes: backdrop from '../styles/contextMenuBase.module.css';
   --context-menu-overlay-z: 200;
 }
 
 .menu {
-  composes: menu from '../styles/contextMenuBase.module.css';
   --context-menu-z: 201;
   --context-menu-radius: 3px;
   --context-menu-padding: 2px 0;
@@ -37,7 +35,6 @@
 }
 
 .menuItem {
-  composes: menuItem from '../styles/contextMenuBase.module.css';
   --context-menu-item-padding: 4px 16px;
   --context-menu-item-color: var(--accent2);
   --context-menu-item-hover-bg: var(--shade2);

@@ -1,6 +1,7 @@
 import { useStore } from '../store'
 import { themes } from '../theme/themeRegistry'
 import styles from './SettingsPanel.module.css'
+import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 
 export function SettingsPanel() {
   const open = useStore((s) => s.settingsPanelOpen)
@@ -58,7 +59,7 @@ export function SettingsPanel() {
           <select
             value={themeId}
             onChange={(e) => setTheme(e.target.value)}
-            className={styles.select}
+            className={`${controlPrimitiveStyles.panelInputBase} ${styles.select}`}
           >
             {Object.entries(themes).map(([id, theme]) => (
               <option key={id} value={id}>

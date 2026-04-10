@@ -9,6 +9,7 @@ import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
 import styles from './Rack.module.css'
+import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
 const RACK_COLS = 64
 const RACK_ROWS = 32
@@ -20,6 +21,10 @@ interface SelectionDrag {
   startY: number
   currentX: number
   currentY: number
+}
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
 }
 
 export function Rack() {
@@ -419,15 +424,18 @@ export function Rack() {
       {/* "group as subpatch" context menu */}
       {groupContextMenu && (
         <>
-          <div className={styles.menuBackdrop} onMouseDown={() => setGroupContextMenu(null)} />
           <div
-            className={styles.menu}
+            className={classes(contextMenuStyles.backdrop, styles.menuBackdrop)}
+            onMouseDown={() => setGroupContextMenu(null)}
+          />
+          <div
+            className={classes(contextMenuStyles.menu, styles.menu)}
             style={{
               left: groupContextMenu.x,
               top: groupContextMenu.y,
             }}
           >
-            <div className={styles.menuHeader}>
+            <div className={classes(contextMenuStyles.menuTitle, styles.menuHeader)}>
               {selectedModuleIds.length} modules selected
             </div>
             <div
@@ -437,7 +445,7 @@ export function Rack() {
                 setGroupContextMenu(null)
                 setSelectedModules([])
               }}
-              className={styles.menuAction}
+              className={classes(contextMenuStyles.menuItem, styles.menuAction)}
             >
               group as subpatch
             </div>

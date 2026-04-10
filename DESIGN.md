@@ -580,6 +580,7 @@ interface Theme {
 ### css modules policy
 
 component styling is co-located via `*.module.css` files next to each `tsx` file. static/predictable styles should live in css modules, while ts/tsx should only keep runtime-driven exceptions (geometry, high-frequency dom writes, and theme token injection). see `src/styles/CSS_MODULES_GUIDE.md` for the migration conventions and audit commands.
+do not use css modules `composes`; when sharing styles, import the shared css module in tsx and apply both class names explicitly.
 
 ### rack grid
 
@@ -712,7 +713,7 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 9. **standardized port label vocabulary** — use neutral, consistent jack labels. prefer `in`/`out` for primary signal flow, full words (`clock`, `reset`, `trigger`, `gate`) for timing signals, and stable target names for modulation inputs (`time`, `rate`, `pan`, etc.).
 
-10. **css modules are the default styling surface** — place static styles in co-located `*.module.css` files. keep inline styles only for runtime geometry (position/size/scale), and keep imperative `.style.*` writes only for known performance paths (meters/indicators/cable preview) or theme token injection in `ThemeProvider`.
+10. **css modules are the default styling surface** — place static styles in co-located `*.module.css` files. do not use `composes`; combine shared + local classes in tsx instead. keep inline styles only for runtime geometry (position/size/scale), and keep imperative `.style.*` writes only for known performance paths (meters/indicators/cable preview) or theme token injection in `ThemeProvider`.
 
 ---
 

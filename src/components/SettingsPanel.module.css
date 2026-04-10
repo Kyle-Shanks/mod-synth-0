@@ -1,15 +1,15 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 150;
+  z-index: 250;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
 }
 
 .panel {
-  margin-top: 37px;
-  margin-right: 8px;
+  margin-top: 48px;
+  margin-right: 12px;
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 4px;
@@ -88,7 +88,6 @@
 }
 
 .select {
-  composes: panelInputBase from '../styles/controlPrimitives.module.css';
   font-size: var(--text-sm);
   padding: 2px 4px;
   cursor: pointer;

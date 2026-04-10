@@ -6,7 +6,7 @@
   font-family: var(--font);
   text-transform: lowercase;
   padding: 2px 4px;
-  transition: background 120ms, color 120ms;
+  transition: background 120ms, color 120ms, border 120ms;
   background: transparent;
   color: var(--shade3);
 }

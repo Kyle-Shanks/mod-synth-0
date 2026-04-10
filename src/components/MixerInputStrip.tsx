@@ -3,6 +3,7 @@ import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
 import styles from './MixerInputStrip.module.css'
+import mixerBaseStyles from '../styles/mixerControlBase.module.css'
 
 const DRAG_SENSITIVITY = 0.004
 const FINE_MULTIPLIER = 0.1
@@ -175,7 +176,7 @@ export function MixerInputStrip({
 
   return (
     <div
-      className={styles.root}
+      className={classes(mixerBaseStyles.rootBase, styles.root)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onDoubleClick={(e) => {
@@ -188,7 +189,7 @@ export function MixerInputStrip({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className={styles.control}
+        className={classes(mixerBaseStyles.controlBase, styles.control)}
       >
         <div className={styles.track}>
           <div
@@ -220,14 +221,18 @@ export function MixerInputStrip({
 
         <div
           className={classes(
+            mixerBaseStyles.thumbLineBase,
             styles.thumbLine,
+            (dragging || hovered) && mixerBaseStyles.thumbActiveBase,
             (dragging || hovered) && styles.thumbActive,
           )}
           style={{ top: Math.round(controlY) }}
         />
         <div
           className={classes(
+            mixerBaseStyles.thumbHandleBase,
             styles.thumbHandle,
+            (dragging || hovered) && mixerBaseStyles.thumbActiveBase,
             (dragging || hovered) && styles.thumbActive,
           )}
           style={{ top: Math.round(controlY - 4) + 0.5 }}
@@ -237,13 +242,15 @@ export function MixerInputStrip({
       <div
         onPointerDown={toggleMute}
         onDoubleClick={(e) => e.stopPropagation()}
-        className={styles.muteButton}
+        className={classes(mixerBaseStyles.muteButtonBase, styles.muteButton)}
         data-muted={muted ? 'true' : 'false'}
       >
         {muted && (
-          <div className={styles.muteOverlay} />
+          <div className={classes(mixerBaseStyles.muteOverlayBase, styles.muteOverlay)} />
         )}
-        <span className={styles.muteLabel}>{label}</span>
+        <span className={classes(mixerBaseStyles.muteLabelBase, styles.muteLabel)}>
+          {label}
+        </span>
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import styles from './Knob.module.css'
+import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
 interface KnobProps {
   moduleId: string
@@ -177,21 +178,24 @@ export function Knob({ moduleId, paramId, definition, value, onChangeOverride }:
     >
       {macroMenu && createPortal(
         <>
-          <div className={styles.menuBackdrop} onMouseDown={() => setMacroMenu(null)} />
           <div
-            className={styles.menu}
+            className={classes(contextMenuStyles.backdrop, styles.menuBackdrop)}
+            onMouseDown={() => setMacroMenu(null)}
+          />
+          <div
+            className={classes(contextMenuStyles.menu, styles.menu)}
             style={{
               left: macroMenu.x,
               top: macroMenu.y,
             } as CSSProperties}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className={styles.menuTitle}>
+            <div className={classes(contextMenuStyles.menuTitle, styles.menuTitle)}>
               {definition.label}
             </div>
             <div
               onClick={toggleMacro}
-              className={styles.menuAction}
+              className={classes(contextMenuStyles.menuItem, styles.menuAction)}
               data-exposed={isMacroExposed ? 'true' : 'false'}
             >
               {isMacroExposed ? 'remove macro' : 'expose as macro'}

@@ -1,10 +1,8 @@
 .root {
-  composes: rootBase from '../styles/mixerControlBase.module.css';
   min-width: 32px;
 }
 
 .control {
-  composes: controlBase from '../styles/mixerControlBase.module.css';
   width: 34px;
 }
 
@@ -67,31 +65,25 @@
 }
 
 .thumbLine {
-  composes: thumbLineBase from '../styles/mixerControlBase.module.css';
   left: 10px;
   right: 0;
 }
 
 .thumbHandle {
-  composes: thumbHandleBase from '../styles/mixerControlBase.module.css';
   left: 3px;
   clip-path: polygon(0 15%, 72% 15%, 100% 50%, 72% 85%, 0 85%);
 }
 
 .thumbActive {
-  composes: thumbActiveBase from '../styles/mixerControlBase.module.css';
 }
 
 .muteButton {
-  composes: muteButtonBase from '../styles/mixerControlBase.module.css';
   width: 18px;
   margin-left: 5px;
 }
 
 .muteOverlay {
-  composes: muteOverlayBase from '../styles/mixerControlBase.module.css';
 }
 
 .muteLabel {
-  composes: muteLabelBase from '../styles/mixerControlBase.module.css';
 }
