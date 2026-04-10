@@ -75,7 +75,7 @@ export const ARDefinition: ModuleDefinition<
   process(inputs, outputs, params, state, context) {
     const attackSamples = Math.max(1, params.attack * context.sampleRate)
     const releaseSamples = Math.max(1, params.release * context.sampleRate)
-    const triggerDuration = Math.max(1, Math.round(context.sampleRate * 0.01))
+    const triggerDuration = Math.max(1, Math.round(context.sampleRate * 0.004))
     const releaseDecay = Math.exp(-Math.log(1000) / releaseSamples)
 
     for (let i = 0; i < 128; i++) {

@@ -70,8 +70,8 @@ There are **50 user-visible modules** in the command palette. While drilled into
 
 ### Control
 
-- **button** - manual gate + 10ms trigger generator.
-- **clock** - bpm clock with swing, reset, gate output, 10ms trigger output, and divided gate output.
+- **button** - manual gate + 4ms trigger generator.
+- **clock** - bpm clock with swing, reset, gate output, 4ms trigger output, and divided gate output.
 - **clock div** - clock divider/multiplier (`/8` to `/2`, `×2` to `×8`) with reset.
 - **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, plus accent output.
 - **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.

@@ -48,7 +48,7 @@ export const KeyboardDefinition: ModuleDefinition<
   },
 
   process(_inputs, outputs, _params, state, context) {
-    const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse
+    const triggerDuration = Math.round(context.sampleRate * 0.004) // 4ms pulse
     const events = state._gateEvents as KeyboardEvent[]
 
     // preserve sample-accurate order from worklet command offsets

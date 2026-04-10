@@ -101,8 +101,8 @@ export const ClockDefinition: ModuleDefinition<
     const divRatio = divRatios[Math.round(params.division)] ?? 4
     // gate duration: 50% duty cycle (adjusted by swing on even beats)
     const gateDuty = 0.5
-    // 10ms trigger pulse duration (matches pushbutton behavior)
-    const triggerDuration = Math.round(sampleRate * 0.01)
+    // 4ms trigger pulse duration (matches pushbutton behavior)
+    const triggerDuration = Math.round(sampleRate * 0.004)
 
     for (let i = 0; i < 128; i++) {
       // reset on trigger
@@ -132,7 +132,7 @@ export const ClockDefinition: ModuleDefinition<
       const newGateHigh = effectivePhase >= 0 && effectivePhase < gateDuty
       outputs.gate[i] = newGateHigh ? 1 : 0
 
-      // trigger: 10ms pulse on rising edge (matches pushbutton trigger width)
+      // trigger: 4ms pulse on rising edge (matches pushbutton trigger width)
       if (wrapped || (prevPhase < swingOffset && state.phase >= swingOffset)) {
         state.triggerTimer = triggerDuration
       }

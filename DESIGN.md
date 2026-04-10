@@ -368,13 +368,13 @@ all four signal types are `Float32Array(128)` buffers at the audio sample rate. 
 | audio   | -1.0 to 1.0           | audio signals (oscillators, filters, vcas)          |
 | cv      | typically -2.0 to 2.0 | control voltage (v/oct pitch, modulation depth)     |
 | gate    | 0.0 or 1.0            | sustained on/off signal (held while key is pressed) |
-| trigger | 0.0 or 1.0            | brief pulse (10ms standard in this project)         |
+| trigger | 0.0 or 1.0            | brief pulse (4ms standard in this project)          |
 
 ### trigger pulse width — required standard
 
-**all trigger outputs must emit a 10ms pulse, not a 1-sample pulse.**
+**all trigger outputs must emit a 4ms pulse, not a 1-sample pulse.**
 
-a 1-sample trigger (~0.023ms at 44100hz) is too short to be useful. the adsr envelope, for example, detects a rising edge and starts attack, then detects the falling edge 1 sample later and immediately starts release — producing an inaudible ~0.002 amplitude blip. 10ms (441 samples at 44100hz) is long enough for envelope generators, sample-and-hold, and any other gate/trigger-sensitive module to respond correctly.
+a 1-sample trigger (~0.023ms at 44100hz) is too short to be useful. the adsr envelope, for example, detects a rising edge and starts attack, then detects the falling edge 1 sample later and immediately starts release — producing an inaudible ~0.002 amplitude blip. 4ms (~176 samples at 44100hz) is long enough for envelope generators, sample-and-hold, and any other gate/trigger-sensitive module to respond correctly.
 
 implement this with a countdown timer in state:
 
@@ -383,7 +383,7 @@ implement this with a countdown timer in state:
 return { ..., triggerTimer: 0 }
 
 // in process():
-const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms
+const triggerDuration = Math.round(context.sampleRate * 0.004) // 4ms
 
 // when a trigger event occurs:
 state.triggerTimer = triggerDuration

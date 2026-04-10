@@ -42,7 +42,7 @@ export const ProbGateDefinition: ModuleDefinition<
   },
 
   process(inputs, outputs, params, state, context) {
-    const trigDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse for reject
+    const trigDuration = Math.round(context.sampleRate * 0.004) // 4ms pulse for reject
 
     for (let i = 0; i < 128; i++) {
       const gateIn = (inputs.in[i] ?? 0) > 0.5

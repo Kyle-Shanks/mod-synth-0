@@ -79,7 +79,7 @@ export const EuclideanDefinition: ModuleDefinition<
     const n = Math.max(1, Math.round(params.steps))
     const k = Math.max(0, Math.min(n, Math.round(params.pulses)))
     const rot = Math.round(params.offset) % n
-    const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse
+    const triggerDuration = Math.round(context.sampleRate * 0.004) // 4ms pulse
 
     if (state._prevN !== n || state._prevK !== k || state._prevRot !== rot) {
       state.pattern = buildPattern(n, k, rot)
@@ -110,7 +110,7 @@ export const EuclideanDefinition: ModuleDefinition<
         }
       }
 
-      // 10ms trigger pulses
+      // 4ms trigger pulses
       if (state.outTimer > 0) {
         outputs.out[i] = 1
         state.outTimer--

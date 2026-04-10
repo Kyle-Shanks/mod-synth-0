@@ -45,7 +45,7 @@ export const PushButtonDefinition: ModuleDefinition<
   },
 
   process(_inputs, outputs, _params, state, context) {
-    const triggerDuration = Math.round(context.sampleRate * 0.01) // 10ms pulse
+    const triggerDuration = Math.round(context.sampleRate * 0.004) // 4ms pulse
     const events = state._gateEvents as GateEvent[]
 
     // sort events by offset for correct sample-accurate ordering
@@ -71,7 +71,7 @@ export const PushButtonDefinition: ModuleDefinition<
       // write gate output
       outputs.gate[i] = state.gateHigh ? 1.0 : 0.0
 
-      // write trigger output (10ms pulse on rising edge)
+      // write trigger output (4ms pulse on rising edge)
       if (state.triggerSamplesRemaining > 0) {
         outputs.trigger[i] = 1.0
         state.triggerSamplesRemaining--
