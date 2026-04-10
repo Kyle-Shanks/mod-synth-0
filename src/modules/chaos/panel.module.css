@@ -12,7 +12,6 @@
 .title {
   font-size: var(--text-xs);
   color: var(--shade2);
-  letter-spacing: 0.04em;
 }
 
 .controls {
