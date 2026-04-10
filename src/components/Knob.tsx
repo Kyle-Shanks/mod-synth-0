@@ -31,9 +31,16 @@ function valueToLog(value: number, min: number, max: number): number {
 
 export function Knob({ moduleId, paramId, definition, value, onChangeOverride }: KnobProps) {
   const setParam = useStore((s) => s.setParam)
+  const quantizeValue = useCallback((v: number) => {
+    if (definition.type !== 'int') return v
+    const min = definition.min ?? 0
+    const max = definition.max ?? 1
+    return Math.max(min, Math.min(max, Math.round(v)))
+  }, [definition])
   const applyValue = useCallback((v: number) => {
-    if (onChangeOverride) { onChangeOverride(v) } else { setParam(moduleId, paramId, v) }
-  }, [onChangeOverride, setParam, moduleId, paramId])
+    const nextValue = quantizeValue(v)
+    if (onChangeOverride) { onChangeOverride(nextValue) } else { setParam(moduleId, paramId, nextValue) }
+  }, [onChangeOverride, setParam, moduleId, paramId, quantizeValue])
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<{ currentValue: number } | null>(null)

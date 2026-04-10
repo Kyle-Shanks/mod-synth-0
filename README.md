@@ -71,9 +71,9 @@ There are **50 user-visible modules** in the command palette. While drilled into
 ### Control
 
 - **button** - manual gate + 4ms trigger generator.
-- **clock** - bpm clock with swing, reset, gate output, and 4ms trigger output.
-- **clock div** - clock divider/multiplier (`/8` to `/2`, `×2` to `×8`) with reset.
-- **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, plus accent output.
+- **clock** - integer bpm clock (`20-1000`) with swing, reset, gate output, and 4ms trigger output.
+- **clock div** - clock divider with integer division factor (`2-10`), reset, and output activity indicator.
+- **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, accent output, and output activity indicator.
 - **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
 - **keyboard** - computer-keyboard note entry (`a w s e d f t g y h u j k`, octave via `z`/`x`) with pitch, gate, and trigger outs.
 - **cv** - constant cv source (`-1` to `+1`).
@@ -130,7 +130,7 @@ There are **50 user-visible modules** in the command palette. While drilled into
 - **scope** - real-time waveform scope.
 - **freq spectrum** - log-frequency spectrum analyzer.
 - **tuner** - note + cents tuner display.
-- **xy scope** - x/y oscilloscope for lissajous-style signal visualization.
+- **xy scope** - x/y oscilloscope for lissajous-style signal visualization with `scale` and `fade` controls (`fade` controls trail persistence).
 
 ---
 

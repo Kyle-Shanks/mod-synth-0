@@ -4,9 +4,10 @@ import styles from './ClockIndicator.module.css'
 
 interface ClockIndicatorProps {
   moduleId: string
+  label?: string
 }
 
-export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
+export function ClockIndicator({ moduleId, label = 'clk' }: ClockIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
   const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
   const gateDotRef = useRef<HTMLDivElement>(null)
@@ -55,7 +56,7 @@ export function ClockIndicator({ moduleId }: ClockIndicatorProps) {
           className={styles.dot}
         />
         <span className={styles.label}>
-          clk
+          {label}
         </span>
       </div>
     </div>

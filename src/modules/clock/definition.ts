@@ -17,9 +17,9 @@ export const ClockDefinition: ModuleDefinition<
   },
   {
     bpm: {
-      type: 'float'
+      type: 'int'
       min: 20
-      max: 600
+      max: 1000
       default: 120
       label: 'bpm'
       unit: 'bpm'
@@ -49,9 +49,9 @@ export const ClockDefinition: ModuleDefinition<
   },
   params: {
     bpm: {
-      type: 'float',
+      type: 'int',
       min: 20,
-      max: 600,
+      max: 1000,
       default: 120,
       label: 'bpm',
       unit: 'bpm',
@@ -76,7 +76,8 @@ export const ClockDefinition: ModuleDefinition<
   process(inputs, outputs, params, state, context) {
     const sampleRate = context.sampleRate
     // bpm to Hz: quarter notes per second
-    const freq = params.bpm / 60
+    const bpm = Math.max(20, Math.min(1000, Math.round(params.bpm)))
+    const freq = bpm / 60
     const phaseInc = freq / sampleRate
     // gate duration: 50% duty cycle (adjusted by swing on even beats)
     const gateDuty = 0.5

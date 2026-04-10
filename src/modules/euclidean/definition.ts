@@ -6,6 +6,7 @@ interface EuclideanState {
   clockWasHigh: boolean
   outTimer: number
   accentTimer: number
+  indicatorTimer: number
   _prevN: unknown
   _prevK: unknown
   _prevRot: unknown
@@ -55,6 +56,7 @@ export const EuclideanDefinition: ModuleDefinition<
       clockWasHigh: false,
       outTimer: 0,
       accentTimer: 0,
+      indicatorTimer: 0,
       _prevN: null,
       _prevK: null,
       _prevRot: null,
@@ -80,6 +82,7 @@ export const EuclideanDefinition: ModuleDefinition<
     const k = Math.max(0, Math.min(n, Math.round(params.pulses)))
     const rot = Math.round(params.offset) % n
     const triggerDuration = Math.round(context.sampleRate * 0.004) // 4ms pulse
+    const indicatorDuration = Math.max(1, Math.round(context.sampleRate * 0.03))
 
     if (state._prevN !== n || state._prevK !== k || state._prevRot !== rot) {
       state.pattern = buildPattern(n, k, rot)
@@ -89,7 +92,6 @@ export const EuclideanDefinition: ModuleDefinition<
     }
 
     const pattern = state.pattern as number[]
-
     for (let i = 0; i < 128; i++) {
       const clockHigh = (inputs.clock[i] ?? 0) > 0.5
       const resetHigh = (inputs.reset[i] ?? 0) > 0.5
@@ -114,8 +116,12 @@ export const EuclideanDefinition: ModuleDefinition<
       if (state.outTimer > 0) {
         outputs.out[i] = 1
         state.outTimer--
+        state.indicatorTimer = indicatorDuration
       } else {
         outputs.out[i] = 0
+        if ((state.indicatorTimer as number) > 0) {
+          state.indicatorTimer = (state.indicatorTimer as number) - 1
+        }
       }
       if (state.accentTimer > 0) {
         outputs.accent[i] = 1
@@ -125,6 +131,13 @@ export const EuclideanDefinition: ModuleDefinition<
       }
 
       state.clockWasHigh = clockHigh
+    }
+
+    // write indicator state for UI lights
+    const indBuf = state._indicatorBuffer as Int32Array | undefined
+    if (indBuf) {
+      Atomics.store(indBuf, 0, (state.indicatorTimer as number) > 0 ? 1 : 0)
+      Atomics.store(indBuf, 1, 0)
     }
   },
 }

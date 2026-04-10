@@ -5,7 +5,9 @@ import { PushButtonPanel } from './pushbutton/panel'
 import { ScopePanel } from './scope/panel'
 import { OutputPanel } from './output/panel'
 import { ClockPanel } from './clock/panel'
+import { ClockDivPanel } from './clockdiv/panel'
 import { SequencerPanel } from './sequencer/panel'
+import { EuclideanPanel } from './euclidean/panel'
 import { TunerPanel } from './tuner/panel'
 import { XYScopePanel } from './xyscope/panel'
 import { SpectrumPanel } from './spectrum/panel'
@@ -32,6 +34,8 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   scope: ScopePanel,
   output: OutputPanel,
   clock: ClockPanel,
+  clockdiv: ClockDivPanel,
+  euclidean: EuclideanPanel,
   sequencer: SequencerPanel,
   tuner: TunerPanel,
   xyscope: XYScopePanel,

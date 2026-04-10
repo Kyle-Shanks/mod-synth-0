@@ -37,8 +37,8 @@ export const ChordDiceDefinition: ModuleDefinition<
   id: 'chorddice',
   name: 'chord dice',
   category: 'control',
-  width: 3,
-  height: 4,
+  width: 4,
+  height: 3,
 
   inputs: {
     clock: { type: 'trigger', default: 0, label: 'clock' },

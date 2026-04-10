@@ -8,6 +8,7 @@ interface CanvasZoneProps {
   width: number   // px
   height: number  // px
   render: (ctx: CanvasRenderingContext2D, data: CanvasData) => void
+  clearEachFrame?: boolean
   moduleParams?: Record<string, number>
   scopeBuffer?: Float32Array | null
   writeIndexBuffer?: Int32Array | null
@@ -30,6 +31,7 @@ export function CanvasZone({
   width,
   height,
   render,
+  clearEachFrame = true,
   moduleParams = {},
   scopeBuffer = null,
   writeIndexBuffer = null,
@@ -56,7 +58,9 @@ export function CanvasZone({
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      ctx.clearRect(0, 0, width, height)
+      if (clearEachFrame) {
+        ctx.clearRect(0, 0, width, height)
+      }
 
       renderRef.current(ctx, {
         theme: themeRef.current,
@@ -74,7 +78,7 @@ export function CanvasZone({
 
     rafRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [width, height, scopeBuffer, writeIndexBuffer, xBuffer, yBuffer])
+  }, [width, height, clearEachFrame, scopeBuffer, writeIndexBuffer, xBuffer, yBuffer])
 
   return (
     <SizedCanvas

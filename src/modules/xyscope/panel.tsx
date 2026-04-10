@@ -14,10 +14,11 @@ interface XYScopePanelProps {
 
 function renderXY(ctx: CanvasRenderingContext2D, data: CanvasData) {
   const { width, height, theme, xBuffer, yBuffer, writeIndexBuffer, moduleParams } = data
-  ctx.fillStyle = theme.shades.shade0
-  ctx.fillRect(0, 0, width, height)
-
-  if (!xBuffer || !yBuffer || !writeIndexBuffer) return
+  if (!xBuffer || !yBuffer || !writeIndexBuffer) {
+    ctx.fillStyle = theme.shades.shade0
+    ctx.fillRect(0, 0, width, height)
+    return
+  }
 
   const scale = moduleParams.scale ?? 1
   const persist = moduleParams.persist ?? 0.3
@@ -78,6 +79,7 @@ export function XYScopePanel({ moduleId }: XYScopePanelProps) {
         width={widthPx - 10}
         height={heightPx - 130}
         render={renderXY}
+        clearEachFrame={false}
         moduleParams={mod.params}
         xBuffer={xyScopeBuffers?.xBuffer ?? null}
         yBuffer={xyScopeBuffers?.yBuffer ?? null}

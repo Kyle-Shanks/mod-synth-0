@@ -85,7 +85,10 @@ export function drawXYTrace(
   width: number,
   height: number,
 ): void {
-  const alpha = Math.round((0.2 + (1 - persist) * 0.6) * 255)
+  const clampedPersist = Math.max(0, Math.min(1, persist))
+  // persist=0 fully clears each frame, persist=1 keeps a longer trail
+  const clearAlpha = 1 - clampedPersist * 0.95
+  const alpha = Math.round(clearAlpha * 255)
     .toString(16)
     .padStart(2, '0')
   ctx.fillStyle = trailColor + alpha

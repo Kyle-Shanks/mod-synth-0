@@ -3,9 +3,7 @@ import type { ModuleDefinition } from '../../engine/types'
 interface ClockDivState {
   clockWasHigh: boolean
   divCounter: number
-  mulPhase: number
-  mulSamplesPerBeat: number
-  samplesSinceRising: number
+  indicatorTimer: number
   [key: string]: unknown
 }
 
@@ -18,23 +16,12 @@ export const ClockDivDefinition: ModuleDefinition<
     out: { type: 'gate'; default: 0; label: 'out' }
   },
   {
-    ratio: {
-      type: 'select'
-      default: 3
-      options: [
-        '/8',
-        '/6',
-        '/5',
-        '/4',
-        '/3',
-        '/2',
-        '×2',
-        '×3',
-        '×4',
-        '×6',
-        '×8',
-      ]
-      label: 'ratio'
+    div: {
+      type: 'int'
+      min: 2
+      max: 10
+      default: 4
+      label: 'div'
     }
   },
   ClockDivState
@@ -43,7 +30,7 @@ export const ClockDivDefinition: ModuleDefinition<
   name: 'clock div',
   category: 'control',
   width: 3,
-  height: 4,
+  height: 3,
 
   inputs: {
     clock: { type: 'gate', default: 0, label: 'clock' },
@@ -53,23 +40,12 @@ export const ClockDivDefinition: ModuleDefinition<
     out: { type: 'gate', default: 0, label: 'out' },
   },
   params: {
-    ratio: {
-      type: 'select',
-      default: 3,
-      options: [
-        '/8',
-        '/6',
-        '/5',
-        '/4',
-        '/3',
-        '/2',
-        '×2',
-        '×3',
-        '×4',
-        '×6',
-        '×8',
-      ],
-      label: 'ratio',
+    div: {
+      type: 'int',
+      min: 2,
+      max: 10,
+      default: 4,
+      label: 'div',
     },
   },
 
@@ -77,20 +53,13 @@ export const ClockDivDefinition: ModuleDefinition<
     return {
       clockWasHigh: false,
       divCounter: 0,
-      mulPhase: 0,
-      mulSamplesPerBeat: 22050,
-      samplesSinceRising: 0,
+      indicatorTimer: 0,
     }
   },
 
-  process(inputs, outputs, params, state) {
-    // ratioTable: positive = divide, negative = multiply
-    const ratioTable = [8, 6, 5, 4, 3, 2, -2, -3, -4, -6, -8]
-    const ratioIdx = Math.max(
-      0,
-      Math.min(ratioTable.length - 1, Math.round(params.ratio)),
-    )
-    const ratio = ratioTable[ratioIdx] ?? 2
+  process(inputs, outputs, params, state, context) {
+    const div = Math.max(2, Math.min(10, Math.round(params.div)))
+    const indicatorDuration = Math.max(1, Math.round(context.sampleRate * 0.03))
 
     for (let i = 0; i < 128; i++) {
       const clockHigh = (inputs.clock[i] ?? 0) > 0.5
@@ -100,36 +69,27 @@ export const ClockDivDefinition: ModuleDefinition<
       // reset on trigger
       if (resetHigh) {
         state.divCounter = 0
-        state.mulPhase = 0
-        state.samplesSinceRising = 0
       }
 
-      if (ratio > 0) {
-        // divide mode
-        if (risingEdge) {
-          state.divCounter = ((state.divCounter as number) + 1) % ratio
-        }
-        outputs.out[i] = (state.divCounter as number) === 0 && clockHigh ? 1 : 0
-      } else {
-        // multiply mode
-        const mul = -ratio
-        state.samplesSinceRising = (state.samplesSinceRising as number) + 1
-        if (risingEdge) {
-          state.mulSamplesPerBeat = Math.max(
-            1,
-            state.samplesSinceRising as number,
-          )
-          state.samplesSinceRising = 0
-          state.mulPhase = 0
-        }
-        state.mulPhase =
-          ((state.mulPhase as number) +
-            mul / (state.mulSamplesPerBeat as number)) %
-          1
-        outputs.out[i] = (state.mulPhase as number) < 0.5 ? 1 : 0
+      if (risingEdge) {
+        state.divCounter = ((state.divCounter as number) + 1) % div
+      }
+      const outHigh = (state.divCounter as number) === 0 && clockHigh
+      outputs.out[i] = outHigh ? 1 : 0
+      if (outHigh) {
+        state.indicatorTimer = indicatorDuration
+      } else if ((state.indicatorTimer as number) > 0) {
+        state.indicatorTimer = (state.indicatorTimer as number) - 1
       }
 
       state.clockWasHigh = clockHigh
+    }
+
+    // write indicator state for UI lights
+    const indBuf = state._indicatorBuffer as Int32Array | undefined
+    if (indBuf) {
+      Atomics.store(indBuf, 0, (state.indicatorTimer as number) > 0 ? 1 : 0)
+      Atomics.store(indBuf, 1, 0)
     }
   },
 }

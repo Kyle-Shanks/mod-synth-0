@@ -351,7 +351,7 @@ two special state keys are used by the engine for specific modules:
 
 **`_gateEvents`** — used by the push button module. the worklet populates this with an array of `{ offset: number; value: number; portId: string }` objects when a `SET_GATE` command arrives. the module reads and clears this array inside `process()` to implement sample-accurate gate timing.
 
-**`_indicatorBuffer`** — used by the clock and sequencer modules. the engine injects an `Int32Array` view of a `SharedArrayBuffer` into this state key. the module writes the current step or beat count using `Atomics.store()`, and the main thread reads it in `requestAnimationFrame` to update the visual indicator without polling.
+**`_indicatorBuffer`** — used by indicator-enabled timing modules (`clock`, `clock div`, `euclid`, `sequencer`). the engine injects an `Int32Array` view of a `SharedArrayBuffer` into this state key. modules write their current indicator state using `Atomics.store()`, and the main thread reads it in `requestAnimationFrame` to update lights without polling.
 
 ### registering a module
 
@@ -778,6 +778,12 @@ _52 modules currently shipped (50 user-visible + 2 internal proxy modules)._
 
 `subpatch-input` and `subpatch-output` are marked `internal: true` and are hidden from the command palette at root level. they are simple pass-through modules; their real purpose is to define exposed ports on a subpatch container's face. placed inside a subpatch via drill-down view. label and port type are configurable via their custom panel.
 
+timing module parameter notes:
+
+- `clock.bpm` is an integer control in the `20–1000` range.
+- `clock div.div` is an integer divider control in the `2–10` range.
+- `euclid` and `clock div` expose output activity indicators via the shared indicator buffer path.
+
 ### panel component system
 
 module-specific visual layouts live in `src/modules/<id>/panel.tsx`. `src/modules/panelRegistry.ts` selects the body panel component by module id and falls back to `DefaultModuleBodyPanel` for modules that use the standard control layout.
@@ -817,9 +823,15 @@ buffers are injected through zustand store actions, not direct engine calls from
 
 the freq spectrum and vcf panels share a single log-frequency analyzer implementation at `src/modules/utils/logSpectrumAnalyzer.ts`. it precomputes a blackman-harris window, radix-2 fft tables, and bin-to-bar weights with low-band center-spacing guards so early bars stay responsive. each frame removes dc offset, runs an in-place fft, aggregates fft bin energy into bars, and applies attack/release smoothing in-place so low-frequency bars are stable without per-frame allocations.
 
-### sequencer and clock indicator buffers
+### timing indicator buffers
 
-the clock and sequencer modules use `Int32Array` views of `SharedArrayBuffer` instances (injected via the store action `setIndicatorBuffer`) to communicate the current beat/step position to the ui without polling. these are read atomically in the `ClockIndicator` and `SequencerIndicator` components via `requestAnimationFrame`.
+the `clock`, `clock div`, `euclid`, and `sequencer` modules use `Int32Array` views of `SharedArrayBuffer` instances (injected via the store action `setIndicatorBuffer`) to communicate timing indicator state to the ui without polling. these are read atomically in the `ClockIndicator` (clock/clock div/euclid) and `SequencerIndicator` (sequencer) components via `requestAnimationFrame`.
+
+the `clock div` and `euclid` indicators include a short hold timer in module state so very brief gates/triggers remain visible at ui frame rates.
+
+### xy scope persistence rendering
+
+`xy scope` persistence (`fade` param) depends on retaining previous canvas pixels between frames. the shared `CanvasZone` supports an opt-out of per-frame `clearRect`; `xyscope/panel.tsx` sets `clearEachFrame={false}` so `drawXYTrace()` can blend trail decay over existing pixels.
 
 ---
 
