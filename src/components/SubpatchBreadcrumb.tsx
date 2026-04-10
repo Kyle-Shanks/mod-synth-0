@@ -146,7 +146,8 @@ export function SubpatchBreadcrumb() {
 
       <button
         className={classes(
-          controlPrimitiveStyles.textButtonBase,
+          controlPrimitiveStyles.buttonBase,
+          controlPrimitiveStyles.buttonTertiary,
           styles.saveButton,
           saved && styles.saveButtonSaved,
         )}

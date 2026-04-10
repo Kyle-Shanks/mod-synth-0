@@ -30,11 +30,13 @@ function classes(...tokens: Array<string | false | null | undefined>): string {
 export default function App() {
   const [started, setStarted] = useState(false)
   const setEngineReady = useStore((s) => s.setEngineReady)
+  const settingsPanelOpen = useStore((s) => s.settingsPanelOpen)
   const setSettingsPanelOpen = useStore((s) => s.setSettingsPanelOpen)
   const patchName = useStore((s) => s.patchName)
   const setPatchName = useStore((s) => s.setPatchName)
   const clearPatch = useStore((s) => s.clearPatch)
   const loadPatch = useStore((s) => s.loadPatch)
+  const tutorialPanelOpen = useStore((s) => s.tutorialPanelOpen)
   const setTutorialPanelOpen = useStore((s) => s.setTutorialPanelOpen)
   const setCableTautness = useStore((s) => s.setCableTautness)
   const setTooltipsEnabled = useStore((s) => s.setTooltipsEnabled)
@@ -181,7 +183,14 @@ export default function App() {
     <ThemeProvider theme={getTheme(themeId)}>
       {!started ? (
         <div className={styles.startScreen}>
-          <button onClick={handleStart} className={styles.startButton}>
+          <button
+            onClick={handleStart}
+            className={classes(
+              controlPrimitiveStyles.buttonBase,
+              controlPrimitiveStyles.buttonPrimary,
+              styles.startButton,
+            )}
+          >
             start
           </button>
         </div>
@@ -221,7 +230,8 @@ export default function App() {
             {/* new */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
               )}
               onClick={handleNewPatch}
@@ -236,7 +246,8 @@ export default function App() {
             {/* export */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
               )}
               onClick={handleExport}
@@ -248,7 +259,8 @@ export default function App() {
             {/* import */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
               )}
               onClick={() => fileInputRef.current?.click()}
@@ -268,7 +280,8 @@ export default function App() {
             {!isInsideSubpatch && (
               <button
                 className={classes(
-                  controlPrimitiveStyles.textButtonBase,
+                  controlPrimitiveStyles.buttonBase,
+                  controlPrimitiveStyles.buttonTertiary,
                   styles.topbarButton,
                 )}
                 onClick={() => setPresetsOpen(true)}
@@ -281,11 +294,15 @@ export default function App() {
             {!isInsideSubpatch && (
               <button
                 className={classes(
-                  controlPrimitiveStyles.textButtonBase,
+                  controlPrimitiveStyles.buttonBase,
+                  controlPrimitiveStyles.buttonTertiary,
                   styles.topbarButton,
                 )}
                 data-tutorial-launch=''
-                onClick={() => setTutorialPanelOpen(true)}
+                onClick={() => {
+                  if (settingsPanelOpen) setSettingsPanelOpen(false)
+                  setTutorialPanelOpen(!tutorialPanelOpen)
+                }}
                 title='guided tutorials'
               >
                 tutorials
@@ -298,7 +315,8 @@ export default function App() {
             {/* undo */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
                 styles.historyButton,
                 pastLength === 0 && styles.historyButtonDisabled,
@@ -313,7 +331,8 @@ export default function App() {
             {/* redo */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
                 styles.historyButton,
                 futureLength === 0 && styles.historyButtonDisabled,
@@ -331,7 +350,8 @@ export default function App() {
             {/* zoom indicator — click to reset */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
               )}
               onClick={() => setZoom(1)}
@@ -344,18 +364,20 @@ export default function App() {
             <div className={styles.spacer} />
 
             {/* hint */}
-            <span className={styles.hint}>
-              space to add modules
-            </span>
+            <span className={styles.hint}>space to add modules</span>
 
             {/* settings gear */}
             <button
               className={classes(
-                controlPrimitiveStyles.textButtonBase,
+                controlPrimitiveStyles.buttonBase,
+                controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
                 styles.settingsButton,
               )}
-              onClick={() => setSettingsPanelOpen(true)}
+              onClick={() => {
+                if (tutorialPanelOpen) setTutorialPanelOpen(false)
+                setSettingsPanelOpen(!settingsPanelOpen)
+              }}
               title='settings'
             >
               &#9881;

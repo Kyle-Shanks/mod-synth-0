@@ -2,6 +2,11 @@ import { useStore } from '../store'
 import { themes } from '../theme/themeRegistry'
 import styles from './SettingsPanel.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
+import floatingPanelBaseStyles from '../styles/floatingPanelBase.module.css'
+
+function classes(...tokens: Array<string | false | null | undefined>): string {
+  return tokens.filter(Boolean).join(' ')
+}
 
 export function SettingsPanel() {
   const open = useStore((s) => s.settingsPanelOpen)
@@ -16,13 +21,29 @@ export function SettingsPanel() {
   if (!open) return null
 
   return (
-    <div className={styles.overlay} onMouseDown={() => setOpen(false)}>
-      <div className={styles.panel} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      className={classes(floatingPanelBaseStyles.panelBase, styles.panel)}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <div className={floatingPanelBaseStyles.headerRowBase}>
         <div className={styles.header}>settings</div>
+        <button
+          className={classes(
+            controlPrimitiveStyles.buttonBase,
+            controlPrimitiveStyles.buttonTertiary,
+            styles.linkButton,
+          )}
+          onClick={() => setOpen(false)}
+          type='button'
+        >
+          close
+        </button>
+      </div>
 
+      <div className={floatingPanelBaseStyles.contentBase}>
         {/* cable tautness */}
-        <div className={styles.section}>
-          <div className={styles.row}>
+        <div className={floatingPanelBaseStyles.sectionBase}>
+          <div className={classes(floatingPanelBaseStyles.rowBase, styles.row)}>
             <span>cable tautness</span>
             <span className={styles.valueText}>{tautness.toFixed(2)}</span>
           </div>
@@ -42,7 +63,7 @@ export function SettingsPanel() {
         </div>
 
         {/* tooltips toggle */}
-        <div className={styles.row}>
+        <div className={classes(floatingPanelBaseStyles.rowBase, styles.row)}>
           <span>tooltips</span>
           <div
             onClick={() => setTooltipsEnabled(!tooltipsEnabled)}
@@ -54,7 +75,7 @@ export function SettingsPanel() {
         </div>
 
         {/* theme selector */}
-        <div className={styles.row}>
+        <div className={classes(floatingPanelBaseStyles.rowBase, styles.row)}>
           <span>theme</span>
           <select
             value={themeId}

@@ -5,6 +5,7 @@ import { getLessonsForMode, getTutorialLesson } from '../tutorials/lessons'
 import type { TutorialFocusTarget } from '../tutorials/model'
 import styles from './TutorialOverlay.module.css'
 import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
+import floatingPanelBaseStyles from '../styles/floatingPanelBase.module.css'
 
 interface FocusRect {
   key: string
@@ -196,12 +197,13 @@ export function TutorialOverlay() {
         </div>
       )}
 
-      <div className={styles.panel}>
-        <div className={styles.headerRow}>
+      <div className={classes(floatingPanelBaseStyles.panelBase, styles.panel)}>
+        <div className={floatingPanelBaseStyles.headerRowBase}>
           <div className={styles.title}>tutorials</div>
           <button
             className={classes(
-              controlPrimitiveStyles.textButtonBase,
+              controlPrimitiveStyles.buttonBase,
+              controlPrimitiveStyles.buttonTertiary,
               styles.linkButton,
             )}
             onClick={() => {
@@ -220,10 +222,11 @@ export function TutorialOverlay() {
               <button
                 type='button'
                 className={classes(
-                  controlPrimitiveStyles.textButtonBase,
-                  styles.modeButton,
+                  controlPrimitiveStyles.buttonBase,
+                  tutorialMode === 'beginner'
+                    ? controlPrimitiveStyles.buttonPrimary
+                    : controlPrimitiveStyles.buttonSecondary,
                 )}
-                data-active={tutorialMode === 'beginner' ? 'true' : 'false'}
                 onClick={() => setTutorialMode('beginner')}
               >
                 beginner
@@ -231,10 +234,11 @@ export function TutorialOverlay() {
               <button
                 type='button'
                 className={classes(
-                  controlPrimitiveStyles.textButtonBase,
-                  styles.modeButton,
+                  controlPrimitiveStyles.buttonBase,
+                  tutorialMode === 'veteran'
+                    ? controlPrimitiveStyles.buttonPrimary
+                    : controlPrimitiveStyles.buttonSecondary,
                 )}
-                data-active={tutorialMode === 'veteran' ? 'true' : 'false'}
                 onClick={() => setTutorialMode('veteran')}
               >
                 veteran
@@ -261,8 +265,8 @@ export function TutorialOverlay() {
                       <button
                         type='button'
                         className={classes(
-                          controlPrimitiveStyles.textButtonBase,
-                          styles.actionButton,
+                          controlPrimitiveStyles.buttonBase,
+                          controlPrimitiveStyles.buttonPrimary,
                         )}
                         onClick={() => handleStartLesson(lesson.id)}
                       >
@@ -298,12 +302,12 @@ export function TutorialOverlay() {
                     'follow the highlighted targets.'}
                 </p>
 
-                <div className={styles.actionsRow}>
+                <div className={floatingPanelBaseStyles.footerBase}>
                   <button
                     type='button'
                     className={classes(
-                      controlPrimitiveStyles.textButtonBase,
-                      styles.actionButton,
+                      controlPrimitiveStyles.buttonBase,
+                      controlPrimitiveStyles.buttonPrimary,
                     )}
                     onClick={() => tryCurrentTutorialStep()}
                   >
@@ -312,8 +316,8 @@ export function TutorialOverlay() {
                   <button
                     type='button'
                     className={classes(
-                      controlPrimitiveStyles.textButtonBase,
-                      styles.secondaryButton,
+                      controlPrimitiveStyles.buttonBase,
+                      controlPrimitiveStyles.buttonSecondary,
                     )}
                     onClick={() => setTutorialShowDemo(!tutorialShowDemo)}
                   >
@@ -337,12 +341,12 @@ export function TutorialOverlay() {
               </>
             )}
 
-            <div className={styles.footerActions}>
+            <div className={floatingPanelBaseStyles.footerBase}>
               <button
                 type='button'
                 className={classes(
-                  controlPrimitiveStyles.textButtonBase,
-                  styles.secondaryButton,
+                  controlPrimitiveStyles.buttonBase,
+                  controlPrimitiveStyles.buttonSecondary,
                 )}
                 onClick={() => {
                   stopTutorial()

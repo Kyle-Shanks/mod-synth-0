@@ -1,17 +1,51 @@
-.textButtonBase {
-  border: none;
+.buttonBase {
+  border: 1px solid transparent;
+  border-radius: 1px;
   font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font);
   text-transform: lowercase;
-  padding: 2px 4px;
+  padding: 3px 8px;
   transition: background 120ms, color 120ms, border 120ms;
+}
+
+.buttonBase:disabled {
+  cursor: default;
+}
+
+.buttonPrimary {
+  border-color: var(--accent0);
+  background: var(--accent0);
+  color: var(--shade0);
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--shade3);
+  border-color: var(--shade3);
+  color: var(--shade0);
+}
+
+.buttonSecondary {
+  border-color: var(--shade2);
   background: transparent;
   color: var(--shade3);
 }
 
-.textButtonBase:hover:not(:disabled) {
+.buttonSecondary:hover:not(:disabled) {
+  background: var(--shade3);
+  border-color: var(--shade3);
+  color: var(--shade0);
+}
+
+.buttonTertiary {
+  border-color: transparent;
+  background: transparent;
+  color: var(--shade3);
+  padding: 2px 4px;
+}
+
+.buttonTertiary:hover:not(:disabled) {
   background: var(--shade3);
   color: var(--shade0);
 }

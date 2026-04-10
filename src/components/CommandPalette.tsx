@@ -9,6 +9,7 @@ import {
 } from '../persistence/storage'
 import styles from './CommandPalette.module.css'
 import modalBaseStyles from '../styles/modalBase.module.css'
+import controlPrimitiveStyles from '../styles/controlPrimitives.module.css'
 
 function classes(...tokens: Array<string | false | null | undefined>): string {
   return tokens.filter(Boolean).join(' ')
@@ -74,7 +75,11 @@ const COMMON_MODULE_IDS = [
   '__add_subpatch__',
 ] as const
 
-type PaletteTab = 'common' | 'most-used' | 'all' | (typeof CATEGORY_ORDER)[number]
+type PaletteTab =
+  | 'common'
+  | 'most-used'
+  | 'all'
+  | (typeof CATEGORY_ORDER)[number]
 
 type DisplayItem =
   | { kind: 'header'; category: string }
@@ -90,7 +95,9 @@ export function CommandPalette() {
   const isInsideSubpatch = subpatchContext.length > 0
   const [query, setQuery] = useState('')
   const [activeTab, setActiveTab] = useState<PaletteTab>('all')
-  const [usageStats, setUsageStats] = useState<ModuleUsageStats>(() => loadModuleUsageStats())
+  const [usageStats, setUsageStats] = useState<ModuleUsageStats>(() =>
+    loadModuleUsageStats(),
+  )
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [hoverEnabled, setHoverEnabled] = useState(true)
@@ -152,7 +159,9 @@ export function CommandPalette() {
     return out
   }, [allModules])
 
-  const effectiveActiveTab: PaletteTab = tabs.some((tab) => tab.id === activeTab)
+  const effectiveActiveTab: PaletteTab = tabs.some(
+    (tab) => tab.id === activeTab,
+  )
     ? activeTab
     : (tabs[0]?.id ?? 'all')
 
@@ -193,7 +202,11 @@ export function CommandPalette() {
   // display items — interleave category headers for "all" when not filtering
   const displayItems: DisplayItem[] = useMemo(() => {
     if (isSearching || effectiveActiveTab !== 'all') {
-      return selectableModules.map((mod, i) => ({ kind: 'module', mod, flatIndex: i }))
+      return selectableModules.map((mod, i) => ({
+        kind: 'module',
+        mod,
+        flatIndex: i,
+      }))
     }
     const items: DisplayItem[] = []
     let flatIndex = 0
@@ -279,15 +292,15 @@ export function CommandPalette() {
 
   return (
     <div
-      className={classes(modalBaseStyles.overlayBase, styles.overlay)}
+      className={modalBaseStyles.overlayBase}
       onMouseDown={() => setOpen(false)}
     >
       <div
-        className={classes(modalBaseStyles.modalBase, styles.modal)}
+        className={modalBaseStyles.modalBase}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* input */}
-        <div className={classes(modalBaseStyles.inputRowBase, styles.inputRow)}>
+        <div className={modalBaseStyles.inputRowBase}>
           <input
             ref={inputRef}
             value={query}
@@ -299,11 +312,15 @@ export function CommandPalette() {
             }}
             onKeyDown={handleKeyDown}
             placeholder='add module...'
-            className={classes(modalBaseStyles.inputBase, styles.input)}
+            className={modalBaseStyles.inputBase}
           />
         </div>
 
-        <div className={styles.tabs} role='tablist' aria-label='module categories'>
+        <div
+          className={styles.tabs}
+          role='tablist'
+          aria-label='module categories'
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -318,8 +335,11 @@ export function CommandPalette() {
                 requestAnimationFrame(() => inputRef.current?.focus())
               }}
               className={classes(
+                controlPrimitiveStyles.buttonBase,
+                tab.id === effectiveActiveTab
+                  ? controlPrimitiveStyles.buttonPrimary
+                  : controlPrimitiveStyles.buttonSecondary,
                 styles.tabButton,
-                tab.id === effectiveActiveTab && styles.tabButtonActive,
               )}
             >
               {tab.label}
@@ -330,7 +350,7 @@ export function CommandPalette() {
         {/* results */}
         <div
           ref={resultsRef}
-          className={classes(modalBaseStyles.resultsBase, styles.results)}
+          className={modalBaseStyles.resultsBase}
           onMouseLeave={() => setHoveredIndex(null)}
           onMouseMove={(e) => {
             if (!hoverEnabled) setHoverEnabled(true)
@@ -346,9 +366,13 @@ export function CommandPalette() {
             setSelectedIndex(index)
           }}
         >
-          {!isSearching && effectiveActiveTab === 'most-used' && !hasUsageData && (
-            <div className={styles.helperText}>no usage data yet — showing common starters</div>
-          )}
+          {!isSearching &&
+            effectiveActiveTab === 'most-used' &&
+            !hasUsageData && (
+              <div className={styles.helperText}>
+                no usage data yet — showing common starters
+              </div>
+            )}
           {displayItems.map((item, i) =>
             item.kind === 'header' ? (
               <div
@@ -374,7 +398,7 @@ export function CommandPalette() {
                   styles.moduleRow,
                   hoveredIndex === item.flatIndex && styles.moduleRowHover,
                   hoveredIndex === null &&
-                  item.flatIndex === clampedSelectedIndex &&
+                    item.flatIndex === clampedSelectedIndex &&
                     styles.moduleRowActive,
                 )}
               >
@@ -386,7 +410,7 @@ export function CommandPalette() {
             ),
           )}
           {selectableModules.length === 0 && (
-            <div className={classes(modalBaseStyles.emptyStateBase, styles.emptyState)}>
+            <div className={modalBaseStyles.emptyStateBase}>
               no modules found
             </div>
           )}

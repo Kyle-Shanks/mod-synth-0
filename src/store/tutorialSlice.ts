@@ -25,10 +25,12 @@ export interface TutorialSlice {
   syncTutorialProgress: () => void
 }
 
-export const createTutorialSlice: StateCreator<StoreState, [], [], TutorialSlice> = (
-  set,
-  get,
-) => ({
+export const createTutorialSlice: StateCreator<
+  StoreState,
+  [],
+  [],
+  TutorialSlice
+> = (set, get) => ({
   tutorialPanelOpen: false,
   tutorialMode: 'beginner',
   activeTutorialId: null,

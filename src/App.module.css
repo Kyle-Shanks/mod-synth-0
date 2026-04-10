@@ -8,14 +8,7 @@
 .startButton {
   font-size: var(--text-lg);
   padding: 16px 40px;
-  cursor: pointer;
-  background: var(--accent0);
-  color: var(--shade0);
-  border: none;
   border-radius: 4px;
-  font-family: var(--font);
-  font-weight: 600;
-  text-transform: lowercase;
   letter-spacing: 1px;
 }
 
