@@ -288,24 +288,6 @@ export default function App() {
               </button>
             )}
 
-            {!isInsideSubpatch && (
-              <button
-                className={classes(
-                  controlPrimitiveStyles.buttonBase,
-                  controlPrimitiveStyles.buttonTertiary,
-                  styles.topbarButton,
-                )}
-                data-tutorial-launch=''
-                onClick={() => {
-                  if (settingsPanelOpen) setSettingsPanelOpen(false)
-                  setTutorialPanelOpen(!tutorialPanelOpen)
-                }}
-                title='guided tutorials'
-              >
-                tutorials
-              </button>
-            )}
-
             {/* separator dot */}
             <span className={styles.separator}>·</span>
 
@@ -363,13 +345,31 @@ export default function App() {
             {/* hint */}
             <span className={styles.hint}>space to add modules</span>
 
+            {!isInsideSubpatch && (
+              <button
+                className={classes(
+                  controlPrimitiveStyles.buttonBase,
+                  controlPrimitiveStyles.buttonTertiary,
+                  styles.topbarButton,
+                )}
+                data-tutorial-launch=''
+                onClick={() => {
+                  if (settingsPanelOpen) setSettingsPanelOpen(false)
+                  setTutorialPanelOpen(!tutorialPanelOpen)
+                }}
+                title='guided tutorials'
+              >
+                tutorials
+              </button>
+            )}
+
             {/* settings gear */}
             <button
               className={classes(
                 controlPrimitiveStyles.buttonBase,
                 controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
-                styles.settingsButton,
+                // styles.settingsButton,
               )}
               onClick={() => {
                 if (tutorialPanelOpen) setTutorialPanelOpen(false)
@@ -377,7 +377,8 @@ export default function App() {
               }}
               title='settings'
             >
-              &#9881;
+              {/* &#9881; */}
+              settings
             </button>
           </div>
 

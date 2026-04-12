@@ -9,7 +9,7 @@
 }
 
 .header {
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   color: var(--shade3);
 }
 
@@ -23,7 +23,7 @@
 }
 
 .valueText {
-  color: var(--shade2);
+  color: var(--shade3);
 }
 
 .slider {

@@ -70,6 +70,6 @@
 }
 
 .settingsButton {
-  font-size: var(--text-md);
+  /* font-size: var(--text-md); */
   line-height: 1;
 }

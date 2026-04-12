@@ -14,6 +14,12 @@ export const DistortionDefinition: ModuleDefinition<
     out: { type: 'audio'; default: 0; label: 'out' }
   },
   {
+    mode: {
+      type: 'select'
+      default: 0
+      options: ['soft', 'hard', 'fuzz']
+      label: 'mode'
+    }
     drive: {
       type: 'float'
       min: 1
@@ -21,12 +27,6 @@ export const DistortionDefinition: ModuleDefinition<
       default: 5
       label: 'drive'
       curve: 'log'
-    }
-    mode: {
-      type: 'select'
-      default: 0
-      options: ['soft', 'hard', 'fuzz']
-      label: 'mode'
     }
     tone: { type: 'float'; min: 0; max: 1; default: 0.5; label: 'tone' }
     level: { type: 'float'; min: 0; max: 1; default: 0.7; label: 'level' }
@@ -46,6 +46,12 @@ export const DistortionDefinition: ModuleDefinition<
     out: { type: 'audio', default: 0, label: 'out' },
   },
   params: {
+    mode: {
+      type: 'select',
+      default: 0,
+      options: ['soft', 'hard', 'fuzz'],
+      label: 'mode',
+    },
     drive: {
       type: 'float',
       min: 1,
@@ -53,12 +59,6 @@ export const DistortionDefinition: ModuleDefinition<
       default: 5,
       label: 'drive',
       curve: 'log',
-    },
-    mode: {
-      type: 'select',
-      default: 0,
-      options: ['soft', 'hard', 'fuzz'],
-      label: 'mode',
     },
     tone: { type: 'float', min: 0, max: 1, default: 0.5, label: 'tone' },
     level: { type: 'float', min: 0, max: 1, default: 0.7, label: 'level' },

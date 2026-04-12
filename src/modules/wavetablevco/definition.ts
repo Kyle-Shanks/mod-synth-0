@@ -47,7 +47,7 @@ export const WavetableVCODefinition: ModuleDefinition<
       unit: 'ct'
     }
     position: { type: 'float'; min: 0; max: 4; default: 1; label: 'wave' }
-    warp: { type: 'float'; min: 0; max: 1; default: 0.25; label: 'warp' }
+    warp: { type: 'float'; min: 0; max: 1; default: 0; label: 'warp' }
     mult: { type: 'float'; min: 1; max: 4; default: 1; label: 'mult' }
   },
   WavetableVCOState
@@ -91,7 +91,7 @@ export const WavetableVCODefinition: ModuleDefinition<
       unit: 'ct',
     },
     position: { type: 'float', min: 0, max: 4, default: 1, label: 'wave' },
-    warp: { type: 'float', min: 0, max: 1, default: 0.25, label: 'warp' },
+    warp: { type: 'float', min: 0, max: 1, default: 0, label: 'warp' },
     mult: { type: 'float', min: 1, max: 4, default: 1, label: 'mult' },
   },
 
@@ -155,8 +155,7 @@ export const WavetableVCODefinition: ModuleDefinition<
       const tableMix = tablePosition - tableAIndex
 
       const phaseWarped =
-        phase * cycleMult +
-        Math.sin(phase * twoPi * cycleMult) * warpDepth
+        phase * cycleMult + Math.sin(phase * twoPi * cycleMult) * warpDepth
       const wrappedPhase = phaseWarped - Math.floor(phaseWarped)
       const tablePhase = wrappedPhase * tableSize
       const readIndex = Math.floor(tablePhase)
@@ -176,7 +175,7 @@ export const WavetableVCODefinition: ModuleDefinition<
 
     ;(state._meters as Record<string, number>).wavePosNorm =
       maxTablePosition > 0
-        ? Math.max(0, Math.min(1, (tablePosAcc / 128) / maxTablePosition))
+        ? Math.max(0, Math.min(1, tablePosAcc / 128 / maxTablePosition))
         : 0
     state.phase = phase
   },

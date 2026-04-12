@@ -12,7 +12,13 @@ interface ListSelectorProps {
   onChangeOverride?: (index: number) => void
 }
 
-export function ListSelector({ moduleId, paramId, definition, value, onChangeOverride }: ListSelectorProps) {
+export function ListSelector({
+  moduleId,
+  paramId,
+  definition,
+  value,
+  onChangeOverride,
+}: ListSelectorProps) {
   const setParam = useStore((s) => s.setParam)
   const options = definition.options ?? []
   const selectedIndex = Math.round(value)
@@ -24,9 +30,7 @@ export function ListSelector({ moduleId, paramId, definition, value, onChangeOve
       data-module-id={moduleId}
       data-param-id={paramId}
     >
-      <div className={styles.label}>
-        {definition.label}
-      </div>
+      <div className={styles.label}>{definition.label}</div>
       {options.map((option, i) => (
         <div
           key={option}
@@ -40,9 +44,12 @@ export function ListSelector({ moduleId, paramId, definition, value, onChangeOve
               useStore.getState().commitHistory()
             }
           }}
-          className={classes(styles.option, i === selectedIndex && styles.optionSelected)}
+          className={classes(
+            styles.option,
+            i === selectedIndex && styles.optionSelected,
+          )}
         >
-          {i === selectedIndex ? '\u25b8 ' : '  '}{option}
+          {option}
         </div>
       ))}
     </div>
