@@ -737,7 +737,7 @@ _54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
 | `lfo`             | lfo            | source   | rate (cv)                                         | sine, saw, pulse, triangle (cv) |
 | `chaos`           | chaos          | source   | —                                                 | x, y, z (cv)                    |
 | `noise`           | noise          | source   | —                                                 | white, pink, brown (audio)      |
-| `samplehold`      | s&h            | utility  | in (cv), trigger                                  | out (cv)                        |
+| `samplehold`      | s&h            | utility  | in (cv), gate (overrides panel hold button)       | out (cv)                        |
 | `clock`           | clock          | control  | reset (trigger)                                   | gate (gate), trigger (trigger)  |
 | `sequencer`       | seq            | control  | clock (gate), reset (trigger)                     | out (cv), gate                  |
 | `keyboard`        | keyboard       | control  | —                                                 | out (cv), gate, trigger         |

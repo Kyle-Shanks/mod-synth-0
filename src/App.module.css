@@ -68,8 +68,3 @@
   font-size: var(--text-xs);
   color: var(--shade2);
 }
-
-.settingsButton {
-  /* font-size: var(--text-md); */
-  line-height: 1;
-}

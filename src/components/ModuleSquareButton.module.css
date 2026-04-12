@@ -1,0 +1,47 @@
+.button {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--shade2);
+  border-radius: 4px;
+  background: var(--shade1);
+  cursor: pointer;
+  transition: background 50ms, border-color 80ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.button[data-variant='default'][data-pressed='true'] {
+  background: var(--accent0);
+}
+
+.button[data-variant='mute'][data-pressed='true'] {
+  border-color: var(--accent3);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--accent3);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotDefault {
+  background: var(--shade0);
+  opacity: 0.6;
+}
+
+.dotMute {
+  background: var(--accent3);
+  opacity: 0.9;
+}

@@ -369,7 +369,6 @@ export default function App() {
                 controlPrimitiveStyles.buttonBase,
                 controlPrimitiveStyles.buttonTertiary,
                 styles.topbarButton,
-                // styles.settingsButton,
               )}
               onClick={() => {
                 if (tutorialPanelOpen) setTutorialPanelOpen(false)
@@ -377,7 +376,6 @@ export default function App() {
               }}
               title='settings'
             >
-              {/* &#9881; */}
               settings
             </button>
           </div>

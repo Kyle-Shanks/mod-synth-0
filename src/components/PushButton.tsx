@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, type PointerEvent } from 'react'
 import { useStore } from '../store'
-import styles from './PushButton.module.css'
+import { ModuleSquareButton } from './ModuleSquareButton'
 
 interface PushButtonProps {
   moduleId: string
@@ -10,7 +10,7 @@ export function PushButton({ moduleId }: PushButtonProps) {
   const [pressed, setPressed] = useState(false)
   const setGate = useStore((s) => s.setGate)
 
-  const handleDown = useCallback((e: React.PointerEvent) => {
+  const handleDown = useCallback((e: PointerEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setPressed(true)
@@ -23,9 +23,9 @@ export function PushButton({ moduleId }: PushButtonProps) {
   }, [moduleId, setGate])
 
   return (
-    <div
-      className={styles.button}
-      data-pressed={pressed ? 'true' : 'false'}
+    <ModuleSquareButton
+      pressed={pressed}
+      ariaLabel='button gate'
       onPointerDown={handleDown}
       onPointerUp={handleUp}
       onPointerLeave={() => {
@@ -34,10 +34,6 @@ export function PushButton({ moduleId }: PushButtonProps) {
           setGate(moduleId, 'gate', 0)
         }
       }}
-    >
-      {pressed && (
-        <div className={styles.dot} />
-      )}
-    </div>
+    />
   )
 }

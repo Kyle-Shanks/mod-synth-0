@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { useCallback, type PointerEvent } from 'react'
+import { ModuleSquareButton } from '../../components/ModuleSquareButton'
 import { useStore } from '../../store'
 import styles from './panel.module.css'
 
@@ -12,7 +13,7 @@ export function MutePanel({ moduleId }: MutePanelProps) {
   const muted = (mod?.params.mute ?? 0) >= 0.5
 
   const toggleMute = useCallback(
-    (e: React.PointerEvent) => {
+    (e: PointerEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
       useStore.getState().stageHistory()
@@ -26,18 +27,13 @@ export function MutePanel({ moduleId }: MutePanelProps) {
 
   return (
     <div className={styles.root}>
-      <div
+      <ModuleSquareButton
+        pressed={muted}
+        variant='mute'
+        showOverlayWhenPressed
+        ariaLabel='mute'
         onPointerDown={toggleMute}
-        className={styles.button}
-        data-muted={muted ? 'true' : 'false'}
-      >
-        {muted && (
-          <div className={styles.overlay} />
-        )}
-        {muted && (
-          <div className={styles.dot} />
-        )}
-      </div>
+      />
     </div>
   )
 }

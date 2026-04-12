@@ -26,6 +26,7 @@ import { VCFPanel } from './vcf/panel'
 import { WavetableVCOPanel } from './wavetablevco/panel'
 import { SubpatchInputPanel } from './subpatch-input/panel'
 import { SubpatchOutputPanel } from './subpatch-output/panel'
+import { SampleHoldPanel } from './samplehold/panel'
 
 export type ModuleBodyPanelComponent = React.ComponentType<{ moduleId: string }>
 
@@ -54,6 +55,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   mute: MutePanel,
   vcf: VCFPanel,
   wavetablevco: WavetableVCOPanel,
+  samplehold: SampleHoldPanel,
   'subpatch-input': SubpatchInputPanel,
   'subpatch-output': SubpatchOutputPanel,
 }

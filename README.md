@@ -113,7 +113,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 - **mixer** - 4-channel mixer with per-channel level and mute, master level, master mute, and dual output metering.
 - **mult** - 1-to-4 cv splitter.
 - **atten** - attenuverter for cv scaling and inversion.
-- **s&h** - sample-and-hold (sample cv on trigger, hold until next trigger).
+- **s&h** - sample-and-hold (sample cv on gate rising edge; front-panel hold button works when gate input is unpatched, and patched gate overrides the button).
 - **quant** - cv quantizer for musical scales.
 - **octave** - octave transposer for v/oct cv.
 - **chord** - chord voice generator from one root cv input (four v/oct outputs).

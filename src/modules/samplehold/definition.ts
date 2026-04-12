@@ -1,8 +1,17 @@
 import type { ModuleDefinition } from '../../engine/types'
 
+interface GateEvent {
+  offset: number
+  value: number
+  portId: string
+}
+
 interface SampleHoldState {
   heldValue: number
+  manualGateHigh: boolean
   gateWasHigh: boolean
+  _connectedInputs: Record<string, boolean>
+  _gateEvents: GateEvent[]
   [key: string]: unknown
 }
 
@@ -33,13 +42,36 @@ export const SampleHoldDefinition: ModuleDefinition<
   params: {},
 
   initialize(): SampleHoldState {
-    return { heldValue: 0, gateWasHigh: false }
+    return {
+      heldValue: 0,
+      manualGateHigh: false,
+      gateWasHigh: false,
+      _connectedInputs: {},
+      _gateEvents: [],
+    }
   },
 
   process(inputs, outputs, _params, state) {
+    const gateConnected = !!state._connectedInputs.gate
+    const events = state._gateEvents
+    events.sort((a, b) => a.offset - b.offset)
+    let eventIdx = 0
+
     for (let i = 0; i < 128; i++) {
-      const gateValue = inputs.gate[i] ?? 0
-      const gateHigh = gateValue > 0.5
+      while (
+        eventIdx < events.length &&
+        (events[eventIdx]?.offset ?? 0) <= i
+      ) {
+        const evt = events[eventIdx]
+        if (evt?.portId === 'gate') {
+          state.manualGateHigh = evt.value > 0.5
+        }
+        eventIdx++
+      }
+
+      const gateHigh = gateConnected
+        ? (inputs.gate[i] ?? 0) > 0.5
+        : state.manualGateHigh
 
       // sample on rising edge
       if (gateHigh && !state.gateWasHigh) {
@@ -49,5 +81,7 @@ export const SampleHoldDefinition: ModuleDefinition<
 
       outputs.out[i] = state.heldValue
     }
+
+    state._gateEvents = []
   },
 }
