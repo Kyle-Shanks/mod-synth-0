@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { useRef, useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
@@ -16,6 +16,7 @@ const RACK_COLS = 64
 const RACK_ROWS = 32
 const FALLBACK_MODULE_WIDTH = 3
 const FALLBACK_MODULE_HEIGHT = 4
+const GRID_DOT_PATTERN_ID = 'rack-grid-dots'
 
 interface SelectionDrag {
   startX: number
@@ -45,72 +46,44 @@ export function Rack() {
 
   const rackWidth = RACK_COLS * GRID_UNIT
   const rackHeight = RACK_ROWS * GRID_UNIT
-  const gridLines = useMemo(() => {
-    const lines = []
-    for (let x = 0; x <= rackWidth; x += GRID_UNIT) {
-      const xPos = x + 0.5
-      lines.push(
-        <line
-          key={`v-${x}`}
-          x1={xPos}
-          y1={0}
-          x2={xPos}
-          y2={rackHeight}
-          stroke="var(--shade2)"
-          strokeWidth={1}
-          strokeOpacity={0.3}
-        />,
-      )
-    }
-    for (let y = 0; y <= rackHeight; y += GRID_UNIT) {
-      const yPos = y + 0.5
-      lines.push(
-        <line
-          key={`h-${y}`}
-          x1={0}
-          y1={yPos}
-          x2={rackWidth}
-          y2={yPos}
-          stroke="var(--shade2)"
-          strokeWidth={1}
-          strokeOpacity={0.3}
-        />,
-      )
-    }
-    return lines
-  }, [rackWidth, rackHeight])
 
-  const getRackPoint = useCallback((clientX: number, clientY: number) => {
-    const rack = rackRef.current
-    if (!rack) return null
-    const rect = rack.getBoundingClientRect()
-    const x = (clientX - rect.left) / zoom
-    const y = (clientY - rect.top) / zoom
-    return {
-      x: Math.max(0, Math.min(rackWidth, x)),
-      y: Math.max(0, Math.min(rackHeight, y)),
-    }
-  }, [zoom, rackWidth, rackHeight])
+  const getRackPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const rack = rackRef.current
+      if (!rack) return null
+      const rect = rack.getBoundingClientRect()
+      const x = (clientX - rect.left) / zoom
+      const y = (clientY - rect.top) / zoom
+      return {
+        x: Math.max(0, Math.min(rackWidth, x)),
+        y: Math.max(0, Math.min(rackHeight, y)),
+      }
+    },
+    [zoom, rackWidth, rackHeight],
+  )
 
-  const getIntersectingModuleIds = useCallback((left: number, top: number, right: number, bottom: number) => {
-    const hits: string[] = []
-    for (const [moduleId, mod] of Object.entries(modules)) {
-      const def = getModule(mod.definitionId)
-      const width = (def?.width ?? FALLBACK_MODULE_WIDTH) * GRID_UNIT
-      const height = (def?.height ?? FALLBACK_MODULE_HEIGHT) * GRID_UNIT
-      const moduleLeft = mod.position.x * GRID_UNIT
-      const moduleTop = mod.position.y * GRID_UNIT
-      const moduleRight = moduleLeft + width
-      const moduleBottom = moduleTop + height
-      const intersects =
-        left < moduleRight &&
-        right > moduleLeft &&
-        top < moduleBottom &&
-        bottom > moduleTop
-      if (intersects) hits.push(moduleId)
-    }
-    return hits
-  }, [modules])
+  const getIntersectingModuleIds = useCallback(
+    (left: number, top: number, right: number, bottom: number) => {
+      const hits: string[] = []
+      for (const [moduleId, mod] of Object.entries(modules)) {
+        const def = getModule(mod.definitionId)
+        const width = (def?.width ?? FALLBACK_MODULE_WIDTH) * GRID_UNIT
+        const height = (def?.height ?? FALLBACK_MODULE_HEIGHT) * GRID_UNIT
+        const moduleLeft = mod.position.x * GRID_UNIT
+        const moduleTop = mod.position.y * GRID_UNIT
+        const moduleRight = moduleLeft + width
+        const moduleBottom = moduleTop + height
+        const intersects =
+          left < moduleRight &&
+          right > moduleLeft &&
+          top < moduleBottom &&
+          bottom > moduleTop
+        if (intersects) hits.push(moduleId)
+      }
+      return hits
+    },
+    [modules],
+  )
 
   // track cursor position always (for command palette spawn position)
   useEffect(() => {
@@ -122,120 +95,144 @@ export function Rack() {
   }, [])
 
   // track cursor for cable drag preview
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragState) return
-    const rack = rackRef.current
-    if (!rack) return
-    const rect = rack.getBoundingClientRect()
-    setDragState({
-      ...dragState,
-      cursorX: (e.clientX - rect.left) / zoom,
-      cursorY: (e.clientY - rect.top) / zoom,
-    })
-  }, [dragState, setDragState, zoom])
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!dragState) return
+      const rack = rackRef.current
+      if (!rack) return
+      const rect = rack.getBoundingClientRect()
+      setDragState({
+        ...dragState,
+        cursorX: (e.clientX - rect.left) / zoom,
+        cursorY: (e.clientY - rect.top) / zoom,
+      })
+    },
+    [dragState, setDragState, zoom],
+  )
 
   // cancel drag on mouseup over empty space
   const handleMouseUp = useCallback(() => {
     if (dragState) setDragState(null)
   }, [dragState, setDragState])
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0 || dragState) return
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0 || dragState) return
 
-    const target = e.target as HTMLElement
-    if (
-      target.closest('[data-module-panel]') ||
-      target.closest('[data-cable-id]') ||
-      target.closest('[data-cable-visual]')
-    ) {
-      return
-    }
+      const target = e.target as HTMLElement
+      if (
+        target.closest('[data-module-panel]') ||
+        target.closest('[data-cable-id]') ||
+        target.closest('[data-cable-visual]')
+      ) {
+        return
+      }
 
-    const start = getRackPoint(e.clientX, e.clientY)
-    if (!start) return
+      const start = getRackPoint(e.clientX, e.clientY)
+      if (!start) return
 
-    e.preventDefault()
-    ;(document.activeElement as HTMLElement)?.blur()
-    const additiveSelection = e.shiftKey
-    const baseSelection = additiveSelection ? selectedModuleIds : []
-    if (!additiveSelection) setSelectedModules([])
+      e.preventDefault()
+      ;(document.activeElement as HTMLElement)?.blur()
+      const additiveSelection = e.shiftKey
+      const baseSelection = additiveSelection ? selectedModuleIds : []
+      if (!additiveSelection) setSelectedModules([])
 
-    setSelectionDrag({
-      startX: start.x,
-      startY: start.y,
-      currentX: start.x,
-      currentY: start.y,
-    })
+      setSelectionDrag({
+        startX: start.x,
+        startY: start.y,
+        currentX: start.x,
+        currentY: start.y,
+      })
 
-    const handleWindowMouseMove = (ev: MouseEvent) => {
-      const point = getRackPoint(ev.clientX, ev.clientY)
-      if (!point) return
+      const handleWindowMouseMove = (ev: MouseEvent) => {
+        const point = getRackPoint(ev.clientX, ev.clientY)
+        if (!point) return
 
-      const left = Math.min(start.x, point.x)
-      const right = Math.max(start.x, point.x)
-      const top = Math.min(start.y, point.y)
-      const bottom = Math.max(start.y, point.y)
-      const intersectingIds = getIntersectingModuleIds(left, top, right, bottom)
+        const left = Math.min(start.x, point.x)
+        const right = Math.max(start.x, point.x)
+        const top = Math.min(start.y, point.y)
+        const bottom = Math.max(start.y, point.y)
+        const intersectingIds = getIntersectingModuleIds(
+          left,
+          top,
+          right,
+          bottom,
+        )
 
-      const nextSelection = additiveSelection
-        ? [...new Set([...baseSelection, ...intersectingIds])]
-        : intersectingIds
+        const nextSelection = additiveSelection
+          ? [...new Set([...baseSelection, ...intersectingIds])]
+          : intersectingIds
 
-      setSelectionDrag((prev) => (
-        prev
-          ? {
-              ...prev,
-              currentX: point.x,
-              currentY: point.y,
-            }
-          : prev
-      ))
-      setSelectedModules(nextSelection)
-    }
+        setSelectionDrag((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentX: point.x,
+                currentY: point.y,
+              }
+            : prev,
+        )
+        setSelectedModules(nextSelection)
+      }
 
-    const handleWindowMouseUp = () => {
-      window.removeEventListener('mousemove', handleWindowMouseMove)
-      window.removeEventListener('mouseup', handleWindowMouseUp)
-      setSelectionDrag(null)
-    }
+      const handleWindowMouseUp = () => {
+        window.removeEventListener('mousemove', handleWindowMouseMove)
+        window.removeEventListener('mouseup', handleWindowMouseUp)
+        setSelectionDrag(null)
+      }
 
-    window.addEventListener('mousemove', handleWindowMouseMove)
-    window.addEventListener('mouseup', handleWindowMouseUp)
-  }, [
-    dragState,
-    getRackPoint,
-    getIntersectingModuleIds,
-    selectedModuleIds,
-    setSelectedModules,
-  ])
+      window.addEventListener('mousemove', handleWindowMouseMove)
+      window.addEventListener('mouseup', handleWindowMouseUp)
+    },
+    [
+      dragState,
+      getRackPoint,
+      getIntersectingModuleIds,
+      selectedModuleIds,
+      setSelectedModules,
+    ],
+  )
 
-  const [groupContextMenu, setGroupContextMenu] = useState<{ x: number; y: number; gridPos: { x: number; y: number } } | null>(null)
+  const [groupContextMenu, setGroupContextMenu] = useState<{
+    x: number
+    y: number
+    gridPos: { x: number; y: number }
+  } | null>(null)
 
   // right-click: open command palette OR "group as subpatch" if modules are selected
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    const rack = rackRef.current
-    if (!rack) return
-    const rect = rack.getBoundingClientRect()
-    const gridPos = {
-      x: Math.round((e.clientX - rect.left) / zoom / GRID_UNIT),
-      y: Math.round((e.clientY - rect.top) / zoom / GRID_UNIT),
-    }
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      const rack = rackRef.current
+      if (!rack) return
+      const rect = rack.getBoundingClientRect()
+      const gridPos = {
+        x: Math.round((e.clientX - rect.left) / zoom / GRID_UNIT),
+        y: Math.round((e.clientY - rect.top) / zoom / GRID_UNIT),
+      }
 
-    // if multiple modules are selected and we right-click on empty space OR on a module
-    // within the selection, show the group menu
-    const sel = useStore.getState().selectedModuleIds
-    const target = e.target as HTMLElement
-    const clickedPanel = target.closest<HTMLElement>('[data-module-panel]')
-    const clickedModuleId = clickedPanel?.getAttribute('data-module-panel-id') ?? null
-    const clickedIsInSelection = clickedModuleId !== null && sel.includes(clickedModuleId)
-    if (sel.length > 1 && !isInsideSubpatch && (!clickedPanel || clickedIsInSelection)) {
-      setGroupContextMenu({ x: e.clientX, y: e.clientY, gridPos })
-      return
-    }
+      // if multiple modules are selected and we right-click on empty space OR on a module
+      // within the selection, show the group menu
+      const sel = useStore.getState().selectedModuleIds
+      const target = e.target as HTMLElement
+      const clickedPanel = target.closest<HTMLElement>('[data-module-panel]')
+      const clickedModuleId =
+        clickedPanel?.getAttribute('data-module-panel-id') ?? null
+      const clickedIsInSelection =
+        clickedModuleId !== null && sel.includes(clickedModuleId)
+      if (
+        sel.length > 1 &&
+        !isInsideSubpatch &&
+        (!clickedPanel || clickedIsInSelection)
+      ) {
+        setGroupContextMenu({ x: e.clientX, y: e.clientY, gridPos })
+        return
+      }
 
-    // right-click on non-selection targets does nothing (command palette uses space/slash)
-  }, [zoom, isInsideSubpatch])
+      // right-click on non-selection targets does nothing (command palette uses space/slash)
+    },
+    [zoom, isInsideSubpatch],
+  )
 
   // keyboard: space opens command palette near mouse, delete removes selected modules
   useEffect(() => {
@@ -246,7 +243,8 @@ export function Rack() {
         e.target instanceof HTMLTextAreaElement ||
         e.target instanceof HTMLSelectElement ||
         (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) return
+      )
+        return
       if (e.key === 'Escape') {
         e.preventDefault()
         if (useStore.getState().subpatchContext.length > 0) {
@@ -261,8 +259,14 @@ export function Rack() {
         const mousePos = lastMousePosRef.current
         if (rack && mousePos) {
           const rect = rack.getBoundingClientRect()
-          const gridX = Math.max(0, Math.round((mousePos.x - rect.left) / zoom / GRID_UNIT))
-          const gridY = Math.max(0, Math.round((mousePos.y - rect.top) / zoom / GRID_UNIT))
+          const gridX = Math.max(
+            0,
+            Math.round((mousePos.x - rect.left) / zoom / GRID_UNIT),
+          )
+          const gridY = Math.max(
+            0,
+            Math.round((mousePos.y - rect.top) / zoom / GRID_UNIT),
+          )
           setCommandPaletteOpen(true, { x: gridX, y: gridY })
         } else {
           setCommandPaletteOpen(true, { x: 2, y: 2 })
@@ -303,7 +307,10 @@ export function Rack() {
         return
       }
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedModuleIds.length > 0) {
+      if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        selectedModuleIds.length > 0
+      ) {
         e.preventDefault()
         removeModules(selectedModuleIds)
         setSelectedModules([])
@@ -342,7 +349,11 @@ export function Rack() {
     if (!mod) return false
     if (!isInsideSubpatch) {
       // hide proxy modules that got orphaned or were somehow added to root
-      if (mod.definitionId === 'subpatch-input' || mod.definitionId === 'subpatch-output') return false
+      if (
+        mod.definitionId === 'subpatch-input' ||
+        mod.definitionId === 'subpatch-output'
+      )
+        return false
       // hide container modules that belong to a different subpatch context (shouldn't happen, but guard it)
     } else {
       // inside a subpatch: hide root-level containers and non-internal modules
@@ -381,7 +392,7 @@ export function Rack() {
       <div className={styles.scaledViewport} style={scaledViewportStyle}>
         <div
           ref={rackRef}
-          data-rack=""
+          data-rack=''
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -395,9 +406,33 @@ export function Rack() {
             width={rackWidth}
             height={rackHeight}
             viewBox={`0 0 ${rackWidth} ${rackHeight}`}
-            aria-hidden="true"
+            aria-hidden='true'
           >
-            {gridLines}
+            <defs>
+              <pattern
+                id={GRID_DOT_PATTERN_ID}
+                x={-GRID_UNIT / 2}
+                y={-GRID_UNIT / 2}
+                width={GRID_UNIT}
+                height={GRID_UNIT}
+                patternUnits='userSpaceOnUse'
+              >
+                <circle
+                  cx={GRID_UNIT / 2}
+                  cy={GRID_UNIT / 2}
+                  r={1.5}
+                  fill='var(--shade2)'
+                  fillOpacity={0.5}
+                />
+              </pattern>
+            </defs>
+            <rect
+              x={0}
+              y={0}
+              width={rackWidth}
+              height={rackHeight}
+              fill={`url(#${GRID_DOT_PATTERN_ID})`}
+            />
           </svg>
 
           {/* modules */}
@@ -432,7 +467,12 @@ export function Rack() {
               top: groupContextMenu.y,
             }}
           >
-            <div className={classes(contextMenuStyles.menuTitle, styles.menuHeader)}>
+            <div
+              className={classes(
+                contextMenuStyles.menuTitle,
+                styles.menuHeader,
+              )}
+            >
               {selectedModuleIds.length} modules selected
             </div>
             <div
