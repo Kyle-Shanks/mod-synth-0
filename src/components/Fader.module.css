@@ -103,3 +103,11 @@
 .labelVisible {
   opacity: 1;
 }
+
+.valueText {
+  background-color: var(--shade1);
+  z-index: 2;
+  padding: 2px 4px;
+  margin-top: -3px;
+  border: 1px solid var(--shade3);
+}
