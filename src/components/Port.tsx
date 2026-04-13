@@ -3,6 +3,7 @@ import type { PortType } from '../engine/types'
 import { useStore } from '../store'
 import { portPositionCache } from '../cables/PortPositionCache'
 import { getModule } from '../modules/registry'
+import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
 import styles from './Port.module.css'
 
 interface PortProps {
@@ -29,6 +30,7 @@ export function Port({
   const removeCable = useStore((s) => s.removeCable)
   const cables = useStore((s) => s.cables)
   const modules = useStore((s) => s.modules)
+  const definitions = useStore((s) => s.definitions)
   const hoveredPortKey = useStore((s) => s.hoveredPortKey)
   const setHoveredPort = useStore((s) => s.setHoveredPort)
 
@@ -36,6 +38,39 @@ export function Port({
   const isHovered = hoveredPortKey === portKey
 
   const zoom = useStore((s) => s.zoom)
+
+  function resolveEffectivePortType(
+    targetModuleId: string,
+    targetPortId: string,
+  ): PortType | null {
+    const mod = modules[targetModuleId]
+    if (!mod) return null
+
+    if (isSubpatchContainer(mod)) {
+      const def = definitions[mod.subpatchDefinitionId]
+      if (!def) return null
+      const parsed = parseSubpatchPortId(targetPortId)
+      if (!parsed.isSubpatchPort) return null
+      const ports =
+        parsed.direction === 'input' ? def.exposedInputs : def.exposedOutputs
+      return ports[parsed.index]?.type ?? null
+    }
+
+    const dataType = mod.data?.portType
+    if (
+      dataType === 'audio' ||
+      dataType === 'cv' ||
+      dataType === 'gate' ||
+      dataType === 'trigger'
+    ) {
+      return dataType
+    }
+
+    const def = getModule(mod.definitionId)
+    if (!def) return null
+    const portDef = def.outputs[targetPortId] ?? def.inputs[targetPortId]
+    return portDef?.type ?? null
+  }
 
   // update port position cache
   // getBoundingClientRect() returns viewport (scaled) coords; divide by zoom to get
@@ -116,10 +151,11 @@ export function Port({
       )
       if (existingCable) {
         // find the type of the source port
-        const srcMod = useStore.getState().modules[existingCable.from.moduleId]
-        const srcDef = srcMod ? getModule(srcMod.definitionId) : undefined
-        const srcPort = srcDef?.outputs[existingCable.from.portId]
-        const srcType = srcPort?.type ?? type
+        const srcType =
+          resolveEffectivePortType(
+            existingCable.from.moduleId,
+            existingCable.from.portId,
+          ) ?? type
 
         const srcPos = portPositionCache.get(
           existingCable.from.moduleId,
@@ -196,12 +232,9 @@ export function Port({
       if (isFrom) {
         connectedRingToken = type
       } else {
-        const srcMod = modules[cable.from.moduleId]
-        const srcDef = srcMod ? getModule(srcMod.definitionId) : undefined
-        const srcPort =
-          srcDef?.outputs[cable.from.portId] ??
-          srcDef?.inputs[cable.from.portId]
-        connectedRingToken = srcPort?.type ?? type
+        connectedRingToken =
+          resolveEffectivePortType(cable.from.moduleId, cable.from.portId) ??
+          type
       }
       break
     }

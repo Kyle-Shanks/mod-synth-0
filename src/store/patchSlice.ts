@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand'
 import type { SerializedCable, SubpatchDefinition } from '../engine/types'
 import { engine } from '../engine/EngineController'
 import { getModule } from '../modules/registry'
+import { clampPositionToRack, isPositionWithinRack } from '../rack/rackBounds'
 import type { StoreState } from './index'
 import {
   isSubpatchContainer,
@@ -96,17 +97,19 @@ export function findFreePosition(
   height: number,
   excludeIds?: Set<string>,
 ): { x: number; y: number } {
-  if (!wouldOverlap(modules, pos, width, height, excludeIds)) return pos
+  const clampedStart = clampPositionToRack(pos, width, height)
+  if (!wouldOverlap(modules, clampedStart, width, height, excludeIds)) return clampedStart
   for (let radius = 1; radius <= 20; radius++) {
     for (let dx = -radius; dx <= radius; dx++) {
       for (let dy = -radius; dy <= radius; dy++) {
         if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue
-        const candidate = { x: pos.x + dx, y: pos.y + dy }
+        const candidate = { x: clampedStart.x + dx, y: clampedStart.y + dy }
+        if (!isPositionWithinRack(candidate, width, height)) continue
         if (!wouldOverlap(modules, candidate, width, height, excludeIds)) return candidate
       }
     }
   }
-  return pos // give up after 20 grid units
+  return clampedStart // give up after 20 grid units
 }
 
 // detect if adding a cable creates a cycle in the patch graph
@@ -596,6 +599,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     if (!mod) return
     const size = getModuleSize(mod)
     if (!size) return
+    if (!isPositionWithinRack(position, size.width, size.height)) return
     if (wouldOverlap(get().modules, position, size.width, size.height, new Set([moduleId]))) return
     set((s) => ({
       modules: { ...s.modules, [moduleId]: { ...s.modules[moduleId]!, position } }
@@ -625,6 +629,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
         if (!mod) continue
         const modDef = getModule(mod.definitionId)
         if (!modDef) continue
+        if (!isPositionWithinRack(position, modDef.width, modDef.height)) return
         if (wouldOverlap(defMods, position, modDef.width, modDef.height, movingSet)) return
       }
       // all clear — apply
@@ -658,6 +663,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       const position = positions[moduleId]
       if (!position) continue
       if (position.x < 0 || position.y < 0) return
+      if (!isPositionWithinRack(position, size.width, size.height)) return
       if (wouldOverlap(rootModulesForMove, position, size.width, size.height, movingSet)) return
     }
 
@@ -837,14 +843,34 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     // move the selected modules into the definition
     const def = get().definitions[defId]!
     const internalModules: SubpatchDefinition['modules'] = {}
+    let minInternalX = Infinity
+    let minInternalY = Infinity
     for (const id of uniqueIds) {
       const mod = state.modules[id]
       if (!mod || isSubpatchContainer(mod)) continue
+      const internalX = mod.position.x - centroid.x + 2
+      const internalY = mod.position.y - centroid.y + 2
       internalModules[id] = {
         definitionId: mod.definitionId,
-        position: { x: mod.position.x - centroid.x + 2, y: mod.position.y - centroid.y + 2 },
+        position: { x: internalX, y: internalY },
         params: { ...mod.params },
         data: mod.data ? { ...mod.data } : undefined,
+      }
+      minInternalX = Math.min(minInternalX, internalX)
+      minInternalY = Math.min(minInternalY, internalY)
+    }
+
+    // keep all grouped internals inside non-negative grid coordinates
+    if (Number.isFinite(minInternalX) && Number.isFinite(minInternalY)) {
+      const shiftX = minInternalX < 0 ? -minInternalX : 0
+      const shiftY = minInternalY < 0 ? -minInternalY : 0
+      if (shiftX > 0 || shiftY > 0) {
+        for (const mod of Object.values(internalModules)) {
+          mod.position = {
+            x: mod.position.x + shiftX,
+            y: mod.position.y + shiftY,
+          }
+        }
       }
     }
 
@@ -918,14 +944,15 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
 
       const newId = `${internalMod.definitionId}-${++moduleCounter}`
       const absolutePos = {
-        x: Math.max(0, containerPos.x + internalMod.position.x),
-        y: Math.max(0, containerPos.y + internalMod.position.y),
+        x: containerPos.x + internalMod.position.x,
+        y: containerPos.y + internalMod.position.y,
       }
+      const clampedPos = clampPositionToRack(absolutePos, modDef.width, modDef.height)
       const modState = modDef.initialize({ sampleRate: engine.sampleRate, bufferSize: 128 })
       const params = { ...internalMod.params }
-      engine.addModule({ id: newId, definitionId: internalMod.definitionId, params, state: modState, position: absolutePos }, modDef)
+      engine.addModule({ id: newId, definitionId: internalMod.definitionId, params, state: modState, position: clampedPos }, modDef)
       set((s) => ({
-        modules: { ...s.modules, [newId]: { definitionId: internalMod.definitionId, position: absolutePos, params, data: internalMod.data } }
+        modules: { ...s.modules, [newId]: { definitionId: internalMod.definitionId, position: clampedPos, params, data: internalMod.data } }
       }))
       idMap.set(internalId, newId)
     }

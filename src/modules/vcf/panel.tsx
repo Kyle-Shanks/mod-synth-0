@@ -33,6 +33,9 @@ const VCF_MOD_RELEASE = 0.16
 export function VCFPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
   const def = mod ? getModule(mod.definitionId) : undefined
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const engineRevision = useStore((s) => s.engineRevision)
   const setScopeBuffers = useStore((s) => s.setScopeBuffers)
   const theme = useTheme()
@@ -53,17 +56,17 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
   const bandPeakScratchRef = useRef(new Float32Array(VCF_N_BARS))
   const bandWeightScratchRef = useRef(new Float32Array(VCF_N_BARS))
   const spectrumKernelRef = useRef<ReturnType<typeof createLogSpectrumKernel> | null>(null)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   useEffect(() => { themeRef.current = theme }, [theme])
   useEffect(() => { paramsRef.current = mod?.params ?? {} }, [mod?.params])
 
   useEffect(() => {
     return useStore.subscribe((state) => {
-      const ctx = state.subpatchContext
-      const instanceId = ctx[ctx.length - 1]?.instanceId
-      const workletId = instanceId ? internalWorkletId(instanceId, moduleId) : moduleId
-      const cutoffNorm = state.meterValues[`${workletId}:cutoffNorm`]
-      const resNorm = state.meterValues[`${workletId}:resNorm`]
+      const cutoffNorm = state.meterValues[`${workletModuleId}:cutoffNorm`]
+      const resNorm = state.meterValues[`${workletModuleId}:resNorm`]
       if (typeof cutoffNorm === 'number' && Number.isFinite(cutoffNorm)) {
         modTargetsRef.current.cutoffNorm = Math.max(0, Math.min(1, cutoffNorm))
       }
@@ -71,7 +74,7 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
         modTargetsRef.current.resNorm = Math.max(0, Math.min(1, resNorm))
       }
     })
-  }, [moduleId])
+  }, [workletModuleId])
 
   useEffect(() => {
     spectrumKernelRef.current = createLogSpectrumKernel({
@@ -99,11 +102,11 @@ export function VCFPanel({ moduleId }: { moduleId: string }) {
   useEffect(() => {
     if (!scopeBuffers) return
     setScopeBuffers(
-      moduleId,
+      workletModuleId,
       scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, scopeBuffers, engineRevision, setScopeBuffers])
+  }, [workletModuleId, scopeBuffers, engineRevision, setScopeBuffers])
 
   useEffect(() => {
     const draw = () => {

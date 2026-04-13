@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type PointerEvent } from 'react'
 import { ModuleSquareButton } from '../../components/ModuleSquareButton'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import styles from './panel.module.css'
 
 interface SampleHoldPanelProps {
@@ -8,14 +9,20 @@ interface SampleHoldPanelProps {
 }
 
 export function SampleHoldPanel({ moduleId }: SampleHoldPanelProps) {
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const setGate = useStore((s) => s.setGate)
   const [holding, setHolding] = useState(false)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const releaseHold = useCallback(() => {
     if (!holding) return
     setHolding(false)
-    setGate(moduleId, 'gate', 0)
-  }, [holding, moduleId, setGate])
+    setGate(workletModuleId, 'gate', 0)
+  }, [holding, workletModuleId, setGate])
 
   const handlePointerDown = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
@@ -23,9 +30,9 @@ export function SampleHoldPanel({ moduleId }: SampleHoldPanelProps) {
       e.stopPropagation()
       e.currentTarget.setPointerCapture(e.pointerId)
       setHolding(true)
-      setGate(moduleId, 'gate', 1)
+      setGate(workletModuleId, 'gate', 1)
     },
-    [moduleId, setGate],
+    [workletModuleId, setGate],
   )
 
   const handlePointerUp = useCallback(
@@ -42,9 +49,9 @@ export function SampleHoldPanel({ moduleId }: SampleHoldPanelProps) {
 
   useEffect(() => () => {
     if (holding) {
-      setGate(moduleId, 'gate', 0)
+      setGate(workletModuleId, 'gate', 0)
     }
-  }, [holding, moduleId, setGate])
+  }, [holding, workletModuleId, setGate])
 
   return (
     <div className={styles.root}>

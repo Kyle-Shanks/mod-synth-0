@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { CanvasZone } from '../../components/CanvasZone'
@@ -40,8 +41,14 @@ function renderXY(ctx: CanvasRenderingContext2D, data: CanvasData) {
 export function XYScopePanel({ moduleId }: XYScopePanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
   const def = mod ? getModule(mod.definitionId) : undefined
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const engineRevision = useStore((s) => s.engineRevision)
   const setXYScopeBuffers = useStore((s) => s.setXYScopeBuffers)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const xyScopeBuffers = useMemo(() => {
     try {
@@ -61,12 +68,12 @@ export function XYScopePanel({ moduleId }: XYScopePanelProps) {
   useEffect(() => {
     if (!xyScopeBuffers) return
     setXYScopeBuffers(
-      moduleId,
+      workletModuleId,
       xyScopeBuffers.xBuffer.buffer as SharedArrayBuffer,
       xyScopeBuffers.yBuffer.buffer as SharedArrayBuffer,
       xyScopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, xyScopeBuffers, engineRevision, setXYScopeBuffers])
+  }, [workletModuleId, xyScopeBuffers, engineRevision, setXYScopeBuffers])
 
   if (!mod || !def) return null
 

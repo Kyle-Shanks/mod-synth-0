@@ -73,7 +73,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 
 - **button** - manual gate + 4ms trigger generator.
 - **clock** - integer bpm clock (`20-1000`) with swing, reset, gate output, and 4ms trigger output.
-- **clock div** - clock divider with integer division factor (`2-10`), reset, and output activity indicator.
+- **clock div** - clock divider with integer division factor (`2-16`), reset, and output activity indicator.
 - **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, accent output, and output activity indicator.
 - **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
 - **keyboard** - computer-keyboard note entry (`a w s e d f t g y h u j k`, octave via `z`/`x`) with pitch, gate, and trigger outs.
@@ -199,6 +199,7 @@ Lesson completion badges are saved in LocalStorage.
 | Delete selected modules   | `delete` or `backspace`                              |
 | Select module             | Click on it                                          |
 | Select multiple modules   | Click-drag empty rack area                           |
+| Select all visible modules| `cmd/ctrl + a`                                       |
 | Add to selection          | Hold `shift` while marquee-selecting                 |
 | Copy selected modules     | `cmd/ctrl + c`                                       |
 | Paste modules             | `cmd/ctrl + v`                                       |
@@ -222,6 +223,8 @@ Lesson completion badges are saved in LocalStorage.
 | Expose port in subpatch   | Add **in** / **out** module while drilled in         |
 | Expose knob as macro      | Right-click knob while drilled in -> Expose as macro |
 | Save subpatch preset      | Right-click subpatch container -> Save to library    |
+
+Module placement is clamped to the rack workspace bounds, including paste and subpatch container placement.
 
 ---
 

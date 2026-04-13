@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { Knob } from '../../components/Knob'
 import { CanvasZone } from '../../components/CanvasZone'
@@ -36,8 +37,14 @@ function renderScope(ctx: CanvasRenderingContext2D, data: CanvasData) {
 export function ScopePanel({ moduleId }: ScopePanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
   const def = mod ? getModule(mod.definitionId) : undefined
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const engineRevision = useStore((s) => s.engineRevision)
   const setScopeBuffers = useStore((s) => s.setScopeBuffers)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const scopeBuffers = useMemo(() => {
     try {
@@ -55,11 +62,11 @@ export function ScopePanel({ moduleId }: ScopePanelProps) {
   useEffect(() => {
     if (!scopeBuffers) return
     setScopeBuffers(
-      moduleId,
+      workletModuleId,
       scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, scopeBuffers, engineRevision, setScopeBuffers])
+  }, [workletModuleId, scopeBuffers, engineRevision, setScopeBuffers])
 
   if (!mod || !def) return null
 

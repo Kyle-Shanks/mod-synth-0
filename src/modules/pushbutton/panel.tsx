@@ -1,6 +1,7 @@
 import { useState, useCallback, type PointerEvent } from 'react'
 import { ModuleSquareButton } from '../../components/ModuleSquareButton'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import styles from './panel.module.css'
 
 interface PushButtonPanelProps {
@@ -9,22 +10,28 @@ interface PushButtonPanelProps {
 
 export function PushButtonPanel({ moduleId }: PushButtonPanelProps) {
   const [pressed, setPressed] = useState(false)
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const setGate = useStore((s) => s.setGate)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const handleDown = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
       setPressed(true)
-      setGate(moduleId, 'gate', 1)
+      setGate(workletModuleId, 'gate', 1)
     },
-    [moduleId, setGate],
+    [workletModuleId, setGate],
   )
 
   const handleUp = useCallback(() => {
     setPressed(false)
-    setGate(moduleId, 'gate', 0)
-  }, [moduleId, setGate])
+    setGate(workletModuleId, 'gate', 0)
+  }, [workletModuleId, setGate])
 
   return (
     <div className={styles.root}>
@@ -36,7 +43,7 @@ export function PushButtonPanel({ moduleId }: PushButtonPanelProps) {
         onPointerLeave={() => {
           if (pressed) {
             setPressed(false)
-            setGate(moduleId, 'gate', 0)
+            setGate(workletModuleId, 'gate', 0)
           }
         }}
       />

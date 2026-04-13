@@ -9,11 +9,10 @@ import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
 import { getModule } from '../modules/registry'
 import { classes } from '../utils/classes'
+import { RACK_COLS, RACK_ROWS } from './rackBounds'
 import styles from './Rack.module.css'
 import contextMenuStyles from '../styles/contextMenuBase.module.css'
 
-const RACK_COLS = 64
-const RACK_ROWS = 32
 const FALLBACK_MODULE_WIDTH = 3
 const FALLBACK_MODULE_HEIGHT = 4
 const GRID_DOT_PATTERN_ID = 'rack-grid-dots'
@@ -277,6 +276,33 @@ export function Rack() {
       const isMac = navigator.platform.toUpperCase().includes('MAC')
       const mod = isMac ? e.metaKey : e.ctrlKey
       const key = e.key.toLowerCase()
+
+      if (mod && !e.shiftKey && key === 'a') {
+        e.preventDefault()
+        const state = useStore.getState()
+        const ctx = state.subpatchContext
+        const insideSubpatch = ctx.length > 0
+        const allVisibleModuleIds = Object.keys(state.modules).filter((id) => {
+          const modInst = state.modules[id]
+          if (!modInst) return false
+          if (!insideSubpatch) {
+            if (
+              modInst.definitionId === 'subpatch-input' ||
+              modInst.definitionId === 'subpatch-output'
+            )
+              return false
+          } else {
+            const currentDef = ctx[ctx.length - 1]
+            if (!currentDef) return false
+            const def = state.definitions[currentDef.definitionId]
+            if (!def) return false
+            return id in def.modules
+          }
+          return true
+        })
+        setSelectedModules(allVisibleModuleIds)
+        return
+      }
 
       if (mod && !e.shiftKey && key === 'c') {
         if (selectedModuleIds.length > 0) {

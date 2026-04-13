@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import styles from './panel.module.css'
 
 interface ChordDicePanelProps {
@@ -18,11 +19,17 @@ const FACE_PIPS: Record<number, number[]> = {
 }
 
 export function ChordDicePanel({ moduleId }: ChordDicePanelProps) {
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const setGate = useStore((s) => s.setGate)
   const [rolling, setRolling] = useState(false)
   const [face, setFace] = useState(1)
   const rollIntervalRef = useRef<number | null>(null)
   const rollTimeoutRef = useRef<number | null>(null)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const clearRollTimers = useCallback(() => {
     if (rollIntervalRef.current !== null) {
@@ -46,7 +53,7 @@ export function ChordDicePanel({ moduleId }: ChordDicePanelProps) {
       e.preventDefault()
       e.stopPropagation()
 
-      setGate(moduleId, 'shuffle', 1)
+      setGate(workletModuleId, 'shuffle', 1)
 
       clearRollTimers()
       setRolling(true)
@@ -62,7 +69,7 @@ export function ChordDicePanel({ moduleId }: ChordDicePanelProps) {
         setFace(1 + Math.floor(Math.random() * 6))
       }, 260)
     },
-    [moduleId, setGate, clearRollTimers],
+    [workletModuleId, setGate, clearRollTimers],
   )
 
   const activePips = FACE_PIPS[face] ?? FACE_PIPS[1] ?? [4]

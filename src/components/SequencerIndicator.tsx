@@ -1,5 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
+import { internalWorkletId } from '../store/subpatchSlice'
 import styles from './SequencerIndicator.module.css'
 
 interface SequencerIndicatorProps {
@@ -13,7 +14,13 @@ export function SequencerIndicator({
 }: SequencerIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
   const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const dotsRef = useRef<(HTMLDivElement | null)[]>([])
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   // create SharedArrayBuffer for 1 Int32 value: [currentStep]
   const indicatorBuffer = useMemo(() => {
@@ -29,10 +36,10 @@ export function SequencerIndicator({
   useEffect(() => {
     if (!indicatorBuffer) return
     setIndicatorBuffer(
-      moduleId,
+      workletModuleId,
       indicatorBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
+  }, [workletModuleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
 
   // animation loop: read current step and update DOM directly
   useEffect(() => {

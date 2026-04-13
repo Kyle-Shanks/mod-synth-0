@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import styles from './panel.module.css'
 
 interface KeyboardPanelProps {
@@ -73,6 +74,9 @@ const KEY_LAYOUT = [
 
 export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
   const selectedModuleIds = useStore((s) => s.selectedModuleIds)
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const setGate = useStore((s) => s.setGate)
   const pressedRef = useRef<Map<string, number>>(new Map())
   const octaveShiftRef = useRef(0)
@@ -80,6 +84,9 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [octaveShift, setOctaveShift] = useState(0)
   const isSelected = selectedModuleIds.includes(moduleId)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   useEffect(() => {
     function recomputeActiveNote() {
@@ -97,7 +104,7 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
       const uniqueNotes = new Set<number>()
       for (const note of pressedRef.current.values()) uniqueNotes.add(note)
       for (const note of uniqueNotes) {
-        setGate(moduleId, `note:${note}`, 0)
+        setGate(workletModuleId, `note:${note}`, 0)
       }
       pressedRef.current.clear()
       setActiveNote(null)
@@ -117,8 +124,8 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
         if (semitone === undefined) continue
         const newMidi = BASE_MIDI + semitone + clamped * 12
         if (newMidi !== oldMidi) {
-          setGate(moduleId, `note:${oldMidi}`, 0)
-          setGate(moduleId, `note:${newMidi}`, 1)
+          setGate(workletModuleId, `note:${oldMidi}`, 0)
+          setGate(workletModuleId, `note:${newMidi}`, 1)
         }
         nextPressed.set(key, newMidi)
       }
@@ -153,7 +160,7 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
 
       const midi = BASE_MIDI + semitone + octaveShiftRef.current * 12
       pressedRef.current.set(key, midi)
-      setGate(moduleId, `note:${midi}`, 1)
+      setGate(workletModuleId, `note:${midi}`, 1)
       recomputeActiveNote()
     }
 
@@ -164,7 +171,7 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
 
       e.preventDefault()
       pressedRef.current.delete(key)
-      setGate(moduleId, `note:${midi}`, 0)
+      setGate(workletModuleId, `note:${midi}`, 0)
       recomputeActiveNote()
     }
 
@@ -178,7 +185,7 @@ export function KeyboardPanel({ moduleId }: KeyboardPanelProps) {
       window.removeEventListener('blur', releaseAll)
       releaseAll()
     }
-  }, [isSelected, moduleId, setGate])
+  }, [isSelected, workletModuleId, setGate])
 
   return (
     <div className={styles.root}>

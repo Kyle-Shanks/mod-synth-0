@@ -1,5 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
+import { internalWorkletId } from '../store/subpatchSlice'
 import styles from './ClockIndicator.module.css'
 
 interface ClockIndicatorProps {
@@ -10,7 +11,13 @@ interface ClockIndicatorProps {
 export function ClockIndicator({ moduleId, label = 'clk' }: ClockIndicatorProps) {
   const engineRevision = useStore((s) => s.engineRevision)
   const setIndicatorBuffer = useStore((s) => s.setIndicatorBuffer)
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const gateDotRef = useRef<HTMLDivElement>(null)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   // create SharedArrayBuffer for 2 Int32 values: [gateHigh, triggerHigh]
   // trigger value is currently unused in the UI indicator.
@@ -27,10 +34,10 @@ export function ClockIndicator({ moduleId, label = 'clk' }: ClockIndicatorProps)
   useEffect(() => {
     if (!indicatorBuffer) return
     setIndicatorBuffer(
-      moduleId,
+      workletModuleId,
       indicatorBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
+  }, [workletModuleId, indicatorBuffer, engineRevision, setIndicatorBuffer])
 
   // animation loop: read indicator buffer and update DOM directly
   useEffect(() => {

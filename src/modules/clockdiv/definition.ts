@@ -19,7 +19,7 @@ export const ClockDivDefinition: ModuleDefinition<
     div: {
       type: 'int'
       min: 2
-      max: 10
+      max: 16
       default: 4
       label: 'div'
     }
@@ -43,7 +43,7 @@ export const ClockDivDefinition: ModuleDefinition<
     div: {
       type: 'int',
       min: 2,
-      max: 10,
+      max: 16,
       default: 4,
       label: 'div',
     },
@@ -58,7 +58,7 @@ export const ClockDivDefinition: ModuleDefinition<
   },
 
   process(inputs, outputs, params, state, context) {
-    const div = Math.max(2, Math.min(10, Math.round(params.div)))
+    const div = Math.max(2, Math.min(16, Math.round(params.div)))
     const indicatorDuration = Math.max(1, Math.round(context.sampleRate * 0.03))
 
     for (let i = 0; i < 128; i++) {

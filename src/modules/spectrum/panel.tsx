@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useCallback, useRef } from 'react'
 import { useStore } from '../../store'
+import { internalWorkletId } from '../../store/subpatchSlice'
 import { getModule } from '../registry'
 import { CanvasZone } from '../../components/CanvasZone'
 import type { CanvasData } from '../../components/CanvasZone'
@@ -23,8 +24,14 @@ const RELEASE = 0.1
 export function SpectrumPanel({ moduleId }: SpectrumPanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
   const def = mod ? getModule(mod.definitionId) : undefined
+  const currentInstanceId = useStore(
+    (s) => s.subpatchContext[s.subpatchContext.length - 1]?.instanceId,
+  )
   const engineRevision = useStore((s) => s.engineRevision)
   const setScopeBuffers = useStore((s) => s.setScopeBuffers)
+  const workletModuleId = currentInstanceId
+    ? internalWorkletId(currentInstanceId, moduleId)
+    : moduleId
 
   const kernel = useMemo(
     () =>
@@ -61,11 +68,11 @@ export function SpectrumPanel({ moduleId }: SpectrumPanelProps) {
   useEffect(() => {
     if (!scopeBuffers) return
     setScopeBuffers(
-      moduleId,
+      workletModuleId,
       scopeBuffers.scopeBuffer.buffer as SharedArrayBuffer,
       scopeBuffers.writeIndexBuffer.buffer as SharedArrayBuffer,
     )
-  }, [moduleId, scopeBuffers, engineRevision, setScopeBuffers])
+  }, [workletModuleId, scopeBuffers, engineRevision, setScopeBuffers])
 
   const renderSpectrum = useCallback(
     (ctx: CanvasRenderingContext2D, data: CanvasData) => {

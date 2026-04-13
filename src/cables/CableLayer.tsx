@@ -142,6 +142,18 @@ export function CableLayer() {
       return exposed ? CABLE_COLORS[exposed.type] : 'var(--shade2)'
     }
 
+    // proxy modules (subpatch-input/output) and other special modules may override
+    // visual port typing via instance data.
+    const dataType = mod.data?.portType
+    if (
+      dataType === 'audio' ||
+      dataType === 'cv' ||
+      dataType === 'gate' ||
+      dataType === 'trigger'
+    ) {
+      return CABLE_COLORS[dataType]
+    }
+
     const def = getModule(mod.definitionId)
     if (!def) return 'var(--shade2)'
     const port = def.outputs[fromPortId] ?? def.inputs[fromPortId]

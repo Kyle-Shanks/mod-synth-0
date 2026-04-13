@@ -590,7 +590,11 @@ module `width` and `height` are declared in rack grid units. the pixel dimension
 
 click-drag on empty rack space draws an accent-colored marquee selection box. any module intersecting the box is added to `selectedModuleIds` and rendered with the same accent border used for active selection.
 
+`cmd/ctrl+a` selects all currently visible modules in the active rack view (root or drilled-in subpatch).
+
 selected modules can be copied and pasted with `cmd/ctrl+c` and `cmd/ctrl+v`. paste preserves relative layout and recreates cables where both ends were in the copied set.
+
+all module placement paths are clamped to rack bounds (including add, drag, paste, and subpatch container placement), so modules cannot be positioned outside the `64 × 32` workspace.
 
 ### command palette
 
@@ -783,7 +787,7 @@ _54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
 timing module parameter notes:
 
 - `clock.bpm` is an integer control in the `20–1000` range.
-- `clock div.div` is an integer divider control in the `2–10` range.
+- `clock div.div` is an integer divider control in the `2–16` range.
 - `euclid` and `clock div` expose output activity indicators via the shared indicator buffer path.
 
 granulator parameter notes:
