@@ -131,7 +131,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 
 - **scope** - real-time waveform scope.
 - **freq spectrum** - log-frequency spectrum analyzer.
-- **tuner** - note + cents tuner display.
+- **tuner** - note + cents tuner display with stabilized pitch averaging.
 - **xy scope** - x/y oscilloscope for lissajous-style signal visualization with `scale` and `fade` controls (`fade` controls trail persistence).
 
 ---

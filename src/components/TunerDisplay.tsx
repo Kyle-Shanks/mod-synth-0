@@ -11,12 +11,14 @@ interface TunerDisplayProps {
 }
 
 // Rolling median window. Each detection arrives every ~11.6ms (512 samples @ 44100Hz).
-// Median of 7 readings = ~80ms of history — immune to octave-error outliers.
-const HISTORY = 7
+// Median of 9 readings = ~104ms of history — better stability against jitter.
+const HISTORY = 9
 // Min readings before showing anything (avoids flicker on first connection).
 const MIN_DISPLAY = 3
-// Needle smoothing coefficient — fast enough to feel live on sustained notes.
-const NEEDLE_ALPHA = 0.35
+// Needle smoothing coefficient — slightly slower for steadier movement.
+const NEEDLE_ALPHA = 0.25
+// UI acceptance threshold for detector confidence.
+const CLARITY_MIN = 0.35
 
 export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
   const noteRef   = useRef<HTMLDivElement | null>(null)
@@ -29,14 +31,11 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
 
   // rolling window of recent semitone readings (only valid detections)
   const semiWindowRef   = useRef<number[]>([])
-  // track last freq written by worklet to detect new detections
-  const lastRawFreqRef  = useRef<number>(0)
   // smoothed semitone value used for the needle and readouts
   const smoothedSemiRef = useRef<number | null>(null)
 
   useEffect(() => {
     semiWindowRef.current   = []
-    lastRawFreqRef.current  = 0
     smoothedSemiRef.current = null
   }, [tunerBuffer])
 
@@ -47,21 +46,15 @@ export function TunerDisplay({ tunerBuffer }: TunerDisplayProps) {
       const rawFreq    = tunerBuffer?.[0] ?? 0
       const rawClarity = tunerBuffer?.[1] ?? 0
 
-      // --- ingest new detection if the worklet wrote a new value ---
-      if (rawFreq !== lastRawFreqRef.current) {
-        lastRawFreqRef.current = rawFreq
-        const win = semiWindowRef.current
-
-        if (rawFreq > 20 && rawClarity > 0.5) {
-          win.push(12 * Math.log2(rawFreq / 440) + 69)
-          if (win.length > HISTORY) win.shift()
-        } else {
-          // bad detection: drain one slot so silence clears the window gradually
-          if (win.length > 0) win.shift()
-        }
-      }
-
+      // Ingest every frame. The detector can hold a stable value for many frames.
       const win = semiWindowRef.current
+      if (rawFreq > 20 && rawClarity > CLARITY_MIN) {
+        win.push(12 * Math.log2(rawFreq / 440) + 69)
+        if (win.length > HISTORY) win.shift()
+      } else {
+        // bad detection: drain one slot so silence clears the window gradually
+        if (win.length > 0) win.shift()
+      }
 
       if (win.length >= MIN_DISPLAY) {
         // median of the window — robust against octave-error outliers

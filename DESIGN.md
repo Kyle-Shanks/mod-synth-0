@@ -839,6 +839,8 @@ scope, freq spectrum, tuner, and xy scope each set up their own `SharedArrayBuff
 
 buffers are injected through zustand store actions, not direct engine calls from `ModulePanel.tsx`. if `SharedArrayBuffer` is unavailable (missing coop/coep headers), the panels gracefully render without live data.
 
+the tuner module skips pitch detection when its input is unpatched (or effectively silent), runs detection at a throttled cadence, downsamples its analysis window in-worklet, and applies lightweight frequency/clarity smoothing before publishing to its shared buffer. this keeps multiple active tuners cheaper in the audio thread and makes the tuner readout less erratic.
+
 the freq spectrum and vcf panels share a single log-frequency analyzer implementation at `src/modules/utils/logSpectrumAnalyzer.ts`. it precomputes a blackman-harris window, radix-2 fft tables, and bin-to-bar weights with low-band center-spacing guards so early bars stay responsive. each frame removes dc offset, runs an in-place fft, aggregates fft bin energy into bars, and applies attack/release smoothing in-place so low-frequency bars are stable without per-frame allocations.
 
 ### timing indicator buffers
