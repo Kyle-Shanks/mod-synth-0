@@ -27,13 +27,23 @@ export interface TutorialRuntime {
   subpatchContext: TutorialSubpatchContextEntry[]
   selectedModuleIds: string[]
 
-  addModule: (definitionId: string, position: { x: number; y: number }) => string
+  addModule: (
+    definitionId: string,
+    position: { x: number; y: number },
+  ) => string
   addCable: (cable: SerializedCable) => void
   setParam: (moduleId: string, param: string, value: number) => void
   setSelectedModule: (id: string | null) => void
   createDefinition: (name: string) => string
-  addSubpatchContainer: (defId: string, position: { x: number; y: number }) => string
-  enterSubpatch: (instanceId: string, definitionId: string, name: string) => void
+  addSubpatchContainer: (
+    defId: string,
+    position: { x: number; y: number },
+  ) => string
+  enterSubpatch: (
+    instanceId: string,
+    definitionId: string,
+    name: string,
+  ) => void
   exitSubpatch: () => void
   addMacro: (
     defId: string,
@@ -49,7 +59,6 @@ export interface TutorialRuntime {
 
 export interface TutorialValidationResult {
   ok: boolean
-  hint?: string
 }
 
 export type TutorialFocusTarget =
@@ -62,7 +71,7 @@ export interface TutorialStep {
   id: string
   action: string
   why: string
-  hints: string[]
+  hint: string
   demo: string
   validate: (runtime: TutorialRuntime) => TutorialValidationResult
   autoPerform?: (runtime: TutorialRuntime) => void

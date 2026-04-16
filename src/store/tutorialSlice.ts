@@ -12,7 +12,6 @@ export interface TutorialSlice {
   tutorialMode: TutorialMode
   activeTutorialId: string | null
   tutorialStepIndex: number
-  tutorialHint: string | null
   tutorialShowDemo: boolean
   tutorialCompletion: TutorialCompletionMap
 
@@ -35,7 +34,6 @@ export const createTutorialSlice: StateCreator<
   tutorialMode: 'beginner',
   activeTutorialId: null,
   tutorialStepIndex: 0,
-  tutorialHint: null,
   tutorialShowDemo: false,
   tutorialCompletion: loadTutorialCompletion(),
 
@@ -54,7 +52,6 @@ export const createTutorialSlice: StateCreator<
       activeTutorialId: tutorialId,
       tutorialMode: lesson.mode,
       tutorialStepIndex: 0,
-      tutorialHint: null,
       tutorialShowDemo: false,
       tutorialPanelOpen: true,
     })
@@ -65,7 +62,6 @@ export const createTutorialSlice: StateCreator<
     set({
       activeTutorialId: null,
       tutorialStepIndex: 0,
-      tutorialHint: null,
       tutorialShowDemo: false,
     })
   },
@@ -94,21 +90,18 @@ export const createTutorialSlice: StateCreator<
       set({
         activeTutorialId: null,
         tutorialStepIndex: 0,
-        tutorialHint: null,
         tutorialShowDemo: false,
       })
       return
     }
 
     let nextIndex = state.tutorialStepIndex
-    let nextHint: string | null = null
 
     while (nextIndex < lesson.steps.length) {
       const step = lesson.steps[nextIndex]
       if (!step) break
       const result = step.validate(get())
       if (!result.ok) {
-        nextHint = result.hint ?? null
         break
       }
       nextIndex += 1
@@ -118,9 +111,6 @@ export const createTutorialSlice: StateCreator<
     if (nextIndex !== state.tutorialStepIndex) {
       updates.tutorialStepIndex = nextIndex
       updates.tutorialShowDemo = false
-    }
-    if (nextHint !== state.tutorialHint) {
-      updates.tutorialHint = nextHint
     }
 
     const justCompleted =
@@ -134,7 +124,6 @@ export const createTutorialSlice: StateCreator<
         [tutorialId]: completedAt,
       }
       updates.tutorialCompletion = nextCompletion
-      updates.tutorialHint = 'lesson complete.'
       saveTutorialCompletion(nextCompletion)
     }
 

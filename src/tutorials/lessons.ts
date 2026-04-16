@@ -25,8 +25,8 @@ function ok(): TutorialValidationResult {
   return { ok: true }
 }
 
-function fail(hint: string): TutorialValidationResult {
-  return { ok: false, hint }
+function fail(): TutorialValidationResult {
+  return { ok: false }
 }
 
 function hasConnection(
@@ -62,12 +62,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vco',
         action: 'add a vco module.',
         why: 'a vco generates the raw waveform we can hear.',
-        hints: ['press space, type "vco", then hit enter.'],
+        hint: 'the command palette search is the fastest way to place modules.',
         demo: 'open the palette with space, search for vco, and place it near the center.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'vco')
-            ? ok()
-            : fail('drop a vco onto the rack first.')
+          return firstModuleByDefinition(runtime, 'vco') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'vco', { x: 6, y: 6 })
@@ -81,12 +79,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-output',
         action: 'add an output module.',
         why: 'output is the final sink that sends audio to your speakers.',
-        hints: ['you only need one output module per patch.'],
+        hint: 'you only need one output module per patch.',
         demo: 'open the palette again and add output to the right of the vco.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'output')
-            ? ok()
-            : fail('add an output module so we can hear the signal.')
+          return firstModuleByDefinition(runtime, 'output') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'output', { x: 12, y: 6 })
@@ -100,16 +96,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'connect-left',
         action: 'connect vco `sin` to output `left`.',
         why: 'this creates the first audible signal path.',
-        hints: ['drag from `sin` on vco to `left` on output.'],
+        hint: 'look for the vco sine output and the output module left input.',
         demo: 'click-hold on the vco sine output, drag, then release on output left.',
         validate(runtime) {
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!vcoId || !outputId)
-            return fail('make sure both vco and output exist first.')
+          if (!vcoId || !outputId) return fail()
           return hasCable(runtime, vcoId, 'sine', outputId, 'left')
             ? ok()
-            : fail('patch from vco sine to output left.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcoId = ensureModule(runtime, 'vco', { x: 6, y: 6 })
@@ -135,16 +130,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'connect-right',
         action: 'connect vco `sin` to output `right`.',
         why: 'mirroring to right gives centered stereo playback.',
-        hints: ['you can fan one output jack to multiple destinations.'],
+        hint: 'you can fan one output jack to multiple destinations.',
         demo: 'drag a second cable from vco sine into output right.',
         validate(runtime) {
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!vcoId || !outputId)
-            return fail('you still need vco and output on the rack.')
+          if (!vcoId || !outputId) return fail()
           return hasCable(runtime, vcoId, 'sine', outputId, 'right')
             ? ok()
-            : fail('patch a second cable from vco sine to output right.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcoId = ensureModule(runtime, 'vco', { x: 6, y: 6 })
@@ -170,15 +164,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'tune-frequency',
         action: 'set vco `freq` into the 110–330 hz range.',
         why: 'working in this range makes pitch movement easier to hear.',
-        hints: ['drag the vco freq knob; hold shift for fine control.'],
+        hint: 'aim for a low-mid pitch you can easily hear while patching.',
         demo: 'hover the vco frequency knob and drag until the readout is around 220 hz.',
         validate(runtime) {
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           const vco = getModule(runtime, vcoId)
-          if (!vco) return fail('add a vco first.')
-          return inRange(vco.params.frequency, 110, 330)
-            ? ok()
-            : fail('set vco frequency between 110 and 330 hz.')
+          if (!vco) return fail()
+          return inRange(vco.params.frequency, 110, 330) ? ok() : fail()
         },
         autoPerform(runtime) {
           const vcoId = ensureModule(runtime, 'vco', { x: 6, y: 6 })
@@ -206,12 +198,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-keyboard',
         action: 'add a keyboard module.',
         why: 'keyboard provides playable gate and pitch control.',
-        hints: ['select the keyboard module, then click it to arm.'],
-        demo: 'add keyboard near the bottom left so it is easy to select while patching.',
+        hint: 'keyboard gives you both gate and cv, so one module can drive timing and pitch.',
+        demo: 'press space, type `keyboard`, hit enter, and place it near the lower-left area.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'keyboard')
-            ? ok()
-            : fail('add a keyboard module.')
+          return firstModuleByDefinition(runtime, 'keyboard') ? ok() : fail()
         },
         autoPerform(runtime) {
           const keyboardId = ensureModule(runtime, 'keyboard', { x: 2, y: 11 })
@@ -227,12 +217,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-adsr',
         action: 'add an adsr module.',
         why: 'adsr turns gate timing into smooth amplitude motion.',
-        hints: ['adsr lives in the envelope category.'],
-        demo: 'place adsr between keyboard and vca area.',
+        hint: 'adsr lives in the envelope category.',
+        demo: 'add adsr with the command palette and place it near the keyboard module.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'adsr')
-            ? ok()
-            : fail('add an adsr module.')
+          return firstModuleByDefinition(runtime, 'adsr') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'adsr', { x: 8, y: 6 })
@@ -242,12 +230,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vca',
         action: 'add a vca module.',
         why: 'the vca is the volume gate controlled by the envelope.',
-        hints: ['vca is in dynamics.'],
+        hint: 'vca is in dynamics.',
         demo: 'drop vca to the right of adsr.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'vca')
-            ? ok()
-            : fail('add a vca module.')
+          return firstModuleByDefinition(runtime, 'vca') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'vca', { x: 13, y: 6 })
@@ -257,12 +243,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vco',
         action: 'add a vco module.',
         why: 'the vco will be the voice source we shape.',
-        hints: ['you can reuse patterns from the first voice lesson.'],
+        hint: 'you can reuse patterns from the first voice lesson.',
         demo: 'add vco to the left of vca so the signal path reads left to right.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'vco')
-            ? ok()
-            : fail('add a vco module.')
+          return firstModuleByDefinition(runtime, 'vco') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'vco', { x: 9, y: 11 })
@@ -272,12 +256,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-output',
         action: 'add an output module.',
         why: 'we still need a final destination for the shaped signal.',
-        hints: ['output can sit to the far right.'],
+        hint: 'output can sit to the far right.',
         demo: 'place output next to vca.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'output')
-            ? ok()
-            : fail('add an output module.')
+          return firstModuleByDefinition(runtime, 'output') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'output', { x: 18, y: 6 })
@@ -287,16 +269,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'gate-to-adsr',
         action: 'connect keyboard `gate` to adsr `gate`.',
         why: 'this tells adsr when a note starts and ends.',
-        hints: ['click the keyboard first so it becomes armed.'],
-        demo: 'patch keyboard gate output into adsr gate input.',
+        hint: 'use the keyboard `gate` jack here, not `trig`.',
+        demo: 'drag from keyboard `gate` output and drop on adsr `gate` input.',
         validate(runtime) {
           const keyboardId = firstModuleByDefinition(runtime, 'keyboard')
           const adsrId = firstModuleByDefinition(runtime, 'adsr')
-          if (!keyboardId || !adsrId)
-            return fail('add keyboard and adsr first.')
+          if (!keyboardId || !adsrId) return fail()
           return hasCable(runtime, keyboardId, 'gate', adsrId, 'gate')
             ? ok()
-            : fail('connect keyboard gate to adsr gate.')
+            : fail()
         },
         autoPerform(runtime) {
           const keyboardId = ensureModule(runtime, 'keyboard', { x: 2, y: 11 })
@@ -323,15 +304,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'cv-to-freq',
         action: 'connect keyboard `cv` to vco `v/oct`.',
         why: 'this adjusts the frequency of the vco based on the keyboard output.',
-        hints: ['click the keyboard first so it becomes armed.'],
-        demo: 'patch keyboard cv output into vco frequency input.',
+        hint: 'for pitch tracking, route keyboard `cv` into the vco `v/oct` (`frequency`) input.',
+        demo: 'drag from keyboard `cv` output and release on the vco `v/oct` input.',
         validate(runtime) {
           const keyboardId = firstModuleByDefinition(runtime, 'keyboard')
           const vcoId = firstModuleByDefinition(runtime, 'vco')
-          if (!keyboardId || !vcoId) return fail('add keyboard and vco first.')
+          if (!keyboardId || !vcoId) return fail()
           return hasCable(runtime, keyboardId, 'cv', vcoId, 'frequency')
             ? ok()
-            : fail('connect keyboard cv to vco frequency.')
+            : fail()
         },
         autoPerform(runtime) {
           const keyboardId = ensureModule(runtime, 'keyboard', { x: 2, y: 11 })
@@ -358,15 +339,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'adsr-to-vca',
         action: 'connect adsr `out` to vca `gain`.',
         why: 'envelope voltage now controls loudness over time.',
-        hints: ['patch from the adsr out jack to the vca gain jack.'],
+        hint: 'adsr `out` should control vca `gain`, not the audio input.',
         demo: 'patch adsr out directly into vca gain.',
         validate(runtime) {
           const adsrId = firstModuleByDefinition(runtime, 'adsr')
           const vcaId = firstModuleByDefinition(runtime, 'vca')
-          if (!adsrId || !vcaId) return fail('add adsr and vca first.')
+          if (!adsrId || !vcaId) return fail()
           return hasCable(runtime, adsrId, 'envelope', vcaId, 'gain')
             ? ok()
-            : fail('connect adsr out to vca gain.')
+            : fail()
         },
         autoPerform(runtime) {
           const adsrId = ensureModule(runtime, 'adsr', { x: 8, y: 6 })
@@ -392,15 +373,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'voice-to-vca',
         action: 'connect vco `sin` to vca `in`.',
         why: 'this routes the raw oscillator through the amplifier.',
-        hints: ['patch from the vco sin jack to the vca in jack.'],
+        hint: 'send audio through the vca before it reaches output.',
         demo: 'patch vco sine into vca in.',
         validate(runtime) {
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           const vcaId = firstModuleByDefinition(runtime, 'vca')
-          if (!vcoId || !vcaId) return fail('add vco and vca first.')
+          if (!vcoId || !vcaId) return fail()
           return hasCable(runtime, vcoId, 'sine', vcaId, 'audio')
             ? ok()
-            : fail('connect vco sine to vca in.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcoId = ensureModule(runtime, 'vco', { x: 9, y: 11 })
@@ -426,17 +407,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'vca-to-output-left',
         action: 'connect vca `out` to output `left`.',
         why: 'this completes the shaped audio path.',
-        hints: [
-          'if you already hear sound in one side, patch right after this too.',
-        ],
+        hint: 'if you already hear sound in one side, patch right after this too.',
         demo: 'drag vca out to output left.',
         validate(runtime) {
           const vcaId = firstModuleByDefinition(runtime, 'vca')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!vcaId || !outputId) return fail('add vca and output first.')
+          if (!vcaId || !outputId) return fail()
           return hasCable(runtime, vcaId, 'out', outputId, 'left')
             ? ok()
-            : fail('connect vca out to output left.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcaId = ensureModule(runtime, 'vca', { x: 13, y: 6 })
@@ -462,15 +441,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'vca-to-output-right',
         action: 'connect vca `out` to output `right`.',
         why: 'dual connection gives centered stereo output.',
-        hints: ['fan out the same vca jack to both output channels.'],
+        hint: 'fan out the same vca jack to both output channels.',
         demo: 'add one more cable from vca out to output right.',
         validate(runtime) {
           const vcaId = firstModuleByDefinition(runtime, 'vca')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!vcaId || !outputId) return fail('add vca and output first.')
+          if (!vcaId || !outputId) return fail()
           return hasCable(runtime, vcaId, 'out', outputId, 'right')
             ? ok()
-            : fail('connect vca out to output right.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcaId = ensureModule(runtime, 'vca', { x: 13, y: 6 })
@@ -496,15 +475,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'reduce-gain',
         action: 'set vca `gain` near 0.',
         why: 'this will allow the envelope to shape the amplitude properly.',
-        hints: ['this will control the floor of the envelope modulation.'],
+        hint: 'this will control the floor of the envelope modulation.',
         demo: 'turn the gain knob down to 0 or very close to it.',
         validate(runtime) {
           const vcaId = firstModuleByDefinition(runtime, 'vca')
           const vca = getModule(runtime, vcaId)
-          if (!vca) return fail('add a vca first.')
-          return inRange(vca.params.gain, 0, 0.05)
-            ? ok()
-            : fail('set vca gain close to zero (0.00 to 0.05).')
+          if (!vca) return fail()
+          return inRange(vca.params.gain, 0, 0.05) ? ok() : fail()
         },
         autoPerform(runtime) {
           const vcaId = ensureModule(runtime, 'vca', { x: 13, y: 6 })
@@ -522,15 +499,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'shape-attack',
         action: 'set adsr `atk` to 0.05–0.20 s.',
         why: 'a slower attack makes the envelope shape obvious and musical.',
-        hints: ['small numbers are snappier; larger numbers feel softer.'],
+        hint: 'small numbers are snappier; larger numbers feel softer.',
         demo: 'turn the attack knob until it sits around 0.08 s.',
         validate(runtime) {
           const adsrId = firstModuleByDefinition(runtime, 'adsr')
           const adsr = getModule(runtime, adsrId)
-          if (!adsr) return fail('add an adsr first.')
-          return inRange(adsr.params.attack, 0.05, 0.2)
-            ? ok()
-            : fail('set adsr attack between 0.05 and 0.20 seconds.')
+          if (!adsr) return fail()
+          return inRange(adsr.params.attack, 0.05, 0.2) ? ok() : fail()
         },
         autoPerform(runtime) {
           const adsrId = ensureModule(runtime, 'adsr', { x: 8, y: 6 })
@@ -558,12 +533,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-clock',
         action: 'add a clock module.',
         why: 'the clock provides stable timing for sequencing.',
-        hints: ['clock is under control modules.'],
+        hint: 'clock is under control modules.',
         demo: 'place clock near the top-left of the rack.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'clock')
-            ? ok()
-            : fail('add a clock module.')
+          return firstModuleByDefinition(runtime, 'clock') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'clock', { x: 3, y: 4 })
@@ -573,12 +546,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-sequencer',
         action: 'add a seq module.',
         why: 'sequencer steps produce a moving pitch line.',
-        hints: ['look for `seq` in the control category.'],
+        hint: 'look for `seq` in the control category.',
         demo: 'place sequencer to the right of clock.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'sequencer')
-            ? ok()
-            : fail('add a seq module.')
+          return firstModuleByDefinition(runtime, 'sequencer') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
@@ -588,12 +559,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vco',
         action: 'add a vco module.',
         why: 'the sequencer needs a voice to control.',
-        hints: ['vco pitch input is labeled v/oct.'],
+        hint: 'vco pitch input is labeled v/oct.',
         demo: 'drop vco below the sequencer.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'vco')
-            ? ok()
-            : fail('add a vco module.')
+          return firstModuleByDefinition(runtime, 'vco') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'vco', { x: 12, y: 10 })
@@ -603,12 +572,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-output',
         action: 'add an output module.',
         why: 'we need a destination for the sequenced tone.',
-        hints: ['one output module is enough.'],
+        hint: 'one output module is enough.',
         demo: 'place output to the right of vco.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'output')
-            ? ok()
-            : fail('add an output module.')
+          return firstModuleByDefinition(runtime, 'output') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'output', { x: 18, y: 10 })
@@ -618,15 +585,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'clock-to-seq',
         action: 'connect clock `gate` to seq `clock`.',
         why: 'each gate edge advances the sequencer by one step.',
-        hints: ['patch from clock gate into seq clock.'],
+        hint: 'clock pulses should advance the sequencer one step at a time.',
         demo: 'patch from clock gate output into sequencer clock input.',
         validate(runtime) {
           const clockId = firstModuleByDefinition(runtime, 'clock')
           const seqId = firstModuleByDefinition(runtime, 'sequencer')
-          if (!clockId || !seqId) return fail('add clock and seq first.')
+          if (!clockId || !seqId) return fail()
           return hasCable(runtime, clockId, 'gate', seqId, 'clock')
             ? ok()
-            : fail('connect clock gate to seq clock.')
+            : fail()
         },
         autoPerform(runtime) {
           const clockId = ensureModule(runtime, 'clock', { x: 3, y: 4 })
@@ -652,15 +619,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'seq-to-vco',
         action: 'connect seq `out` to vco `v/oct`.',
         why: 'this turns sequencer cv into oscillator pitch.',
-        hints: ['patch seq out to the vco v/oct input.'],
+        hint: 'pitch cv from the sequencer belongs on the vco `v/oct` input.',
         demo: 'patch sequencer cv output into vco v/oct input.',
         validate(runtime) {
           const seqId = firstModuleByDefinition(runtime, 'sequencer')
           const vcoId = firstModuleByDefinition(runtime, 'vco')
-          if (!seqId || !vcoId) return fail('add seq and vco first.')
+          if (!seqId || !vcoId) return fail()
           return hasCable(runtime, seqId, 'cv', vcoId, 'frequency')
             ? ok()
-            : fail('connect sequencer out to vco v/oct.')
+            : fail()
         },
         autoPerform(runtime) {
           const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
@@ -686,16 +653,16 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'vco-to-output',
         action: 'connect vco `sin` to output `left` and `right`.',
         why: 'we can now hear the sequenced pitch movement.',
-        hints: ['fan one vco sin output to both output inputs.'],
+        hint: 'fan one vco sin output to both output inputs.',
         demo: 'connect vco sine to output left and right.',
         validate(runtime) {
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!vcoId || !outputId) return fail('add vco and output first.')
+          if (!vcoId || !outputId) return fail()
           return hasCable(runtime, vcoId, 'sine', outputId, 'left') &&
             hasCable(runtime, vcoId, 'sine', outputId, 'right')
             ? ok()
-            : fail('connect vco sine to output left and right.')
+            : fail()
         },
         autoPerform(runtime) {
           const vcoId = ensureModule(runtime, 'vco', { x: 12, y: 10 })
@@ -727,15 +694,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'set-bpm',
         action: 'set clock `bpm` between 90 and 160.',
         why: 'mid tempos make step motion easy to perceive.',
-        hints: ['try around 120 bpm to start.'],
+        hint: 'try around 120 bpm to start.',
         demo: 'adjust the clock bpm knob until it lands near 120.',
         validate(runtime) {
           const clockId = firstModuleByDefinition(runtime, 'clock')
           const clock = getModule(runtime, clockId)
-          if (!clock) return fail('add a clock first.')
-          return inRange(clock.params.bpm, 90, 160)
-            ? ok()
-            : fail('set clock bpm in the 90–160 range.')
+          if (!clock) return fail()
+          return inRange(clock.params.bpm, 90, 160) ? ok() : fail()
         },
         autoPerform(runtime) {
           const clockId = ensureModule(runtime, 'clock', { x: 3, y: 4 })
@@ -753,20 +718,18 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'set-step-variation',
         action: 'change seq step 2 so it differs from step 1 by at least 0.2.',
         why: 'varying step voltages is what creates a melodic pattern.',
-        hints: ['turn the `2` knob until it is clearly different from `1`.'],
+        hint: 'turn the `2` knob until it is clearly different from `1`.',
         demo: 'set step1 near 0 and step2 around +0.6 for a clear jump.',
         validate(runtime) {
           const seqId = firstModuleByDefinition(runtime, 'sequencer')
           const seq = getModule(runtime, seqId)
-          if (!seq) return fail('add a sequencer first.')
+          if (!seq) return fail()
           const step1 = seq.params.step1
           const step2 = seq.params.step2
           if (step1 === undefined || step2 === undefined) {
-            return fail('step params are missing on sequencer.')
+            return fail()
           }
-          return Math.abs(step2 - step1) >= 0.2
-            ? ok()
-            : fail('set step 2 so it differs from step 1 by at least 0.2.')
+          return Math.abs(step2 - step1) >= 0.2 ? ok() : fail()
         },
         autoPerform(runtime) {
           const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
@@ -797,12 +760,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-resonator',
         action: 'add a resonator module.',
         why: 'resonator gives us a bright source to feed into the loop.',
-        hints: ['resonator is in source modules.'],
+        hint: 'resonator is in source modules.',
         demo: 'place resonator near the left-center of the rack.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'resonator')
-            ? ok()
-            : fail('add a resonator module.')
+          return firstModuleByDefinition(runtime, 'resonator') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'resonator', { x: 4, y: 8 })
@@ -812,12 +773,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-button',
         action: 'add a button module.',
         why: 'button gives you manual trigger pulses to excite the resonator.',
-        hints: ['look for `button` in control modules.'],
+        hint: 'look for `button` in control modules.',
         demo: 'place button to the left of resonator.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'pushbutton')
-            ? ok()
-            : fail('add a button module.')
+          return firstModuleByDefinition(runtime, 'pushbutton') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'pushbutton', { x: 1, y: 8 })
@@ -827,12 +786,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-mixer',
         action: 'add a mixer module.',
         why: 'mixer will combine dry resonator and delayed signal.',
-        hints: ['the 4-channel mixer is in utility modules.'],
+        hint: 'the 4-channel mixer is in utility modules.',
         demo: 'place mixer to the right side of the rack.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'mixer')
-            ? ok()
-            : fail('add a mixer module.')
+          return firstModuleByDefinition(runtime, 'mixer') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'mixer', { x: 18, y: 7 })
@@ -842,12 +799,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-delay',
         action: 'add a delay module.',
         why: 'this will be the feedback path core.',
-        hints: ['use the regular `delay` module (not feedback delay).'],
+        hint: 'use the regular `delay` module (not feedback delay).',
         demo: 'place delay between resonator and mixer.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'delay')
-            ? ok()
-            : fail('add a delay module.')
+          return firstModuleByDefinition(runtime, 'delay') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'delay', { x: 10, y: 8 })
@@ -857,12 +812,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vca',
         action: 'add a vca module.',
         why: 'vca controls how much delayed signal is fed back.',
-        hints: ['vca is in dynamics modules.'],
+        hint: 'vca is in dynamics modules.',
         demo: 'place vca to the right of delay.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'vca')
-            ? ok()
-            : fail('add a vca module.')
+          return firstModuleByDefinition(runtime, 'vca') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'vca', { x: 14, y: 8 })
@@ -872,12 +825,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-output',
         action: 'add an output module.',
         why: 'output is the final sink for hearing the mixed result.',
-        hints: ['place output at the far right.'],
+        hint: 'place output at the far right.',
         demo: 'drop output to the right of mixer.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'output')
-            ? ok()
-            : fail('add an output module.')
+          return firstModuleByDefinition(runtime, 'output') ? ok() : fail()
         },
         autoPerform(runtime) {
           ensureModule(runtime, 'output', { x: 25, y: 8 })
@@ -887,16 +838,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'button-to-resonator-excite',
         action: 'connect button `trig` to resonator `excite`.',
         why: 'button presses now pluck the resonator.',
-        hints: ['patch the button trig output into resonator excite.'],
-        demo: 'patch button trig into resonator excite.',
+        hint: 'resonator needs a trigger on `excite` before it rings.',
+        demo: 'drag from button `trig` output to resonator `excite`, then click the button to test.',
         validate(runtime) {
           const buttonId = firstModuleByDefinition(runtime, 'pushbutton')
           const resonatorId = firstModuleByDefinition(runtime, 'resonator')
-          if (!buttonId || !resonatorId)
-            return fail('add button and resonator first.')
+          if (!buttonId || !resonatorId) return fail()
           return hasCable(runtime, buttonId, 'trigger', resonatorId, 'excite')
             ? ok()
-            : fail('connect button trig to resonator excite.')
+            : fail()
         },
         autoPerform(runtime) {
           const buttonId = ensureModule(runtime, 'pushbutton', { x: 1, y: 8 })
@@ -922,16 +872,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'resonator-to-mixer',
         action: 'connect resonator `out` to mixer `in 1`.',
         why: 'this is the dry path in the final mix.',
-        hints: ['patch resonator out into mixer in 1.'],
-        demo: 'patch resonator out into mixer in 1.',
+        hint: 'keep a dry path so you can compare direct vs delayed sound.',
+        demo: 'drag from resonator `out` to mixer `in 1` to establish the dry channel.',
         validate(runtime) {
           const resonatorId = firstModuleByDefinition(runtime, 'resonator')
           const mixerId = firstModuleByDefinition(runtime, 'mixer')
-          if (!resonatorId || !mixerId)
-            return fail('add resonator and mixer first.')
+          if (!resonatorId || !mixerId) return fail()
           return hasCable(runtime, resonatorId, 'out', mixerId, 'in1')
             ? ok()
-            : fail('connect resonator out to mixer in 1.')
+            : fail()
         },
         autoPerform(runtime) {
           const resonatorId = ensureModule(runtime, 'resonator', { x: 4, y: 8 })
@@ -957,16 +906,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'resonator-to-delay',
         action: 'connect resonator `out` to delay `in`.',
         why: 'this feeds resonator signal into the delay line.',
-        hints: ['patch resonator out into delay in.'],
-        demo: 'patch resonator out into delay in.',
+        hint: 'this is the send into your delay path.',
+        demo: 'add a second cable from resonator `out` to delay `in` (fan-out from the same source).',
         validate(runtime) {
           const resonatorId = firstModuleByDefinition(runtime, 'resonator')
           const delayId = firstModuleByDefinition(runtime, 'delay')
-          if (!resonatorId || !delayId)
-            return fail('add resonator and delay first.')
+          if (!resonatorId || !delayId) return fail()
           return hasCable(runtime, resonatorId, 'out', delayId, 'audio')
             ? ok()
-            : fail('connect resonator out to delay in.')
+            : fail()
         },
         autoPerform(runtime) {
           const resonatorId = ensureModule(runtime, 'resonator', { x: 4, y: 8 })
@@ -992,15 +940,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'delay-to-vca',
         action: 'connect delay `out` to vca `in`.',
         why: 'the delayed signal now passes through a controllable amplifier.',
-        hints: ['patch delay out into vca in.'],
-        demo: 'patch delay out into vca in.',
+        hint: 'put the vca in the feedback path so loop level stays controllable.',
+        demo: 'drag from delay `out` to vca `in` so feedback level can be managed by vca gain.',
         validate(runtime) {
           const delayId = firstModuleByDefinition(runtime, 'delay')
           const vcaId = firstModuleByDefinition(runtime, 'vca')
-          if (!delayId || !vcaId) return fail('add delay and vca first.')
+          if (!delayId || !vcaId) return fail()
           return hasCable(runtime, delayId, 'out', vcaId, 'audio')
             ? ok()
-            : fail('connect delay out to vca in.')
+            : fail()
         },
         autoPerform(runtime) {
           const delayId = ensureModule(runtime, 'delay', { x: 10, y: 8 })
@@ -1027,16 +975,14 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'vca-back-to-delay',
         action: 'connect vca `out` back to delay `in`.',
         why: 'this creates a feedback path with gain control in the loop.',
-        hints: [
-          'the loop cable should be accepted and marked as feedback-safe.',
-        ],
-        demo: 'patch vca out back into delay in to close the loop.',
+        hint: 'after closing the loop, one loop cable should render as feedback (dashed).',
+        demo: 'drag from vca `out` back to delay `in` to close the loop and confirm feedback routing.',
         validate(runtime) {
           const delayId = firstModuleByDefinition(runtime, 'delay')
           const vcaId = firstModuleByDefinition(runtime, 'vca')
-          if (!delayId || !vcaId) return fail('add delay and vca first.')
+          if (!delayId || !vcaId) return fail()
           const hasLoopCable = hasCable(runtime, vcaId, 'out', delayId, 'audio')
-          if (!hasLoopCable) return fail('connect vca out back into delay in.')
+          if (!hasLoopCable) return fail()
 
           const feedbackBetweenDelayAndVca = Object.entries(
             runtime.cables,
@@ -1054,11 +1000,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
               cable.to.portId === 'audio'
             return isDelayToVca || isVcaToDelay
           })
-          return feedbackBetweenDelayAndVca
-            ? ok()
-            : fail(
-                'feedback loop exists, but it is not marked as feedback yet.',
-              )
+          return feedbackBetweenDelayAndVca ? ok() : fail()
         },
         autoPerform(runtime) {
           const delayId = ensureModule(runtime, 'delay', { x: 10, y: 8 })
@@ -1085,15 +1027,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'delay-to-mixer',
         action: 'connect delay `out` to mixer `in 2`.',
         why: 'this adds the wet delayed signal into the final mix.',
-        hints: ['patch delay out into mixer in 2.'],
-        demo: 'patch delay out into mixer in 2.',
+        hint: 'route wet signal to a different mixer channel than the dry signal.',
+        demo: 'drag from delay `out` to mixer `in 2` so dry and wet each have their own fader.',
         validate(runtime) {
           const delayId = firstModuleByDefinition(runtime, 'delay')
           const mixerId = firstModuleByDefinition(runtime, 'mixer')
-          if (!delayId || !mixerId) return fail('add delay and mixer first.')
+          if (!delayId || !mixerId) return fail()
           return hasCable(runtime, delayId, 'out', mixerId, 'in2')
             ? ok()
-            : fail('connect delay out to mixer in 2.')
+            : fail()
         },
         autoPerform(runtime) {
           const delayId = ensureModule(runtime, 'delay', { x: 10, y: 8 })
@@ -1119,16 +1061,16 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'mixer-to-output-stereo',
         action: 'connect mixer `out` to output `left` and `right`.',
         why: 'sending the mix to both channels keeps playback centered.',
-        hints: ['fan one mixer output jack to both output inputs.'],
-        demo: 'patch mixer out to output left, then add a second cable to output right.',
+        hint: 'fan one mixer output jack to both output inputs.',
+        demo: 'first patch mixer `out` -> output `left`, then add a second cable mixer `out` -> output `right`.',
         validate(runtime) {
           const mixerId = firstModuleByDefinition(runtime, 'mixer')
           const outputId = firstModuleByDefinition(runtime, 'output')
-          if (!mixerId || !outputId) return fail('add mixer and output first.')
+          if (!mixerId || !outputId) return fail()
           return hasCable(runtime, mixerId, 'out', outputId, 'left') &&
             hasCable(runtime, mixerId, 'out', outputId, 'right')
             ? ok()
-            : fail('connect mixer out to both output left and right.')
+            : fail()
         },
         autoPerform(runtime) {
           const mixerId = ensureModule(runtime, 'mixer', { x: 18, y: 7 })
@@ -1170,12 +1112,12 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-container',
         action: 'add a subpatch container.',
         why: 'containers let you package modules into reusable macro blocks.',
-        hints: ['use the command palette entry named `subpatch`.'],
+        hint: 'use the command palette entry named `subpatch`.',
         demo: 'create a new subpatch container at the center of the rack.',
         validate(runtime) {
           return firstModuleByDefinition(runtime, '__subpatch__')
             ? ok()
-            : fail('add a subpatch container first.')
+            : fail()
         },
         autoPerform(runtime) {
           if (firstModuleByDefinition(runtime, '__subpatch__')) return
@@ -1187,12 +1129,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'enter-subpatch',
         action: 'enter the subpatch by double-clicking its header.',
         why: 'drilling in lets you edit the internal graph directly.',
-        hints: ['you can also exit later with esc.'],
+        hint: 'you can also exit later with esc.',
         demo: 'double-click the container header to open its internal patch view.',
         validate(runtime) {
-          return runtime.subpatchContext.length > 0
-            ? ok()
-            : fail('double-click the container header to enter the subpatch.')
+          return runtime.subpatchContext.length > 0 ? ok() : fail()
         },
         autoPerform(runtime) {
           if (runtime.subpatchContext.length > 0) return
@@ -1213,16 +1153,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-sub-in',
         action: 'inside the subpatch, add an `in` proxy module.',
         why: 'proxy modules define the exposed container ports.',
-        hints: [
-          'inside subpatch mode, the internal `in` module appears in palette.',
-        ],
+        hint: 'inside subpatch mode, the internal `in` module appears in palette.',
         demo: 'add subpatch input near the left side of the internal canvas.',
         validate(runtime) {
-          if (runtime.subpatchContext.length === 0)
-            return fail('enter the subpatch first.')
+          if (runtime.subpatchContext.length === 0) return fail()
           return firstModuleByDefinition(runtime, 'subpatch-input')
             ? ok()
-            : fail('add a subpatch input module (`in`).')
+            : fail()
         },
         autoPerform(runtime) {
           if (runtime.subpatchContext.length === 0) return
@@ -1233,14 +1170,11 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-vcf',
         action: 'add a vcf inside the subpatch.',
         why: 'we need a real target module for a macro parameter.',
-        hints: ['vcf gives us a useful cutoff macro to expose.'],
+        hint: 'vcf gives us a useful cutoff macro to expose.',
         demo: 'add vcf in the middle of the internal patch.',
         validate(runtime) {
-          if (runtime.subpatchContext.length === 0)
-            return fail('enter the subpatch first.')
-          return firstModuleByDefinition(runtime, 'vcf')
-            ? ok()
-            : fail('add a vcf module inside the subpatch.')
+          if (runtime.subpatchContext.length === 0) return fail()
+          return firstModuleByDefinition(runtime, 'vcf') ? ok() : fail()
         },
         autoPerform(runtime) {
           if (runtime.subpatchContext.length === 0) return
@@ -1251,14 +1185,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'add-sub-out',
         action: 'add an `out` proxy module inside the subpatch.',
         why: 'this exposes the processed result back on the container face.',
-        hints: ['you now have both sides of the container io.'],
-        demo: 'add subpatch output near the right side of the internal canvas.',
+        hint: 'the `out` proxy is what creates output jacks on the container face.',
+        demo: 'add an `out` proxy near the right side of the internal canvas.',
         validate(runtime) {
-          if (runtime.subpatchContext.length === 0)
-            return fail('enter the subpatch first.')
+          if (runtime.subpatchContext.length === 0) return fail()
           return firstModuleByDefinition(runtime, 'subpatch-output')
             ? ok()
-            : fail('add a subpatch output module (`out`).')
+            : fail()
         },
         autoPerform(runtime) {
           if (runtime.subpatchContext.length === 0) return
@@ -1269,17 +1202,14 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'wire-in-to-vcf',
         action: 'connect `in.out` to `vcf.in`.',
         why: 'the container input now feeds your internal processor.',
-        hints: ['subpatch input module output port is `out`.'],
-        demo: 'patch from subpatch input out to vcf in.',
+        hint: 'inside a container, `in` emits signal through its `out` jack.',
+        demo: 'drag from `in.out` to `vcf.in` to feed incoming container audio into the filter.',
         validate(runtime) {
-          if (runtime.subpatchContext.length === 0)
-            return fail('enter the subpatch first.')
+          if (runtime.subpatchContext.length === 0) return fail()
           const inId = firstModuleByDefinition(runtime, 'subpatch-input')
           const vcfId = firstModuleByDefinition(runtime, 'vcf')
-          if (!inId || !vcfId) return fail('add subpatch input and vcf first.')
-          return hasCable(runtime, inId, 'out', vcfId, 'audio')
-            ? ok()
-            : fail('connect in.out to vcf.in.')
+          if (!inId || !vcfId) return fail()
+          return hasCable(runtime, inId, 'out', vcfId, 'audio') ? ok() : fail()
         },
         autoPerform(runtime) {
           const inId = ensureModule(runtime, 'subpatch-input', { x: 2, y: 5 })
@@ -1306,18 +1236,14 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'wire-vcf-to-out',
         action: 'connect `vcf.out` to `out.in`.',
         why: 'this routes the processed signal to the container output.',
-        hints: ['patch from vcf out to the out proxy input.'],
-        demo: 'patch from vcf out to subpatch output in.',
+        hint: 'anything patched into `out.in` becomes a container output.',
+        demo: 'drag from `vcf.out` to `out.in` so the filtered signal reaches the container output jack.',
         validate(runtime) {
-          if (runtime.subpatchContext.length === 0)
-            return fail('enter the subpatch first.')
+          if (runtime.subpatchContext.length === 0) return fail()
           const vcfId = firstModuleByDefinition(runtime, 'vcf')
           const outId = firstModuleByDefinition(runtime, 'subpatch-output')
-          if (!vcfId || !outId)
-            return fail('add vcf and subpatch output first.')
-          return hasCable(runtime, vcfId, 'out', outId, 'in')
-            ? ok()
-            : fail('connect vcf.out to out.in.')
+          if (!vcfId || !outId) return fail()
+          return hasCable(runtime, vcfId, 'out', outId, 'in') ? ok() : fail()
         },
         autoPerform(runtime) {
           const vcfId = ensureModule(runtime, 'vcf', { x: 7, y: 5 })
@@ -1347,17 +1273,17 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'expose-cutoff-macro',
         action: 'expose vcf cutoff as a macro knob.',
         why: 'macros let you control internals from the container surface.',
-        hints: ['right-click the cutoff knob and choose `expose as macro`.'],
+        hint: 'macro exposure is available from the knob context menu.',
         demo: 'open the knob context menu on cutoff, then expose it.',
         validate(runtime) {
           const ctx =
             runtime.subpatchContext[runtime.subpatchContext.length - 1]
-          if (!ctx) return fail('enter the subpatch first.')
+          if (!ctx) return fail()
           const def = runtime.definitions[ctx.definitionId]
-          if (!def) return fail('subpatch definition not found.')
+          if (!def) return fail()
           return def.macros.some((macro) => macro.targetParamId === 'cutoff')
             ? ok()
-            : fail('expose the vcf cutoff knob as a macro.')
+            : fail()
         },
         autoPerform(runtime) {
           const ctx =
@@ -1380,12 +1306,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'exit-subpatch',
         action: 'exit back to the root rack.',
         why: 'you can now use the macro from the container face.',
-        hints: ['press esc or click the breadcrumb.'],
+        hint: 'press esc or click the breadcrumb.',
         demo: 'leave the subpatch so you can see the new macro knob on the container.',
         validate(runtime) {
-          return runtime.subpatchContext.length === 0
-            ? ok()
-            : fail('exit the subpatch to continue.')
+          return runtime.subpatchContext.length === 0 ? ok() : fail()
         },
         autoPerform(runtime) {
           if (runtime.subpatchContext.length === 0) return
@@ -1396,7 +1320,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'turn-macro',
         action: 'turn the new macro knob on the container.',
         why: 'this confirms macro control routes to the internal parameter.',
-        hints: ['macro state stores per container instance.'],
+        hint: 'macro state stores per container instance.',
         demo: 'adjust the container macro away from its default to verify wiring.',
         validate(runtime) {
           const containerId = firstModuleByDefinition(runtime, '__subpatch__')
@@ -1407,23 +1331,23 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
               }
             | undefined
           if (!containerId || !container || !container.subpatchDefinitionId) {
-            return fail('add a subpatch container first.')
+            return fail()
           }
           const def = runtime.definitions[container.subpatchDefinitionId]
-          if (!def) return fail('subpatch definition not found.')
-          const macro = def.macros.find((item) => item.targetParamId === 'cutoff')
-          if (!macro) return fail('expose a cutoff macro first.')
+          if (!def) return fail()
+          const macro = def.macros.find(
+            (item) => item.targetParamId === 'cutoff',
+          )
+          if (!macro) return fail()
           const targetModule = def.modules[macro.targetModuleId]
           const defaultValue = targetModule?.params?.[macro.targetParamId]
           if (defaultValue === undefined) {
-            return fail('macro target parameter could not be resolved.')
+            return fail()
           }
           const value = container.macroValues?.[macro.id]
           return value !== undefined && Math.abs(value - defaultValue) > 0.001
             ? ok()
-            : fail(
-                'turn the container macro knob so it moves away from default.',
-              )
+            : fail()
         },
         autoPerform(runtime) {
           const containerId = firstModuleByDefinition(runtime, '__subpatch__')
@@ -1454,27 +1378,20 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'goal',
         action: 'goal: patch a kick-style voice in 6 modules or fewer.',
         why: 'constraints force clear architecture and reusable technique.',
-        hints: [
-          'required structure: source -> vca -> output, plus envelope -> vca.gain.',
-          'use ad, ar, or adsr as your envelope source.',
-        ],
+        hint: 'required structure: source -> vca -> output, plus envelope -> vca.gain. use ad, ar, or adsr as your envelope source.',
         demo: 'example compact chain: clock -> ad, vco -> vca, ad -> vca.gain, vca -> output.',
         validate(runtime) {
           if (runtime.subpatchContext.length > 0) {
-            return fail(
-              'exit any subpatch first; this challenge checks the root rack.',
-            )
+            return fail()
           }
           const moduleCount = countRootModules(runtime)
-          if (moduleCount === 0) return fail('start by adding a few modules.')
-          if (moduleCount > 6)
-            return fail('keep it tight: use 6 modules or fewer.')
+          if (moduleCount === 0) return fail()
+          if (moduleCount > 6) return fail()
 
           const hasVcaChain =
             hasConnection(runtime, ['vca'], ['output'], 'left', 'out') ||
             hasConnection(runtime, ['vca'], ['output'], 'right', 'out')
-          if (!hasVcaChain)
-            return fail('route vca out into output left or right.')
+          if (!hasVcaChain) return fail()
 
           const hasSourceIntoVca = hasConnection(
             runtime,
@@ -1482,8 +1399,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             ['vca'],
             'audio',
           )
-          if (!hasSourceIntoVca)
-            return fail('feed a source module into vca audio input.')
+          if (!hasSourceIntoVca) return fail()
 
           const hasEnvToVca = hasConnection(
             runtime,
@@ -1491,8 +1407,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             ['vca'],
             'gain',
           )
-          if (!hasEnvToVca)
-            return fail('connect an envelope output into vca gain.')
+          if (!hasEnvToVca) return fail()
 
           const hasGateToEnv = hasConnection(
             runtime,
@@ -1500,10 +1415,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             ['ad', 'ar', 'adsr'],
             'gate',
           )
-          if (!hasGateToEnv)
-            return fail(
-              'drive your envelope gate from a timing/control source.',
-            )
+          if (!hasGateToEnv) return fail()
 
           return ok()
         },
@@ -1564,22 +1476,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         id: 'goal',
         action: 'goal: create a clocked melody rig in 8 modules or fewer.',
         why: 'this mirrors practical live-patching constraints.',
-        hints: [
-          'required backbone: clock -> seq -> vco -> vca -> output.',
-          'for articulation, patch seq gate to vca gain directly or via envelope.',
-        ],
+        hint: 'required backbone: clock -> seq -> vco -> vca -> output. for articulation, patch seq gate to vca gain directly or via envelope.',
         demo: 'a minimal solution is clock + seq + vco + vca + output with five cables.',
         validate(runtime) {
           if (runtime.subpatchContext.length > 0) {
-            return fail(
-              'exit any subpatch first; this challenge checks the root rack.',
-            )
+            return fail()
           }
           const moduleCount = countRootModules(runtime)
-          if (moduleCount === 0)
-            return fail('add modules to begin the challenge.')
-          if (moduleCount > 8)
-            return fail('trim the patch to 8 modules or fewer.')
+          if (moduleCount === 0) return fail()
+          if (moduleCount > 8) return fail()
 
           const hasClockToSeq = hasConnection(
             runtime,
@@ -1588,8 +1493,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             'clock',
             'gate',
           )
-          if (!hasClockToSeq)
-            return fail('connect clock gate to sequencer clock.')
+          if (!hasClockToSeq) return fail()
 
           const hasSeqPitch = hasConnection(
             runtime,
@@ -1598,25 +1502,22 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             'frequency',
             'cv',
           )
-          if (!hasSeqPitch) return fail('connect sequencer out to vco v/oct.')
+          if (!hasSeqPitch) return fail()
 
           const hasVoicePath = hasConnection(runtime, ['vco'], ['vca'], 'audio')
-          if (!hasVoicePath) return fail('route vco into vca audio input.')
+          if (!hasVoicePath) return fail()
 
           const hasAmpToOut =
             hasConnection(runtime, ['vca'], ['output'], 'left', 'out') ||
             hasConnection(runtime, ['vca'], ['output'], 'right', 'out')
-          if (!hasAmpToOut)
-            return fail('route vca out into output left or right.')
+          if (!hasAmpToOut) return fail()
 
           const hasArticulation =
             hasConnection(runtime, ['sequencer'], ['vca'], 'gain', 'gate') ||
             hasConnection(runtime, ['adsr', 'ad', 'ar'], ['vca'], 'gain')
 
           if (!hasArticulation) {
-            return fail(
-              'add articulation: seq gate -> vca.gain or envelope -> vca.gain.',
-            )
+            return fail()
           }
 
           return ok()
@@ -1675,47 +1576,31 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         action:
           'goal: make a subpatch with exposed in/out + one macro, then use it from root.',
         why: 'this is the core workflow for reusable macro modules.',
-        hints: [
-          'inside the container: add `in`, a processor, and `out`.',
-          'expose at least one macro and connect the container in the root patch.',
-        ],
+        hint: 'inside the container: add `in`, a processor, and `out`. expose at least one macro and connect the container in the root patch.',
         demo: 'example: in -> vcf -> out with cutoff exposed as a macro, then patch noise through it.',
         validate(runtime) {
           if (runtime.subpatchContext.length > 0) {
-            return fail('exit any subpatch first; validation happens at root.')
+            return fail()
           }
           const containerId = firstModuleByDefinition(runtime, '__subpatch__')
-          if (!containerId) return fail('add a subpatch container.')
+          if (!containerId) return fail()
           const container = runtime.modules[containerId] as {
             subpatchDefinitionId?: string
           }
-          if (!container?.subpatchDefinitionId)
-            return fail('container definition is missing.')
+          if (!container?.subpatchDefinitionId) return fail()
           const def = runtime.definitions[container.subpatchDefinitionId]
-          if (!def) return fail('container definition not found.')
+          if (!def) return fail()
 
-          if (def.exposedInputs.length < 1)
-            return fail(
-              'expose at least one container input using an `in` proxy.',
-            )
-          if (def.exposedOutputs.length < 1)
-            return fail(
-              'expose at least one container output using an `out` proxy.',
-            )
-          if (def.macros.length < 1)
-            return fail(
-              'expose at least one macro knob from inside the subpatch.',
-            )
+          if (def.exposedInputs.length < 1) return fail()
+          if (def.exposedOutputs.length < 1) return fail()
+          if (def.macros.length < 1) return fail()
 
           const hasRootCable = Object.values(runtime.cables).some(
             (cable) =>
               cable.from.moduleId === containerId ||
               cable.to.moduleId === containerId,
           )
-          if (!hasRootCable)
-            return fail(
-              'use the container in root by patching at least one cable to it.',
-            )
+          if (!hasRootCable) return fail()
 
           return ok()
         },

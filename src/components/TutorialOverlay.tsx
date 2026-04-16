@@ -79,7 +79,6 @@ export function TutorialOverlay() {
   const setTutorialMode = useStore((s) => s.setTutorialMode)
   const activeTutorialId = useStore((s) => s.activeTutorialId)
   const tutorialStepIndex = useStore((s) => s.tutorialStepIndex)
-  const tutorialHint = useStore((s) => s.tutorialHint)
   const tutorialShowDemo = useStore((s) => s.tutorialShowDemo)
   const setTutorialShowDemo = useStore((s) => s.setTutorialShowDemo)
   const startTutorial = useStore((s) => s.startTutorial)
@@ -292,11 +291,9 @@ export function TutorialOverlay() {
                 <div className={styles.sectionLabel}>why it matters</div>
                 <p className={styles.bodyText}>{currentStep.why}</p>
 
-                <div className={styles.sectionLabel}>hints</div>
+                <div className={styles.sectionLabel}>hint</div>
                 <p className={styles.bodyText}>
-                  {tutorialHint ??
-                    currentStep.hints[0] ??
-                    'follow the highlighted targets.'}
+                  {currentStep.hint ?? 'follow the highlighted targets.'}
                 </p>
 
                 <div className={floatingPanelBaseStyles.footerBase}>
@@ -318,7 +315,7 @@ export function TutorialOverlay() {
                     )}
                     onClick={() => setTutorialShowDemo(!tutorialShowDemo)}
                   >
-                    {tutorialShowDemo ? 'hide demo' : 'show me how'}
+                    {tutorialShowDemo ? 'hide help' : 'show me how'}
                   </button>
                 </div>
 
