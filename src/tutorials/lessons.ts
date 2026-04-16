@@ -356,17 +356,17 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
       },
       {
         id: 'adsr-to-vca',
-        action: 'connect adsr `out` to vca `cv`.',
+        action: 'connect adsr `out` to vca `gain`.',
         why: 'envelope voltage now controls loudness over time.',
-        hints: ['patch from the adsr out jack to the vca cv jack.'],
-        demo: 'patch adsr out directly into vca cv.',
+        hints: ['patch from the adsr out jack to the vca gain jack.'],
+        demo: 'patch adsr out directly into vca gain.',
         validate(runtime) {
           const adsrId = firstModuleByDefinition(runtime, 'adsr')
           const vcaId = firstModuleByDefinition(runtime, 'vca')
           if (!adsrId || !vcaId) return fail('add adsr and vca first.')
-          return hasCable(runtime, adsrId, 'envelope', vcaId, 'cv')
+          return hasCable(runtime, adsrId, 'envelope', vcaId, 'gain')
             ? ok()
-            : fail('connect adsr out to vca cv.')
+            : fail('connect adsr out to vca gain.')
         },
         autoPerform(runtime) {
           const adsrId = ensureModule(runtime, 'adsr', { x: 8, y: 6 })
@@ -375,7 +375,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           ensureCable(
             runtime,
             { moduleId: adsrId, portId: 'envelope' },
-            { moduleId: vcaId, portId: 'cv' },
+            { moduleId: vcaId, portId: 'gain' },
           )
         },
         focus(runtime) {
@@ -384,7 +384,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           if (!adsrId || !vcaId) return []
           return [
             { kind: 'port', moduleId: adsrId, portId: 'envelope' },
-            { kind: 'port', moduleId: vcaId, portId: 'cv' },
+            { kind: 'port', moduleId: vcaId, portId: 'gain' },
           ]
         },
       },
@@ -1455,10 +1455,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         action: 'goal: patch a kick-style voice in 6 modules or fewer.',
         why: 'constraints force clear architecture and reusable technique.',
         hints: [
-          'required structure: source -> vca -> output, plus envelope -> vca.cv.',
+          'required structure: source -> vca -> output, plus envelope -> vca.gain.',
           'use ad, ar, or adsr as your envelope source.',
         ],
-        demo: 'example compact chain: clock -> ad, vco -> vca, ad -> vca.cv, vca -> output.',
+        demo: 'example compact chain: clock -> ad, vco -> vca, ad -> vca.gain, vca -> output.',
         validate(runtime) {
           if (runtime.subpatchContext.length > 0) {
             return fail(
@@ -1489,10 +1489,10 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             runtime,
             ['ad', 'ar', 'adsr'],
             ['vca'],
-            'cv',
+            'gain',
           )
           if (!hasEnvToVca)
-            return fail('connect an envelope output into vca cv.')
+            return fail('connect an envelope output into vca gain.')
 
           const hasGateToEnv = hasConnection(
             runtime,
@@ -1523,7 +1523,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           ensureCable(
             runtime,
             { moduleId: adId, portId: 'out' },
-            { moduleId: vcaId, portId: 'cv' },
+            { moduleId: vcaId, portId: 'gain' },
           )
           ensureCable(
             runtime,
@@ -1566,7 +1566,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         why: 'this mirrors practical live-patching constraints.',
         hints: [
           'required backbone: clock -> seq -> vco -> vca -> output.',
-          'for articulation, patch seq gate to vca cv directly or via envelope.',
+          'for articulation, patch seq gate to vca gain directly or via envelope.',
         ],
         demo: 'a minimal solution is clock + seq + vco + vca + output with five cables.',
         validate(runtime) {
@@ -1610,12 +1610,12 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             return fail('route vca out into output left or right.')
 
           const hasArticulation =
-            hasConnection(runtime, ['sequencer'], ['vca'], 'cv', 'gate') ||
-            hasConnection(runtime, ['adsr', 'ad', 'ar'], ['vca'], 'cv')
+            hasConnection(runtime, ['sequencer'], ['vca'], 'gain', 'gate') ||
+            hasConnection(runtime, ['adsr', 'ad', 'ar'], ['vca'], 'gain')
 
           if (!hasArticulation) {
             return fail(
-              'add articulation: seq gate -> vca.cv or envelope -> vca.cv.',
+              'add articulation: seq gate -> vca.gain or envelope -> vca.gain.',
             )
           }
 
@@ -1642,7 +1642,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           ensureCable(
             runtime,
             { moduleId: seqId, portId: 'gate' },
-            { moduleId: vcaId, portId: 'cv' },
+            { moduleId: vcaId, portId: 'gain' },
           )
           ensureCable(
             runtime,

@@ -1,6 +1,7 @@
 import type { TutorialCompletionMap } from './model'
 
 const TUTORIAL_COMPLETION_KEY = 'modsynth0:tutorial-completion'
+const FIRST_OPEN_WELCOME_SEEN_KEY = 'modsynth0:first-open-welcome-seen'
 
 export function loadTutorialCompletion(): TutorialCompletionMap {
   try {
@@ -26,5 +27,21 @@ export function saveTutorialCompletion(completed: TutorialCompletionMap): void {
     localStorage.setItem(TUTORIAL_COMPLETION_KEY, JSON.stringify(completed))
   } catch {
     console.warn('failed to save tutorial completion state')
+  }
+}
+
+export function shouldShowFirstOpenWelcome(): boolean {
+  try {
+    return localStorage.getItem(FIRST_OPEN_WELCOME_SEEN_KEY) !== '1'
+  } catch {
+    return false
+  }
+}
+
+export function markFirstOpenWelcomeSeen(): void {
+  try {
+    localStorage.setItem(FIRST_OPEN_WELCOME_SEEN_KEY, '1')
+  } catch {
+    console.warn('failed to save first-open welcome state')
   }
 }

@@ -5,6 +5,7 @@ import { CommandPalette } from './components/CommandPalette'
 import { PresetsModal } from './components/PresetsModal'
 import { SettingsPanel } from './components/SettingsPanel'
 import { TutorialOverlay } from './components/TutorialOverlay'
+import { FirstOpenModal } from './components/FirstOpenModal'
 import { engine } from './engine/EngineController'
 import { useStore } from './store'
 import { classes } from './utils/classes'
@@ -19,6 +20,10 @@ import {
   deserializePatch,
   validatePatchJson,
 } from './persistence/serialization'
+import {
+  shouldShowFirstOpenWelcome,
+  markFirstOpenWelcomeSeen,
+} from './tutorials/storage'
 import { getTheme } from './theme/themeRegistry'
 import './modules/registry' // ensure modules are registered
 import styles from './App.module.css'
@@ -35,6 +40,7 @@ export default function App() {
   const loadPatch = useStore((s) => s.loadPatch)
   const tutorialPanelOpen = useStore((s) => s.tutorialPanelOpen)
   const setTutorialPanelOpen = useStore((s) => s.setTutorialPanelOpen)
+  const setTutorialMode = useStore((s) => s.setTutorialMode)
   const setCableTautness = useStore((s) => s.setCableTautness)
   const setTooltipsEnabled = useStore((s) => s.setTooltipsEnabled)
   const themeId = useStore((s) => s.themeId)
@@ -55,6 +61,7 @@ export default function App() {
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [presetsOpen, setPresetsOpen] = useState(false)
+  const [firstOpenModalOpen, setFirstOpenModalOpen] = useState(false)
   const subpatchContext = useStore((s) => s.subpatchContext)
   const isInsideSubpatch = subpatchContext.length > 0
 
@@ -108,6 +115,9 @@ export default function App() {
   async function handleStart() {
     await engine.resume()
     setStarted(true)
+    if (shouldShowFirstOpenWelcome()) {
+      setFirstOpenModalOpen(true)
+    }
   }
 
   const handleNewPatch = useCallback(() => {
@@ -175,6 +185,24 @@ export default function App() {
     if (trimmed) setPatchName(trimmed)
     setEditingName(false)
   }, [nameInput, setPatchName])
+
+  const handleCloseFirstOpenModal = useCallback(() => {
+    markFirstOpenWelcomeSeen()
+    setFirstOpenModalOpen(false)
+  }, [])
+
+  const handleOpenTutorialsFromWelcome = useCallback(() => {
+    markFirstOpenWelcomeSeen()
+    setFirstOpenModalOpen(false)
+    if (settingsPanelOpen) setSettingsPanelOpen(false)
+    setTutorialMode('beginner')
+    setTutorialPanelOpen(true)
+  }, [
+    setSettingsPanelOpen,
+    setTutorialMode,
+    setTutorialPanelOpen,
+    settingsPanelOpen,
+  ])
 
   return (
     <ThemeProvider theme={getTheme(themeId)}>
@@ -387,6 +415,12 @@ export default function App() {
           )}
           <SettingsPanel />
           <TutorialOverlay />
+          {firstOpenModalOpen && (
+            <FirstOpenModal
+              onClose={handleCloseFirstOpenModal}
+              onStartTutorials={handleOpenTutorialsFromWelcome}
+            />
+          )}
         </>
       )}
     </ThemeProvider>

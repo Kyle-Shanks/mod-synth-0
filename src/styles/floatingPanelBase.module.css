@@ -8,7 +8,6 @@
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 6px;
-  box-shadow: var(--floating-panel-shadow, 0 8px 24px rgb(0 0 0 / 50%));
   display: flex;
   flex-direction: column;
 }

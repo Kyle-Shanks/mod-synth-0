@@ -41,6 +41,19 @@ export interface SerializedPatch {
 
 const PATCH_VERSION = '1'
 
+type ModuleRecordLike = Record<string, { definitionId: string }>
+
+function remapLegacyVcaGainPort(
+  endpoint: { moduleId: string; portId: string },
+  modules: ModuleRecordLike,
+): { moduleId: string; portId: string } {
+  const module = modules[endpoint.moduleId]
+  if (module?.definitionId === 'vca' && endpoint.portId === 'cv') {
+    return { moduleId: endpoint.moduleId, portId: 'gain' }
+  }
+  return endpoint
+}
+
 export function serializePatch(state: StoreState): SerializedPatch {
   const now = new Date().toISOString()
 
@@ -147,13 +160,25 @@ export function deserializePatch(json: SerializedPatch): {
 
   const cables: Record<string, SerializedCable> = {}
   for (const c of json.cables) {
-    cables[c.id] = { id: c.id, from: c.from, to: c.to }
+    cables[c.id] = {
+      id: c.id,
+      from: remapLegacyVcaGainPort(c.from, modules),
+      to: remapLegacyVcaGainPort(c.to, modules),
+    }
   }
 
   const definitions: Record<string, SubpatchDefinition> = {}
   if (json.subpatchDefinitions) {
     for (const def of json.subpatchDefinitions) {
-      definitions[def.id] = def
+      const migratedCables: Record<string, SerializedCable> = {}
+      for (const [cableId, cable] of Object.entries(def.cables)) {
+        migratedCables[cableId] = {
+          ...cable,
+          from: remapLegacyVcaGainPort(cable.from, def.modules),
+          to: remapLegacyVcaGainPort(cable.to, def.modules),
+        }
+      }
+      definitions[def.id] = { ...def, cables: migratedCables }
     }
   }
 

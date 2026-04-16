@@ -524,6 +524,8 @@ lesson definitions live in `src/tutorials/lessons.ts`. each step provides:
 
 `syncTutorialProgress()` auto-advances when step predicates pass. when a lesson completes, `tutorialCompletion[lessonId]` is persisted via `src/tutorials/storage.ts`.
 
+the first-open welcome gate also lives in `src/tutorials/storage.ts` (`modsynth0:first-open-welcome-seen`) and is consumed by `App.tsx` to show a one-time onboarding modal with a direct path into beginner tutorials.
+
 ---
 
 ## 7. visual system
@@ -730,7 +732,7 @@ _54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
 | `vco`             | vco            | source   | frequency (cv), fm (cv), pw (cv)                  | sine, saw, pulse (audio)        |
 | `wavetablevco`    | wavetable vco  | source   | frequency (cv), fm (cv), waveCv (cv)              | out (audio)                     |
 | `vcf`             | vcf            | filter   | audio, cutoffCv, resonanceCv, envelope (cv)       | out (audio)                     |
-| `vca`             | vca            | dynamics | audio, cv                                         | out (audio, metered)            |
+| `vca`             | vca            | dynamics | audio, gain (cv)                                  | out (audio, metered)            |
 | `mixer`           | mixer          | utility  | in1–in4 (audio; mute1–mute4 + masterMute params)  | out (audio)                     |
 | `adsr`            | adsr           | envelope | gate                                              | out (cv)                        |
 | `ad`              | ad             | envelope | gate                                              | out (cv), eoc (trigger)         |
@@ -886,6 +888,7 @@ the guided learning ui lives in `src/components/TutorialOverlay.tsx` + `Tutorial
 - step progress is validated against live store snapshots (modules/cables/params/context) on change
 - spotlight rectangles are drawn in a fixed overlay layer by querying focused module/port/param dom nodes
 - param spotlighting depends on `data-param-control` + `data-module-id` + `data-param-id` attributes added to shared controls (`Knob`, `ListSelector`, `Fader`)
+- first-run onboarding is handled by `src/components/FirstOpenModal.tsx`, opened by `App.tsx` once per browser profile via the tutorial storage key
 
 ### subpatch / container modules
 

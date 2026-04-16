@@ -8,7 +8,7 @@ interface VCAState {
 export const VCADefinition: ModuleDefinition<
   {
     audio: { type: 'audio'; default: 0; label: 'in' }
-    cv: { type: 'cv'; default: 0; label: 'cv' }
+    gain: { type: 'cv'; default: 0; label: 'gain' }
   },
   { out: { type: 'audio'; default: 0; label: 'out' } },
   { gain: { type: 'float'; min: 0; max: 1; default: 1; label: 'gain' } },
@@ -22,7 +22,7 @@ export const VCADefinition: ModuleDefinition<
 
   inputs: {
     audio: { type: 'audio', default: 0, label: 'in' },
-    cv: { type: 'cv', default: 0, label: 'cv' },
+    gain: { type: 'cv', default: 0, label: 'gain' },
   },
   outputs: {
     out: { type: 'audio', default: 0, label: 'out' },
@@ -39,8 +39,8 @@ export const VCADefinition: ModuleDefinition<
     let peak = 0
 
     for (let i = 0; i < 128; i++) {
-      const cv = inputs.cv[i] ?? 0
-      const gain = Math.max(0, Math.min(1, params.gain + cv))
+      const gainCv = inputs.gain[i] ?? 0
+      const gain = Math.max(0, Math.min(1, params.gain + gainCv))
       const out = (inputs.audio[i] ?? 0) * gain
       outputs.out[i] = out
 

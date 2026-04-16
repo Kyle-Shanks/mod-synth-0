@@ -92,7 +92,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 
 ### Dynamics
 
-- **vca** - cv-controlled amplifier for amplitude shaping (`gain` sets base level; cv adds modulation on top).
+- **vca** - cv-controlled amplifier for amplitude shaping (`gain` sets base level; `gain` cv input adds modulation on top).
 - **compressor** - compressor with sidechain input, threshold/ratio/attack/release/makeup/knee/mix controls, and gain-reduction cv output.
 - **env flwr** - envelope follower that converts audio level into cv with attack/release control.
 
@@ -173,6 +173,8 @@ Double-click the name in the container header to rename it.
 
 Click **tutorials** in the top bar to open guided lessons directly in the rack (shown at root level; hidden while drilled into a subpatch).
 
+On first open (after pressing **start**), a welcome modal appears with a shortcut to open beginner tutorials immediately.
+
 - **Two modes**
   - `beginner`: strict, step-by-step guidance
   - `veteran`: challenge goals with looser validation
@@ -193,36 +195,36 @@ Lesson completion badges are saved in LocalStorage.
 
 ## Controls
 
-| Action                    | How                                                  |
-| ------------------------- | ---------------------------------------------------- |
-| Add module                | `space` or `/` on rack                               |
-| Delete selected modules   | `delete` or `backspace`                              |
-| Select module             | Click on it                                          |
-| Select multiple modules   | Click-drag empty rack area                           |
-| Select all visible modules| `cmd/ctrl + a`                                       |
-| Add to selection          | Hold `shift` while marquee-selecting                 |
-| Copy selected modules     | `cmd/ctrl + c`                                       |
-| Paste modules             | `cmd/ctrl + v`                                       |
-| Undo                      | `cmd/ctrl + z` or top bar `↩`                        |
-| Redo                      | `cmd/ctrl + shift + z` or top bar `↪`                |
-| Move module(s)            | Drag selected module header                          |
-| Drag a cable              | Mousedown on any port                                |
-| Disconnect a cable        | Right-click the cable                                |
-| Rename patch              | Click the patch name in the top bar                  |
-| New patch                 | Top bar -> New                                       |
-| Export patch              | Top bar -> Export                                    |
-| Import patch              | Top bar -> Import                                    |
-| Open subpatch presets     | Top bar -> Presets                                   |
-| Settings                  | Gear icon in the top bar                             |
-| Zoom in/out               | Pinch trackpad or `cmd/ctrl + scroll`                |
-| Reset zoom                | Click zoom percent in the top bar                    |
-| Group modules as subpatch | Select >=2 modules -> right-click empty space        |
-| Ungroup subpatch          | Right-click subpatch container -> Ungroup            |
-| Enter subpatch            | Double-click container header                        |
-| Exit subpatch             | `esc` or click breadcrumb                            |
-| Expose port in subpatch   | Add **in** / **out** module while drilled in         |
-| Expose knob as macro      | Right-click knob while drilled in -> Expose as macro |
-| Save subpatch preset      | Right-click subpatch container -> Save to library    |
+| Action                     | How                                                  |
+| -------------------------- | ---------------------------------------------------- |
+| Add module                 | `space` or `/` on rack                               |
+| Delete selected modules    | `delete` or `backspace`                              |
+| Select module              | Click on it                                          |
+| Select multiple modules    | Click-drag empty rack area                           |
+| Select all visible modules | `cmd/ctrl + a`                                       |
+| Add to selection           | Hold `shift` while marquee-selecting                 |
+| Copy selected modules      | `cmd/ctrl + c`                                       |
+| Paste modules              | `cmd/ctrl + v`                                       |
+| Undo                       | `cmd/ctrl + z` or top bar `↩`                        |
+| Redo                       | `cmd/ctrl + shift + z` or top bar `↪`                |
+| Move module(s)             | Drag selected module header                          |
+| Drag a cable               | Mousedown on any port                                |
+| Disconnect a cable         | Right-click the cable                                |
+| Rename patch               | Click the patch name in the top bar                  |
+| New patch                  | Top bar -> New                                       |
+| Export patch               | Top bar -> Export                                    |
+| Import patch               | Top bar -> Import                                    |
+| Open subpatch presets      | Top bar -> Presets                                   |
+| Settings                   | Gear icon in the top bar                             |
+| Zoom in/out                | Pinch trackpad or `cmd/ctrl + scroll`                |
+| Reset zoom                 | Click zoom percent in the top bar                    |
+| Group modules as subpatch  | Select >=2 modules -> right-click empty space        |
+| Ungroup subpatch           | Right-click subpatch container -> Ungroup            |
+| Enter subpatch             | Double-click container header                        |
+| Exit subpatch              | `esc` or click breadcrumb                            |
+| Expose port in subpatch    | Add **in** / **out** module while drilled in         |
+| Expose knob as macro       | Right-click knob while drilled in -> Expose as macro |
+| Save subpatch preset       | Right-click subpatch container -> Save to library    |
 
 Module placement is clamped to the rack workspace bounds, including paste and subpatch container placement.
 

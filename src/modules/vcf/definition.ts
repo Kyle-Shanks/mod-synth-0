@@ -62,6 +62,12 @@ export const VCFDefinition: ModuleDefinition<
     out: { type: 'audio', default: 0, label: 'out' },
   },
   params: {
+    mode: {
+      type: 'select',
+      default: 0,
+      label: 'mode',
+      options: ['lowpass', 'highpass', 'bandpass'],
+    },
     cutoff: {
       type: 'float',
       min: 20,
@@ -79,12 +85,6 @@ export const VCFDefinition: ModuleDefinition<
       default: 0.5,
       label: 'env',
       unit: '',
-    },
-    mode: {
-      type: 'select',
-      default: 0,
-      label: 'mode',
-      options: ['lowpass', 'highpass', 'bandpass'],
     },
   },
 

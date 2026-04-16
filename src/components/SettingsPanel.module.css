@@ -1,7 +1,6 @@
 .panel {
   --floating-panel-z: 300;
   --floating-panel-width: 240px;
-  --floating-panel-shadow: 0 8px 24px rgb(0 0 0 / 50%);
   padding: 12px 0;
   display: flex;
   flex-direction: column;
