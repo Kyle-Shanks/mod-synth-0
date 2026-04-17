@@ -804,6 +804,10 @@ wavetable vco parameter notes:
 - `wavetablevco.mult` (`1–4`) multiplies waveform cycles at table read time (higher values add repeated periods and raise perceived pitch/harmonic density).
 - the wavetable vco panel renders the live morphed shape and follows effective wave position under cv modulation for immediate visual feedback.
 
+compressor panel notes:
+
+- compressor visual feedback is a scrolling level history (newest samples at the right edge) with a filled input trace, a bright threshold line, and a gain-reduction overlay aligned to the input level.
+
 ### panel component system
 
 module-specific visual layouts live in `src/modules/<id>/panel.tsx`. `src/modules/panelRegistry.ts` selects the body panel component by module id and falls back to `DefaultModuleBodyPanel` for modules that use the standard control layout.

@@ -126,7 +126,7 @@ export const CompressorDefinition: ModuleDefinition<
   },
 
   initialize(): CompressorState {
-    return { envelope: 0, gainSmooth: 1, _meters: { gr: 1 } }
+    return { envelope: 0, gainSmooth: 1, _meters: { gr: 1, inDbNorm: 0 } }
   },
 
   process(inputs, outputs, params, state, context) {
@@ -139,6 +139,7 @@ export const CompressorDefinition: ModuleDefinition<
     const halfKnee = params.knee / 2
     const threshold = params.threshold
     const ratio = Math.max(1.001, params.ratio)
+    let envelopePeak = 0
 
     // check if sidechain port has signal (non-zero values = connected)
     let hasSC = false
@@ -161,6 +162,9 @@ export const CompressorDefinition: ModuleDefinition<
       } else {
         state.envelope =
           releaseCoeff * (state.envelope as number) + (1 - releaseCoeff) * level
+      }
+      if ((state.envelope as number) > envelopePeak) {
+        envelopePeak = state.envelope as number
       }
 
       // dB conversion
@@ -200,6 +204,9 @@ export const CompressorDefinition: ModuleDefinition<
     }
 
     // expose gain reduction to UI via generic meter mechanism
-    ;(state._meters as Record<string, number>).gr = Math.max(0, Math.min(1, (state.gainSmooth as number) / makeupLin))
+    const meters = state._meters as Record<string, number>
+    meters.gr = Math.max(0, Math.min(1, (state.gainSmooth as number) / makeupLin))
+    const envelopeDb = 20 * Math.log10(Math.max(1e-6, envelopePeak))
+    meters.inDbNorm = Math.max(0, Math.min(1, (envelopeDb + 60) / 60))
   },
 }

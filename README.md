@@ -93,7 +93,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 ### Dynamics
 
 - **vca** - cv-controlled amplifier for amplitude shaping (`gain` sets base level; `gain` cv input adds modulation on top).
-- **compressor** - compressor with sidechain input, threshold/ratio/attack/release/makeup/knee/mix controls, and gain-reduction cv output.
+- **compressor** - compressor with sidechain input, threshold/ratio/attack/release/makeup/knee/mix controls, gain-reduction cv output, and a scrolling input/threshold/gain-reduction level display.
 - **env flwr** - envelope follower that converts audio level into cv with attack/release control.
 
 ### FX

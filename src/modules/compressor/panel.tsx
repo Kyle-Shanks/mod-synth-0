@@ -8,8 +8,34 @@ import { SizedCanvas } from '../../components/SizedCanvas'
 import { GRID_UNIT } from '../../theme/tokens'
 import styles from './panel.module.css'
 
-const GR_ATTACK = 0.9
-const GR_RELEASE = 0.18
+const METER_DB_FLOOR = -60
+const METER_DB_CEIL = 0
+const METER_DB_RANGE = METER_DB_CEIL - METER_DB_FLOOR
+const INPUT_ATTACK = 0.46
+const INPUT_RELEASE = 0.22
+const GR_ATTACK = 0.48
+const GR_RELEASE = 0.14
+const MIN_GR_LINEAR = 1e-4
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v))
+}
+
+function clamp01(v: number): number {
+  return clamp(v, 0, 1)
+}
+
+function dbToNorm(db: number): number {
+  return clamp01((db - METER_DB_FLOOR) / METER_DB_RANGE)
+}
+
+function normToDb(norm: number): number {
+  return METER_DB_FLOOR + clamp01(norm) * METER_DB_RANGE
+}
+
+function normToY(norm: number, height: number): number {
+  return height - 1 - clamp01(norm) * Math.max(1, height - 2)
+}
 
 export function CompressorPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
@@ -19,10 +45,13 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
   const paramsRef = useRef(mod?.params ?? {})
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
-  const grFillRef = useRef<HTMLDivElement>(null)
-  const grValueRef = useRef<HTMLDivElement>(null)
-  const grTargetRef = useRef(0)
-  const grDisplayRef = useRef(0)
+  const inputTargetRef = useRef(0)
+  const inputDisplayRef = useRef(0)
+  const grTargetRef = useRef(1)
+  const grDisplayRef = useRef(1)
+  const inputHistoryRef = useRef<Float32Array | null>(null)
+  const reducedHistoryRef = useRef<Float32Array | null>(null)
+  const historyWidthRef = useRef(0)
 
   useEffect(() => { themeRef.current = theme }, [theme])
   useEffect(() => { paramsRef.current = mod?.params ?? {} }, [mod?.params])
@@ -36,8 +65,15 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
       const workletId = instanceId
         ? internalWorkletId(instanceId, moduleId)
         : moduleId
-      const gr = state.meterValues[`${workletId}:gr`] ?? 1
-      grTargetRef.current = Math.max(0, Math.min(1, 1 - gr))
+      const inputNorm = state.meterValues[`${workletId}:inDbNorm`]
+      if (typeof inputNorm === 'number' && Number.isFinite(inputNorm)) {
+        inputTargetRef.current = clamp01(inputNorm)
+      }
+
+      const gr = state.meterValues[`${workletId}:gr`]
+      if (typeof gr === 'number' && Number.isFinite(gr)) {
+        grTargetRef.current = clamp(gr, 0, 1)
+      }
     })
   }, [moduleId])
 
@@ -51,108 +87,133 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
       const p = paramsRef.current
       const w = canvas.width
       const h = canvas.height
+      if (w < 2 || h < 2) {
+        rafRef.current = requestAnimationFrame(draw)
+        return
+      }
+
+      let inputDisplay = inputDisplayRef.current
+      const inputTarget = inputTargetRef.current
+      inputDisplay +=
+        (inputTarget - inputDisplay)
+        * (inputTarget > inputDisplay ? INPUT_ATTACK : INPUT_RELEASE)
+      inputDisplayRef.current = inputDisplay
+
+      let grDisplay = grDisplayRef.current
+      const grTarget = grTargetRef.current
+      grDisplay +=
+        (grTarget - grDisplay) * (grTarget < grDisplay ? GR_ATTACK : GR_RELEASE)
+      grDisplayRef.current = grDisplay
+
+      const inputDb = normToDb(inputDisplay)
+      const gainReductionDb = Math.max(
+        0,
+        -20 * Math.log10(Math.max(MIN_GR_LINEAR, grDisplay)),
+      )
+      const reducedDb = Math.max(METER_DB_FLOOR, inputDb - gainReductionDb)
+      const reducedNorm = dbToNorm(reducedDb)
+
+      if (
+        historyWidthRef.current !== w
+        || !inputHistoryRef.current
+        || !reducedHistoryRef.current
+      ) {
+        historyWidthRef.current = w
+        inputHistoryRef.current = new Float32Array(w)
+        reducedHistoryRef.current = new Float32Array(w)
+        inputHistoryRef.current.fill(inputDisplay)
+        reducedHistoryRef.current.fill(reducedNorm)
+      }
+
+      const inputHistory = inputHistoryRef.current
+      const reducedHistory = reducedHistoryRef.current
+      if (!inputHistory || !reducedHistory) return
+
+      if (w > 1) {
+        inputHistory.copyWithin(0, 1)
+        reducedHistory.copyWithin(0, 1)
+      }
+      inputHistory[w - 1] = inputDisplay
+      reducedHistory[w - 1] = reducedNorm
 
       ctx.fillStyle = t.shades.shade0
       ctx.fillRect(0, 0, w, h)
 
-      const threshold = p.threshold ?? -12
-      const ratio = Math.max(1.001, p.ratio ?? 4)
-      const knee = p.knee ?? 6
-      const makeup = p.makeup ?? 0
-      const rangeDb = 60
-      const halfKnee = knee / 2
-
-      // grid
-      ctx.strokeStyle = t.shades.shade2
-      ctx.lineWidth = 0.5
-      ctx.globalAlpha = 0.25
-      const gridStep = w / 6
-      for (let x = 0; x <= w; x += gridStep) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke()
-        ctx.beginPath(); ctx.moveTo(0, (x / w) * h); ctx.lineTo(w, (x / w) * h); ctx.stroke()
-      }
-      ctx.globalAlpha = 1
-
-      // 1:1 unity line
+      // horizontal guides
       ctx.strokeStyle = t.shades.shade2
       ctx.lineWidth = 1
-      ctx.setLineDash([3, 4])
-      ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(w, 0); ctx.stroke()
-      ctx.setLineDash([])
+      ctx.globalAlpha = 0.22
+      for (let i = 1; i < 4; i++) {
+        const y = (i / 4) * h
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(w, y)
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1
 
       // threshold line
-      const threshX = ((threshold + rangeDb) / rangeDb) * w
+      const threshold = clamp(p.threshold ?? -12, METER_DB_FLOOR, METER_DB_CEIL)
+      const threshY = normToY(dbToNorm(threshold), h)
       ctx.strokeStyle = t.accents.accent3
-      ctx.lineWidth = 1
-      ctx.globalAlpha = 0.6
-      ctx.setLineDash([2, 3])
-      ctx.beginPath(); ctx.moveTo(threshX, 0); ctx.lineTo(threshX, h); ctx.stroke()
-      ctx.setLineDash([])
+      ctx.lineWidth = 1.5
+      ctx.globalAlpha = 0.95
+      ctx.beginPath()
+      ctx.moveTo(0, threshY)
+      ctx.lineTo(w, threshY)
+      ctx.stroke()
       ctx.globalAlpha = 1
 
-      // fill area below curve
+      // input filled trace
       ctx.beginPath()
-      for (let px = 0; px < w; px++) {
-        const inputDb = -rangeDb + (px / w) * rangeDb
-        const overDb = inputDb - threshold
-        let outputDb: number
-        if (overDb <= -halfKnee) {
-          outputDb = inputDb + makeup
-        } else if (overDb >= halfKnee) {
-          outputDb = threshold + overDb / ratio + makeup
-        } else {
-          outputDb = inputDb + (1 / ratio - 1) * Math.pow(overDb + halfKnee, 2) / (2 * knee) + makeup
-        }
-        outputDb = Math.max(-rangeDb, Math.min(rangeDb, outputDb))
-        const py = h - ((outputDb + rangeDb) / rangeDb) * h
-        if (px === 0) ctx.moveTo(0, h)
-        ctx.lineTo(px, py)
+      ctx.moveTo(0, h - 1)
+      for (let x = 0; x < w; x++) {
+        ctx.lineTo(x, normToY(inputHistory[x] ?? 0, h))
       }
-      ctx.lineTo(w, h)
+      ctx.lineTo(w - 1, h - 1)
       ctx.closePath()
       ctx.fillStyle = t.accents.accent0
-      ctx.globalAlpha = 0.06
+      ctx.globalAlpha = 0.18
       ctx.fill()
       ctx.globalAlpha = 1
 
-      // compression curve
-      ctx.strokeStyle = t.accents.accent0
-      ctx.lineWidth = 2
+      // highlight gain reduction delta
       ctx.beginPath()
-      for (let px = 0; px < w; px++) {
-        const inputDb = -rangeDb + (px / w) * rangeDb
-        const overDb = inputDb - threshold
-        let outputDb: number
-        if (overDb <= -halfKnee) {
-          outputDb = inputDb + makeup
-        } else if (overDb >= halfKnee) {
-          outputDb = threshold + overDb / ratio + makeup
-        } else {
-          outputDb = inputDb + (1 / ratio - 1) * Math.pow(overDb + halfKnee, 2) / (2 * knee) + makeup
-        }
-        outputDb = Math.max(-rangeDb, Math.min(rangeDb, outputDb))
-        const py = h - ((outputDb + rangeDb) / rangeDb) * h
-        if (px === 0) ctx.moveTo(px, py)
-        else ctx.lineTo(px, py)
+      for (let x = 0; x < w; x++) {
+        const y = normToY(inputHistory[x] ?? 0, h)
+        if (x === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      for (let x = w - 1; x >= 0; x--) {
+        ctx.lineTo(x, normToY(reducedHistory[x] ?? 0, h))
+      }
+      ctx.closePath()
+      ctx.fillStyle = t.accents.accent2
+      ctx.globalAlpha = 0.28
+      ctx.fill()
+      ctx.globalAlpha = 1
+
+      // reduced level trace
+      ctx.strokeStyle = t.accents.accent2
+      ctx.lineWidth = 1.8
+      ctx.beginPath()
+      for (let x = 0; x < w; x++) {
+        const y = normToY(reducedHistory[x] ?? 0, h)
+        if (x === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
       }
       ctx.stroke()
 
-      const target = grTargetRef.current
-      let current = grDisplayRef.current
-      current += (target - current) * (target > current ? GR_ATTACK : GR_RELEASE)
-      grDisplayRef.current = current
-      const reductionPct = current * 100
-
-      const fill = grFillRef.current
-      if (fill) {
-        fill.style.height = `${reductionPct}%`
-        fill.style.background =
-          reductionPct > 15 ? 'var(--accent2)' : 'var(--accent3)'
+      // input level trace
+      ctx.strokeStyle = t.accents.accent0
+      ctx.lineWidth = 1.3
+      ctx.beginPath()
+      for (let x = 0; x < w; x++) {
+        const y = normToY(inputHistory[x] ?? 0, h)
+        if (x === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
       }
-      const valueEl = grValueRef.current
-      if (valueEl) {
-        valueEl.textContent = reductionPct > 0.5 ? `-${reductionPct.toFixed(0)}` : '0'
-      }
+      ctx.stroke()
 
       rafRef.current = requestAnimationFrame(draw)
     }
@@ -162,34 +223,18 @@ export function CompressorPanel({ moduleId }: { moduleId: string }) {
 
   if (!mod || !def) return null
 
-  const canvasW = widthPx - 56 // leave room for GR meter column
+  const canvasW = widthPx - 16
   const paramEntries = Object.entries(def.params)
 
   return (
     <div className={styles.root}>
-      {/* top row: curve + GR meter */}
-      <div className={styles.topRow}>
-        <SizedCanvas
-          ref={canvasRef}
-          pixelWidth={canvasW}
-          pixelHeight={96}
-          className={styles.curveCanvas}
-        />
-        {/* GR meter */}
-        <div className={styles.grColumn}>
-          <div className={styles.grLabel}>gr</div>
-          <div className={styles.grMeter}>
-            {/* gain reduction bar fills from top */}
-            <div
-              ref={grFillRef}
-              className={styles.grFill}
-            />
-          </div>
-          <div ref={grValueRef} className={styles.grValue}>0</div>
-        </div>
-      </div>
+      <SizedCanvas
+        ref={canvasRef}
+        pixelWidth={canvasW}
+        pixelHeight={96}
+        className={styles.displayCanvas}
+      />
 
-      {/* knobs */}
       <div className={styles.knobsRow}>
         {paramEntries.map(([paramId, paramDef]) => (
           <Knob
