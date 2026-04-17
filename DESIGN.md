@@ -351,7 +351,7 @@ two special state keys are used by the engine for specific modules:
 
 **`_gateEvents`** — used by the push button module. the worklet populates this with an array of `{ offset: number; value: number; portId: string }` objects when a `SET_GATE` command arrives. the module reads and clears this array inside `process()` to implement sample-accurate gate timing.
 
-**`_indicatorBuffer`** — used by indicator-enabled timing modules (`clock`, `clock div`, `euclid`, `sequencer`). the engine injects an `Int32Array` view of a `SharedArrayBuffer` into this state key. modules write their current indicator state using `Atomics.store()`, and the main thread reads it in `requestAnimationFrame` to update lights without polling.
+**`_indicatorBuffer`** — used by indicator-enabled timing modules (`clock`, `clock div`, `euclid`, `sequencer`, `seq16`). the engine injects an `Int32Array` view of a `SharedArrayBuffer` into this state key. modules write their current indicator state using `Atomics.store()`, and the main thread reads it in `requestAnimationFrame` to update lights without polling.
 
 ### registering a module
 
@@ -725,7 +725,7 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
+_55 modules currently shipped (53 user-visible + 2 internal proxy modules)._
 
 | id                | name           | category | inputs                                            | outputs                         |
 | ----------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
@@ -746,6 +746,7 @@ _54 modules currently shipped (52 user-visible + 2 internal proxy modules)._
 | `samplehold`      | s&h            | utility  | in (cv), gate (overrides panel hold button)       | out (cv)                        |
 | `clock`           | clock          | control  | reset (trigger)                                   | gate (gate), trigger (trigger)  |
 | `sequencer`       | seq            | control  | clock (gate), reset (trigger)                     | out (cv), gate                  |
+| `seq16`           | seq16          | control  | clock (gate), reset (trigger), pattern (trigger)  | pitch (cv), vel (cv), gate      |
 | `keyboard`        | keyboard       | control  | —                                                 | out (cv), gate, trigger         |
 | `attenuverter`    | atten          | utility  | in (cv)                                           | out (cv)                        |
 | `cv`              | cv             | control  | —                                                 | out (cv)                        |
@@ -791,6 +792,7 @@ timing module parameter notes:
 - `clock.bpm` is an integer control in the `20–1000` range.
 - `clock div.div` is an integer divider control in the `2–16` range.
 - `euclid` and `clock div` expose output activity indicators via the shared indicator buffer path.
+- `seq16.pattern` is a trigger input that advances the active output pattern in order (`1 → 2 → 3 → 4 → 1`).
 
 granulator parameter notes:
 
@@ -851,7 +853,7 @@ the freq spectrum and vcf panels share a single log-frequency analyzer implement
 
 ### timing indicator buffers
 
-the `clock`, `clock div`, `euclid`, and `sequencer` modules use `Int32Array` views of `SharedArrayBuffer` instances (injected via the store action `setIndicatorBuffer`) to communicate timing indicator state to the ui without polling. these are read atomically in the `ClockIndicator` (clock/clock div/euclid) and `SequencerIndicator` (sequencer) components via `requestAnimationFrame`.
+the `clock`, `clock div`, `euclid`, `sequencer`, and `seq16` modules use `Int32Array` views of `SharedArrayBuffer` instances (injected via the store action `setIndicatorBuffer`) to communicate timing indicator state to the ui without polling. these are read atomically in the `ClockIndicator` (clock/clock div/euclid), `SequencerIndicator` (sequencer), and `Seq16Panel` (`seq16`) components via `requestAnimationFrame`.
 
 the `clock div` and `euclid` indicators include a short hold timer in module state so very brief gates/triggers remain visible at ui frame rates.
 

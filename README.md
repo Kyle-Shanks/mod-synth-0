@@ -56,7 +56,7 @@ Type in the search field at any time to search across all modules by name, categ
 
 ## Modules
 
-There are **52 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
+There are **53 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
 
 ### Source
 
@@ -76,6 +76,7 @@ There are **52 user-visible modules** in the command palette. While drilled into
 - **clock div** - clock divider with integer division factor (`2-16`), reset, and output activity indicator.
 - **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, accent output, and output activity indicator.
 - **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
+- **seq16** - 4-pattern, 16-step pitch sequencer with draggable semitone steps (`-24..24`), per-step velocity bars, global length (`1-16`), and trigger-advanced pattern playback (`1 -> 2 -> 3 -> 4 -> 1`).
 - **keyboard** - computer-keyboard note entry (`a w s e d f t g y h u j k`, octave via `z`/`x`) with pitch, gate, and trigger outs.
 - **cv** - constant cv source (`-1` to `+1`).
 - **chord dice** - generated 4-chord progression source with clock step input and root transposition input.
