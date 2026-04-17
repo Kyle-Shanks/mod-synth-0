@@ -792,7 +792,8 @@ timing module parameter notes:
 - `clock.bpm` is an integer control in the `20–1000` range.
 - `clock div.div` is an integer divider control in the `2–16` range.
 - `euclid` and `clock div` expose output activity indicators via the shared indicator buffer path.
-- `seq16.pattern` is a trigger input that advances the active output pattern in order (`1 → 2 → 3 → 4 → 1`).
+- `seq16.pattern` is a trigger input that advances the active output pattern in order and wraps based on `seq16.patternSpan`.
+- `seq16.patternSpan` limits how many patterns are cycled before wrapping back to pattern 1 (`1–4`).
 
 granulator parameter notes:
 

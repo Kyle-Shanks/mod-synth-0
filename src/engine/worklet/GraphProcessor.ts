@@ -19,9 +19,16 @@ class WorkletModule {
     this.smoothers = {}
     this.smoothedParams = {}
     const coeff = 1 - Math.exp(-2 * Math.PI * 300 / sr) // ~3ms at 44100
+    this.smootherCoeff = coeff
     for (const [key, value] of Object.entries(params)) {
       this.smoothers[key] = { smoothed: value, coeff }
       this.smoothedParams[key] = value
+    }
+    for (const [key, value] of Object.entries(paramDefaults)) {
+      if (this.smoothers[key]) continue
+      const initial = params[key] ?? value ?? 0
+      this.smoothers[key] = { smoothed: initial, coeff }
+      this.smoothedParams[key] = initial
     }
 
     // stable per-module objects reused every tick
@@ -165,7 +172,17 @@ class GraphProcessorNode extends AudioWorkletProcessor {
 
       case 'SET_PARAM': {
         const m = this.modules.get(cmd.moduleId)
-        if (m) m.params[cmd.param] = cmd.value
+        if (m) {
+          m.params[cmd.param] = cmd.value
+          if (!m.smoothers[cmd.param]) {
+            const initial = cmd.value ?? m.paramDefaults[cmd.param] ?? 0
+            m.smoothers[cmd.param] = {
+              smoothed: initial,
+              coeff: m.smootherCoeff,
+            }
+            m.smoothedParams[cmd.param] = initial
+          }
+        }
         break
       }
 

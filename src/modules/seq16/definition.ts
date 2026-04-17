@@ -52,6 +52,13 @@ const seq16Params: Record<string, ParamDefinition> = {
     default: 0,
     label: 'play',
   },
+  patternSpan: {
+    type: 'int',
+    min: 1,
+    max: 4,
+    default: 4,
+    label: 'span',
+  },
 }
 
 for (let pattern = 1; pattern <= PATTERN_COUNT; pattern++) {
@@ -135,6 +142,10 @@ export const Seq16Definition: ModuleDefinition<
     let manualPattern = Math.round(params.playPattern ?? 0)
     if (manualPattern < 0) manualPattern = 0
     if (manualPattern > 3) manualPattern = 3
+    const patternSpan = Math.max(
+      1,
+      Math.min(patternCount, Math.round(params.patternSpan ?? patternCount)),
+    )
 
     let noteParamKeys = state.noteParamKeys as string[] | undefined
     let velocityParamKeys = state.velocityParamKeys as string[] | undefined
@@ -208,24 +219,41 @@ export const Seq16Definition: ModuleDefinition<
     if (manualPattern !== previousPlayPatternParam) {
       activePattern = manualPattern
     }
+    if (activePattern >= patternSpan) {
+      activePattern = activePattern % patternSpan
+    }
 
     let activeStep = 0
 
     for (let i = 0; i < 128; i++) {
-      let justReset = false
       const resetHigh = (resetInput[i] ?? 0) > 0.5
-      if (resetHigh && !resetWasHigh) {
-        const restartStep = 0
-        stepA = restartStep
-        stepB = restartStep
-        stepC = restartStep
-        stepD = restartStep
-        justReset = true
-      }
-      resetWasHigh = resetHigh
-
       const clockHigh = (clockInput[i] ?? 0) > 0.5
-      if (!justReset && clockHigh && !clockWasHigh) {
+      const patternHigh = (patternInput[i] ?? 0) > 0.5
+
+      if (resetHigh) {
+        stepA = 0
+        stepB = 0
+        stepC = 0
+        stepD = 0
+        activePattern = 0
+
+        // While reset is held high, suppress sequence/pattern advances and keep
+        // high-state trackers aligned so release does not create false edges.
+        clockWasHigh = clockHigh
+        patternWasHigh = patternHigh
+        resetWasHigh = true
+
+        const noteSemitones = noteCache[0] ?? 0
+        const velocity = velocityCache[0] ?? 0
+        pitchOutput[i] = noteSemitones / 12
+        velocityOutput[i] = velocity
+        gateOutput[i] = 0
+        activeStep = 0
+        continue
+      }
+      resetWasHigh = false
+
+      if (clockHigh && !clockWasHigh) {
         stepA = (stepA + 1) % numSteps
         stepB = (stepB + 1) % numSteps
         stepC = (stepC + 1) % numSteps
@@ -233,9 +261,8 @@ export const Seq16Definition: ModuleDefinition<
       }
       clockWasHigh = clockHigh
 
-      const patternHigh = (patternInput[i] ?? 0) > 0.5
       if (patternHigh && !patternWasHigh) {
-        activePattern = (activePattern + 1) % patternCount
+        activePattern = (activePattern + 1) % patternSpan
       }
       patternWasHigh = patternHigh
       const selectedPattern = activePattern

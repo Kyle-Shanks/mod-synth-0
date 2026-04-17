@@ -72,6 +72,11 @@ export function Seq16Panel({ moduleId }: { moduleId: string }) {
     1,
     STEP_COUNT,
   )
+  const patternSpan = clampInt(
+    mod?.params.patternSpan ?? PATTERN_COUNT,
+    1,
+    PATTERN_COUNT,
+  )
 
   const indicatorBuffer = useMemo(() => {
     try {
@@ -261,6 +266,17 @@ export function Seq16Panel({ moduleId }: { moduleId: string }) {
     [moduleId, patternLength, setParam],
   )
 
+  const setPatternSpan = useCallback(
+    (nextSpan: number) => {
+      const clampedSpan = clampInt(nextSpan, 1, PATTERN_COUNT)
+      if (clampedSpan === patternSpan) return
+      useStore.getState().stageHistory()
+      setParam(moduleId, 'patternSpan', clampedSpan)
+      useStore.getState().commitHistory()
+    },
+    [moduleId, patternSpan, setParam],
+  )
+
   const stepIndices = useMemo(
     () => Array.from({ length: STEP_COUNT }, (_, i) => i),
     [],
@@ -281,6 +297,7 @@ export function Seq16Panel({ moduleId }: { moduleId: string }) {
           {Array.from({ length: PATTERN_COUNT }, (_, patternIndex) => {
             const isEditing = patternIndex === editingPattern
             const isPlaying = patternIndex === displayedPlayingPattern
+            const isEnabled = patternIndex < patternSpan
             return (
               <button
                 key={patternIndex}
@@ -288,6 +305,7 @@ export function Seq16Panel({ moduleId }: { moduleId: string }) {
                 className={styles.tabButton}
                 data-active={isEditing ? 'true' : 'false'}
                 data-playing={isPlaying ? 'true' : 'false'}
+                data-enabled={isEnabled ? 'true' : 'false'}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation()
@@ -300,32 +318,62 @@ export function Seq16Panel({ moduleId }: { moduleId: string }) {
           })}
         </div>
 
-        <div className={styles.lengthControl}>
-          <button
-            type='button'
-            className={styles.lengthButton}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              setLength(patternLength - 1)
-            }}
-            aria-label='decrease sequence length'
-          >
-            {'-'}
-          </button>
-          <div className={styles.lengthValue}>{`len ${patternLength}`}</div>
-          <button
-            type='button'
-            className={styles.lengthButton}
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              setLength(patternLength + 1)
-            }}
-            aria-label='increase sequence length'
-          >
-            {'+'}
-          </button>
+        <div className={styles.headerControls}>
+          <div className={styles.lengthControl}>
+            <button
+              type='button'
+              className={styles.lengthButton}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setLength(patternLength - 1)
+              }}
+              aria-label='decrease sequence length'
+            >
+              {'-'}
+            </button>
+            <div className={styles.lengthValue}>{`len ${patternLength}`}</div>
+            <button
+              type='button'
+              className={styles.lengthButton}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setLength(patternLength + 1)
+              }}
+              aria-label='increase sequence length'
+            >
+              {'+'}
+            </button>
+          </div>
+
+          <div className={styles.lengthControl}>
+            <button
+              type='button'
+              className={styles.lengthButton}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setPatternSpan(patternSpan - 1)
+              }}
+              aria-label='decrease pattern cycle length'
+            >
+              {'-'}
+            </button>
+            <div className={styles.lengthValue}>{`pats ${patternSpan}`}</div>
+            <button
+              type='button'
+              className={styles.lengthButton}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                setPatternSpan(patternSpan + 1)
+              }}
+              aria-label='increase pattern cycle length'
+            >
+              {'+'}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -45,6 +45,14 @@
   cursor: pointer;
 }
 
+.tabButton[data-active='true'] {
+  color: var(--accent0);
+}
+
+.tabButton[data-enabled='false'] {
+  color: var(--shade2);
+}
+
 .tabButton::after {
   content: '';
   position: absolute;
@@ -53,10 +61,6 @@
   bottom: -1px;
   height: 1px;
   background: var(--shade2);
-}
-
-.tabButton[data-active='true'] {
-  color: var(--accent0);
 }
 
 .tabButton[data-active='true']::after {
@@ -86,6 +90,12 @@
   background: var(--shade0);
 }
 
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .lengthButton {
   width: 16px;
   height: 16px;
@@ -109,7 +119,7 @@
 }
 
 .lengthValue {
-  min-width: 40px;
+  min-width: 52px;
   text-align: center;
   color: var(--shade3);
   font-size: var(--text-xs);
