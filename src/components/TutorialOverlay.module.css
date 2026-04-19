@@ -74,7 +74,7 @@
 }
 
 .lessonCard {
-  border: 1px solid color-mix(in srgb, var(--shade2) 70%, transparent);
+  border: 1px solid var(--shade2);
   border-radius: 4px;
   padding: 8px;
   display: flex;

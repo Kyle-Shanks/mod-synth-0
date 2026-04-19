@@ -85,8 +85,8 @@
   align-items: center;
   gap: 3px;
   border: 1px solid var(--shade2);
-  border-radius: 2px;
-  padding: 1px 3px;
+  border-radius: 4px;
+  padding: 1px;
   background: var(--shade0);
 }
 
@@ -110,12 +110,9 @@
   place-items: center;
 }
 
-.lengthButton:hover {
-  background: color-mix(in srgb, var(--shade3) 12%, transparent);
-}
-
+.lengthButton:hover,
 .lengthButton:active {
-  background: color-mix(in srgb, var(--shade3) 18%, transparent);
+  background-color: var(--shade2);
 }
 
 .lengthValue {
@@ -154,8 +151,12 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--shade3) 55%, transparent);
+  background-color: var(--shade2);
   transform: translateX(-50%);
+}
+
+.stepNumber[data-quarter='true'][data-enabled='true']::before {
+  background-color: var(--shade3);
 }
 
 .stepNumber[data-quarter='true'][data-playing='true']::before {
@@ -233,6 +234,6 @@
   right: 0;
   bottom: 0;
   height: var(--velocity-fill, 0%);
-  background: color-mix(in srgb, var(--accent0) 70%, var(--shade1));
+  background-color: var(--accent0);
   pointer-events: none;
 }

@@ -1,24 +1,5 @@
 .panel {
   --panel-border-color: var(--subpatch-border-color, var(--accent1));
-  box-shadow:
-    0 0 0 1px
-    color-mix(
-      in srgb,
-      var(--subpatch-border-color, var(--accent1)) 13%,
-      transparent
-    );
-}
-
-.menuBackdrop {
-}
-
-.menu {
-}
-
-.menuTitle {
-}
-
-.menuAction {
 }
 
 .header {
@@ -56,23 +37,8 @@
   overflow: hidden;
 }
 
-.portsSection {
-}
-
 .portsSectionPushBottom {
   margin-top: auto;
-}
-
-.inputs {
-}
-
-.outputs {
-}
-
-.outputsWithInputs {
-}
-
-.outputsFull {
 }
 
 .emptyHint {
