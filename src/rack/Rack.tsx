@@ -413,7 +413,11 @@ export function Rack() {
   } as CSSProperties
 
   return (
-    <div ref={outerRef} className={styles.outer}>
+    <div
+      ref={outerRef}
+      data-rack-scroll-container=''
+      className={styles.outer}
+    >
       <SubpatchBreadcrumb />
       <div className={styles.scaledViewport} style={scaledViewportStyle}>
         <div

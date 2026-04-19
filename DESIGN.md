@@ -586,9 +586,11 @@ do not use css modules `composes`; when sharing styles, import the shared css mo
 
 ### rack grid
 
-the rack is a finite, scrollable canvas (`64 × 32` grid units = `3072 × 1536px` at default zoom). modules snap to a 48px grid unit (`GRID_UNIT` in `src/theme/tokens.ts`).
+the rack is a finite, scrollable canvas (`64 × 32` grid units = `3072 × 1536px` at default zoom). module drag movement is continuous, but placement snaps to the 48px grid unit (`GRID_UNIT` in `src/theme/tokens.ts`) on release.
 
 module `width` and `height` are declared in rack grid units. the pixel dimensions are `width * GRID_UNIT` and `height * GRID_UNIT`.
+
+while dragging near viewport edges, the rack scroll container auto-pans toward the pointer and remains clamped to workspace bounds. if a drag is blocked by collision on one axis, movement can still continue along the unblocked axis ("slide along obstacles").
 
 click-drag on empty rack space draws an accent-colored marquee selection box. any module intersecting the box is added to `selectedModuleIds` and rendered with the same accent border used for active selection.
 
@@ -642,7 +644,7 @@ cables are `svg` bezier curves rendered on a full-rack overlay (`CableLayer.tsx`
 
 cable paths are updated directly via `element.setAttribute('d', path)` rather than through react reconciliation — the `portPositionCache` subscription notifies `CableLayer` to recompute paths without a react re-render. this keeps the cable layer fast during module drag.
 
-the `PortPositionCache` (`src/cables/PortPositionCache.ts`) is a singleton map from `moduleId:portId` to `{x, y}` in rack canvas coordinates. it is updated by `ModulePanel.tsx` whenever a module moves.
+the `PortPositionCache` (`src/cables/PortPositionCache.ts`) is a singleton map from `moduleId:portId` to `{x, y}` in rack canvas coordinates. it is updated by `ModulePanel.tsx` whenever a module moves, and drag-time updates are batched to trigger only one cable-layer recompute per batch. during release snap transitions, `ModulePanel` refreshes cached port positions every frame so cables visually track animated module movement.
 
 ### port rendering
 

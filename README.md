@@ -196,38 +196,38 @@ Lesson completion badges are saved in LocalStorage.
 
 ## Controls
 
-| Action                     | How                                                  |
-| -------------------------- | ---------------------------------------------------- |
-| Add module                 | `space` or `/` on rack                               |
-| Delete selected modules    | `delete` or `backspace`                              |
-| Select module              | Click on it                                          |
-| Select multiple modules    | Click-drag empty rack area                           |
-| Select all visible modules | `cmd/ctrl + a`                                       |
-| Add to selection           | Hold `shift` while marquee-selecting                 |
-| Copy selected modules      | `cmd/ctrl + c`                                       |
-| Paste modules              | `cmd/ctrl + v`                                       |
-| Undo                       | `cmd/ctrl + z` or top bar `↩`                        |
-| Redo                       | `cmd/ctrl + shift + z` or top bar `↪`                |
-| Move module(s)             | Drag selected module header                          |
-| Drag a cable               | Mousedown on any port                                |
-| Disconnect a cable         | Right-click the cable                                |
-| Rename patch               | Click the patch name in the top bar                  |
-| New patch                  | Top bar -> New                                       |
-| Export patch               | Top bar -> Export                                    |
-| Import patch               | Top bar -> Import                                    |
-| Open subpatch presets      | Top bar -> Presets                                   |
-| Settings                   | Gear icon in the top bar                             |
-| Zoom in/out                | Pinch trackpad or `cmd/ctrl + scroll`                |
-| Reset zoom                 | Click zoom percent in the top bar                    |
-| Group modules as subpatch  | Select >=2 modules -> right-click empty space        |
-| Ungroup subpatch           | Right-click subpatch container -> Ungroup            |
-| Enter subpatch             | Double-click container header                        |
-| Exit subpatch              | `esc` or click breadcrumb                            |
-| Expose port in subpatch    | Add **in** / **out** module while drilled in         |
-| Expose knob as macro       | Right-click knob while drilled in -> Expose as macro |
-| Save subpatch preset       | Right-click subpatch container -> Save to library    |
+| Action                     | How                                                                                      |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| Add module                 | `space` or `/` on rack                                                                   |
+| Delete selected modules    | `delete` or `backspace`                                                                  |
+| Select module              | Click on it                                                                              |
+| Select multiple modules    | Click-drag empty rack area                                                               |
+| Select all visible modules | `cmd/ctrl + a`                                                                           |
+| Add to selection           | Hold `shift` while marquee-selecting                                                     |
+| Copy selected modules      | `cmd/ctrl + c`                                                                           |
+| Paste modules              | `cmd/ctrl + v`                                                                           |
+| Undo                       | `cmd/ctrl + z` or top bar `↩`                                                            |
+| Redo                       | `cmd/ctrl + shift + z` or top bar `↪`                                                    |
+| Move module(s)             | Drag selected module header (free drag; snaps on release; viewport auto-pans near edges) |
+| Drag a cable               | Mousedown on any port                                                                    |
+| Disconnect a cable         | Right-click the cable                                                                    |
+| Rename patch               | Click the patch name in the top bar                                                      |
+| New patch                  | Top bar -> New                                                                           |
+| Export patch               | Top bar -> Export                                                                        |
+| Import patch               | Top bar -> Import                                                                        |
+| Open subpatch presets      | Top bar -> Presets                                                                       |
+| Settings                   | Gear icon in the top bar                                                                 |
+| Zoom in/out                | Pinch trackpad or `cmd/ctrl + scroll`                                                    |
+| Reset zoom                 | Click zoom percent in the top bar                                                        |
+| Group modules as subpatch  | Select >=2 modules -> right-click empty space                                            |
+| Ungroup subpatch           | Right-click subpatch container -> Ungroup                                                |
+| Enter subpatch             | Double-click container header                                                            |
+| Exit subpatch              | `esc` or click breadcrumb                                                                |
+| Expose port in subpatch    | Add **in** / **out** module while drilled in                                             |
+| Expose knob as macro       | Right-click knob while drilled in -> Expose as macro                                     |
+| Save subpatch preset       | Right-click subpatch container -> Save to library                                        |
 
-Module placement is clamped to the rack workspace bounds, including paste and subpatch container placement.
+Module placement is clamped to the rack workspace bounds, snapped to the grid on placement, and overlap-validated (including add, drag, paste, and subpatch container placement).
 
 ---
 
