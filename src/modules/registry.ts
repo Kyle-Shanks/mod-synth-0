@@ -12,9 +12,9 @@ import { LFODefinition } from './lfo/definition'
 import { NoiseDefinition } from './noise/definition'
 import { SampleHoldDefinition } from './samplehold/definition'
 import { ClockDefinition } from './clock/definition'
-import { SequencerDefinition } from './sequencer/definition'
-import { Seq16Definition } from './seq16/definition'
-import { DrumSeqDefinition } from './drumseq/definition'
+import { CVSequencerDefinition } from './cvSequencer/definition'
+import { NoteSequencerDefinition } from './noteSequencer/definition'
+import { DrumSequencerDefinition } from './drumseq/definition'
 import { AttenuverterDefinition } from './attenuverter/definition'
 import { QuantizerDefinition } from './quantizer/definition'
 import { ReverbDefinition } from './reverb/definition'
@@ -94,9 +94,9 @@ reg(LFODefinition)
 reg(NoiseDefinition)
 reg(SampleHoldDefinition)
 reg(ClockDefinition)
-reg(SequencerDefinition)
-reg(Seq16Definition)
-reg(DrumSeqDefinition)
+reg(CVSequencerDefinition)
+reg(NoteSequencerDefinition)
+reg(DrumSequencerDefinition)
 reg(AttenuverterDefinition)
 reg(QuantizerDefinition)
 reg(ReverbDefinition)

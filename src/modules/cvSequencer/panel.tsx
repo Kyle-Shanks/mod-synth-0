@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { internalWorkletId } from '../../store/subpatchSlice'
 import styles from './panel.module.css'
 
 const STEP_COUNT = 16
 const PATTERN_COUNT = 4
+const CV_MIN = -2
+const CV_MAX = 2
+const CV_DRAG_SENSITIVITY = 0.02
+const CV_DRAG_FINE_SENSITIVITY = 0.006
 
-interface PaintState {
+interface DragState {
   pointerId: number
-  trackIndex: number
-  targetValue: 0 | 1
+  patternIndex: number
+  stepIndex: number
+  rawValue: number
+  lastSent: number
 }
-
-const TRACKS = [
-  { label: '1', paramTrack: 0 },
-  { label: '2', paramTrack: 1 },
-  { label: '3', paramTrack: 2 },
-  { label: '4', paramTrack: 3 },
-] as const
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -27,15 +27,18 @@ function clampInt(value: number, min: number, max: number): number {
   return Math.round(clamp(value, min, max))
 }
 
-function stepParamId(
-  patternIndex: number,
-  trackIndex: number,
-  stepIndex: number,
-): string {
-  return `p${patternIndex + 1}t${trackIndex + 1}s${stepIndex + 1}`
+function cvParamId(patternIndex: number, stepIndex: number): string {
+  return `p${patternIndex + 1}s${stepIndex + 1}`
 }
 
-export function DrumSequencerPanel({ moduleId }: { moduleId: string }) {
+function formatCv(value: number): string {
+  const rounded = Math.round(value * 100) / 100
+  const fixed = rounded.toFixed(2)
+  if (fixed === '-0.00' || fixed === '0.00') return '0'
+  return fixed
+}
+
+export function CVSequencerPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
   const setParam = useStore((s) => s.setParam)
   const setModuleDataValue = useStore((s) => s.setModuleDataValue)
@@ -49,8 +52,8 @@ export function DrumSequencerPanel({ moduleId }: { moduleId: string }) {
     ? internalWorkletId(currentInstanceId, moduleId)
     : moduleId
 
-  const paintRef = useRef<PaintState | null>(null)
-  const [activePaintKey, setActivePaintKey] = useState<string | null>(null)
+  const dragRef = useRef<DragState | null>(null)
+  const [activeDragKey, setActiveDragKey] = useState<string | null>(null)
 
   const manualPattern = clampInt(
     mod?.params.playPattern ?? 0,
@@ -129,95 +132,98 @@ export function DrumSequencerPanel({ moduleId }: { moduleId: string }) {
     return () => cancelAnimationFrame(rafId)
   }, [indicatorBuffer, patternLength])
 
-  const finishPaint = useCallback(() => {
-    if (!paintRef.current) return
-    paintRef.current = null
-    setActivePaintKey(null)
+  const finishDrag = useCallback(() => {
+    if (!dragRef.current) return
+    dragRef.current = null
+    setActiveDragKey(null)
+    document.exitPointerLock()
     useStore.getState().commitHistory()
   }, [])
 
   useEffect(() => {
     return () => {
-      finishPaint()
+      finishDrag()
     }
-  }, [finishPaint])
+  }, [finishDrag])
 
   useEffect(() => {
-    const handleWindowPointerEnd = (event: PointerEvent) => {
-      const paint = paintRef.current
-      if (!paint || paint.pointerId !== event.pointerId) return
-      finishPaint()
+    const handlePointerLockChange = () => {
+      if (!document.pointerLockElement && dragRef.current) {
+        finishDrag()
+      }
     }
-
-    window.addEventListener('pointerup', handleWindowPointerEnd)
-    window.addEventListener('pointercancel', handleWindowPointerEnd)
+    document.addEventListener('pointerlockchange', handlePointerLockChange)
     return () => {
-      window.removeEventListener('pointerup', handleWindowPointerEnd)
-      window.removeEventListener('pointercancel', handleWindowPointerEnd)
+      document.removeEventListener('pointerlockchange', handlePointerLockChange)
     }
-  }, [finishPaint])
+  }, [finishDrag])
 
-  const applyStepValue = useCallback(
-    (trackIndex: number, stepIndex: number, nextValue: 0 | 1) => {
-      if (stepIndex >= patternLength) return
-      const paramId = stepParamId(editingPattern, trackIndex, stepIndex)
-      const liveMod = useStore.getState().modules[moduleId]
-      const currentValue = (liveMod?.params[paramId] ?? 0) >= 0.5 ? 1 : 0
-      if (currentValue === nextValue) return
-      setParam(moduleId, paramId, nextValue)
-    },
-    [editingPattern, moduleId, patternLength, setParam],
-  )
-
-  const beginPaint = useCallback(
+  const beginDrag = useCallback(
     (
-      e: React.PointerEvent<HTMLButtonElement>,
-      trackIndex: number,
+      e: React.PointerEvent<HTMLElement>,
       stepIndex: number,
-      currentValue: number,
+      initialValue: number,
     ) => {
       if (stepIndex >= patternLength) return
-
       e.preventDefault()
       e.stopPropagation()
 
-      if (paintRef.current) finishPaint()
+      if (dragRef.current) finishDrag()
 
-      const targetValue: 0 | 1 = currentValue >= 0.5 ? 0 : 1
       useStore.getState().stageHistory()
-      paintRef.current = {
+      e.currentTarget.setPointerCapture(e.pointerId)
+
+      dragRef.current = {
         pointerId: e.pointerId,
-        trackIndex,
-        targetValue,
+        patternIndex: editingPattern,
+        stepIndex,
+        rawValue: initialValue,
+        lastSent: initialValue,
       }
-      setActivePaintKey(`${trackIndex}-${stepIndex}`)
-      applyStepValue(trackIndex, stepIndex, targetValue)
+      setActiveDragKey(`cv-${stepIndex}`)
+      e.currentTarget.requestPointerLock()
     },
-    [applyStepValue, finishPaint, patternLength],
+    [editingPattern, finishDrag, patternLength],
   )
 
-  const continuePaint = useCallback(
-    (
-      e: React.PointerEvent<HTMLButtonElement>,
-      trackIndex: number,
-      stepIndex: number,
-    ) => {
-      const paint = paintRef.current
-      if (!paint || paint.trackIndex !== trackIndex) return
-      if (stepIndex >= patternLength || (e.buttons & 1) !== 1) return
-      setActivePaintKey(`${trackIndex}-${stepIndex}`)
-      applyStepValue(trackIndex, stepIndex, paint.targetValue)
+  const handleCellPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      const drag = dragRef.current
+      if (!drag || drag.pointerId !== e.pointerId) return
+
+      const sensitivity = e.shiftKey
+        ? CV_DRAG_FINE_SENSITIVITY
+        : CV_DRAG_SENSITIVITY
+      const nextRaw = clamp(
+        drag.rawValue - e.movementY * sensitivity,
+        CV_MIN,
+        CV_MAX,
+      )
+      const nextValue = Math.round(nextRaw * 1000) / 1000
+      drag.rawValue = nextRaw
+
+      if (Math.abs(nextValue - drag.lastSent) > 0.0005) {
+        setParam(
+          moduleId,
+          cvParamId(drag.patternIndex, drag.stepIndex),
+          nextValue,
+        )
+        drag.lastSent = nextValue
+      }
     },
-    [applyStepValue, patternLength],
+    [moduleId, setParam],
   )
 
   const handleCellPointerEnd = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      const paint = paintRef.current
-      if (!paint || paint.pointerId !== e.pointerId) return
-      finishPaint()
+    (e: React.PointerEvent<HTMLElement>) => {
+      const drag = dragRef.current
+      if (!drag || drag.pointerId !== e.pointerId) return
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
+      finishDrag()
     },
-    [finishPaint],
+    [finishDrag],
   )
 
   const handlePatternTabClick = useCallback(
@@ -352,7 +358,6 @@ export function DrumSequencerPanel({ moduleId }: { moduleId: string }) {
 
       <div className={styles.contentGroup}>
         <div className={styles.stepNumbers}>
-          <div className={styles.rowTagSpacer} />
           {stepIndices.map((stepIndex) => {
             const enabled = stepIndex < patternLength
             const isPlaying =
@@ -373,54 +378,56 @@ export function DrumSequencerPanel({ moduleId }: { moduleId: string }) {
           })}
         </div>
 
-        {TRACKS.map((track) => (
-          <div key={track.label} className={styles.trackRow}>
-            <div className={styles.rowTag}>{track.label}</div>
-            <div className={styles.stepGrid}>
-              {stepIndices.map((stepIndex) => {
-                const paramId = stepParamId(
-                  editingPattern,
-                  track.paramTrack,
-                  stepIndex,
-                )
-                const value = mod.params[paramId] ?? 0
-                const active = value >= 0.5
-                const enabled = stepIndex < patternLength
-                const isPlaying =
-                  playingInEditedPattern &&
-                  enabled &&
-                  displayedPlayingStep === stepIndex
-                const paintKey = `${track.paramTrack}-${stepIndex}`
+        <div className={styles.stepGrid}>
+          {stepIndices.map((stepIndex) => {
+            const paramId = cvParamId(editingPattern, stepIndex)
+            const value = clamp(mod.params[paramId] ?? 0, CV_MIN, CV_MAX)
+            const enabled = stepIndex < patternLength
+            const isPlaying =
+              playingInEditedPattern &&
+              enabled &&
+              displayedPlayingStep === stepIndex
+            const dragKey = `cv-${stepIndex}`
+            const normalized = clamp(value / CV_MAX, -1, 1)
+            const barStyle = {
+              '--cv-pos-fill': `${Math.max(0, normalized) * 50}%`,
+              '--cv-neg-fill': `${Math.max(0, -normalized) * 50}%`,
+            } as CSSProperties
 
-                return (
-                  <button
-                    key={paramId}
-                    type='button'
-                    className={styles.toggleCell}
-                    data-active={active ? 'true' : 'false'}
-                    data-enabled={enabled ? 'true' : 'false'}
-                    data-playing={isPlaying ? 'true' : 'false'}
-                    data-painting={
-                      activePaintKey === paintKey ? 'true' : 'false'
-                    }
-                    data-param-control=''
-                    data-module-id={moduleId}
-                    data-param-id={paramId}
-                    onPointerDown={(e) =>
-                      beginPaint(e, track.paramTrack, stepIndex, value)
-                    }
-                    onPointerEnter={(e) =>
-                      continuePaint(e, track.paramTrack, stepIndex)
-                    }
-                    onPointerUp={handleCellPointerEnd}
-                    onPointerCancel={handleCellPointerEnd}
-                    onMouseDown={(e) => e.stopPropagation()}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        ))}
+            return (
+              <button
+                key={paramId}
+                type='button'
+                className={styles.cvCell}
+                data-enabled={enabled ? 'true' : 'false'}
+                data-playing={isPlaying ? 'true' : 'false'}
+                data-dragging={activeDragKey === dragKey ? 'true' : 'false'}
+                data-param-control=''
+                data-module-id={moduleId}
+                data-param-id={paramId}
+                onPointerDown={(e) => beginDrag(e, stepIndex, value)}
+                onPointerMove={handleCellPointerMove}
+                onPointerUp={handleCellPointerEnd}
+                onPointerCancel={handleCellPointerEnd}
+                onMouseDown={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => {
+                  e.stopPropagation()
+                  if (!enabled || Math.abs(value) < 0.0005) return
+                  useStore.getState().stageHistory()
+                  setParam(moduleId, paramId, 0)
+                  useStore.getState().commitHistory()
+                }}
+              >
+                <div className={styles.cvBar} style={barStyle}>
+                  <div className={styles.cvFillPos} />
+                  <div className={styles.cvFillNeg} />
+                  <div className={styles.cvMidline} />
+                </div>
+                <div className={styles.cvValue}>{formatCv(value)}</div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

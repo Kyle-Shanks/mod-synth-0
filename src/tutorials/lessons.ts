@@ -544,15 +544,15 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
       },
       {
         id: 'add-sequencer',
-        action: 'add a seq module.',
+        action: 'add a cv seq module.',
         why: 'sequencer steps produce a moving pitch line.',
-        hint: 'look for `seq` in the control category.',
+        hint: 'look for `cv seq` in the control category.',
         demo: 'place sequencer to the right of clock.',
         validate(runtime) {
-          return firstModuleByDefinition(runtime, 'sequencer') ? ok() : fail()
+          return firstModuleByDefinition(runtime, 'cvsequencer') ? ok() : fail()
         },
         autoPerform(runtime) {
-          ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
+          ensureModule(runtime, 'cvsequencer', { x: 9, y: 4 })
         },
       },
       {
@@ -583,13 +583,13 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
       },
       {
         id: 'clock-to-seq',
-        action: 'connect clock `gate` to seq `clock`.',
+        action: 'connect clock `gate` to cv seq `clock`.',
         why: 'each gate edge advances the sequencer by one step.',
         hint: 'clock pulses should advance the sequencer one step at a time.',
         demo: 'patch from clock gate output into sequencer clock input.',
         validate(runtime) {
           const clockId = firstModuleByDefinition(runtime, 'clock')
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           if (!clockId || !seqId) return fail()
           return hasCable(runtime, clockId, 'gate', seqId, 'clock')
             ? ok()
@@ -597,7 +597,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         },
         autoPerform(runtime) {
           const clockId = ensureModule(runtime, 'clock', { x: 3, y: 4 })
-          const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
+          const seqId = ensureModule(runtime, 'cvsequencer', { x: 9, y: 4 })
           if (!clockId || !seqId) return
           ensureCable(
             runtime,
@@ -607,7 +607,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         },
         focus(runtime) {
           const clockId = firstModuleByDefinition(runtime, 'clock')
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           if (!clockId || !seqId) return []
           return [
             { kind: 'port', moduleId: clockId, portId: 'gate' },
@@ -617,12 +617,12 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
       },
       {
         id: 'seq-to-vco',
-        action: 'connect seq `out` to vco `v/oct`.',
+        action: 'connect cv seq `out` to vco `v/oct`.',
         why: 'this turns sequencer cv into oscillator pitch.',
         hint: 'pitch cv from the sequencer belongs on the vco `v/oct` input.',
         demo: 'patch sequencer cv output into vco v/oct input.',
         validate(runtime) {
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           if (!seqId || !vcoId) return fail()
           return hasCable(runtime, seqId, 'cv', vcoId, 'frequency')
@@ -630,7 +630,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             : fail()
         },
         autoPerform(runtime) {
-          const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
+          const seqId = ensureModule(runtime, 'cvsequencer', { x: 9, y: 4 })
           const vcoId = ensureModule(runtime, 'vco', { x: 12, y: 10 })
           if (!seqId || !vcoId) return
           ensureCable(
@@ -640,7 +640,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           )
         },
         focus(runtime) {
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           const vcoId = firstModuleByDefinition(runtime, 'vco')
           if (!seqId || !vcoId) return []
           return [
@@ -716,33 +716,34 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
       },
       {
         id: 'set-step-variation',
-        action: 'change seq step 2 so it differs from step 1 by at least 0.2.',
+        action:
+          'change cv seq step 2 so it differs from step 1 by at least 0.2.',
         why: 'varying step voltages is what creates a melodic pattern.',
-        hint: 'turn the `2` knob until it is clearly different from `1`.',
-        demo: 'set step1 near 0 and step2 around +0.6 for a clear jump.',
+        hint: 'drag step 2 until it is clearly different from step 1.',
+        demo: 'set step 1 near 0 and step 2 around +0.6 for a clear jump.',
         validate(runtime) {
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           const seq = getModule(runtime, seqId)
           if (!seq) return fail()
-          const step1 = seq.params.step1
-          const step2 = seq.params.step2
+          const step1 = seq.params.p1s1
+          const step2 = seq.params.p1s2
           if (step1 === undefined || step2 === undefined) {
             return fail()
           }
           return Math.abs(step2 - step1) >= 0.2 ? ok() : fail()
         },
         autoPerform(runtime) {
-          const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
+          const seqId = ensureModule(runtime, 'cvsequencer', { x: 9, y: 4 })
           if (!seqId) return
-          runtime.setParam(seqId, 'step1', 0)
-          runtime.setParam(seqId, 'step2', 0.6)
+          runtime.setParam(seqId, 'p1s1', 0)
+          runtime.setParam(seqId, 'p1s2', 0.6)
         },
         focus(runtime) {
-          const seqId = firstModuleByDefinition(runtime, 'sequencer')
+          const seqId = firstModuleByDefinition(runtime, 'cvsequencer')
           if (!seqId) return []
           return [
-            { kind: 'param', moduleId: seqId, paramId: 'step1' },
-            { kind: 'param', moduleId: seqId, paramId: 'step2' },
+            { kind: 'param', moduleId: seqId, paramId: 'p1s1' },
+            { kind: 'param', moduleId: seqId, paramId: 'p1s2' },
           ]
         },
       },
@@ -1411,7 +1412,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
 
           const hasGateToEnv = hasConnection(
             runtime,
-            ['clock', 'pushbutton', 'keyboard', 'sequencer', 'euclidean'],
+            ['clock', 'pushbutton', 'keyboard', 'cvsequencer', 'euclidean'],
             ['ad', 'ar', 'adsr'],
             'gate',
           )
@@ -1489,7 +1490,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           const hasClockToSeq = hasConnection(
             runtime,
             ['clock'],
-            ['sequencer'],
+            ['cvsequencer'],
             'clock',
             'gate',
           )
@@ -1497,7 +1498,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
 
           const hasSeqPitch = hasConnection(
             runtime,
-            ['sequencer'],
+            ['cvsequencer'],
             ['vco'],
             'frequency',
             'cv',
@@ -1513,7 +1514,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
           if (!hasAmpToOut) return fail()
 
           const hasArticulation =
-            hasConnection(runtime, ['sequencer'], ['vca'], 'gain', 'gate') ||
+            hasConnection(runtime, ['cvsequencer'], ['vca'], 'gain', 'gate') ||
             hasConnection(runtime, ['adsr', 'ad', 'ar'], ['vca'], 'gain')
 
           if (!hasArticulation) {
@@ -1524,7 +1525,7 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
         },
         autoPerform(runtime) {
           const clockId = ensureModule(runtime, 'clock', { x: 3, y: 4 })
-          const seqId = ensureModule(runtime, 'sequencer', { x: 9, y: 4 })
+          const seqId = ensureModule(runtime, 'cvsequencer', { x: 9, y: 4 })
           const vcoId = ensureModule(runtime, 'vco', { x: 10, y: 10 })
           const vcaId = ensureModule(runtime, 'vca', { x: 15, y: 10 })
           const outputId = ensureModule(runtime, 'output', { x: 19, y: 9 })
@@ -1555,9 +1556,9 @@ export const TUTORIAL_LESSONS: TutorialLesson[] = [
             { moduleId: vcaId, portId: 'out' },
             { moduleId: outputId, portId: 'left' },
           )
-          runtime.setParam(seqId, 'step1', -0.2)
-          runtime.setParam(seqId, 'step2', 0.4)
-          runtime.setParam(seqId, 'step3', 0.1)
+          runtime.setParam(seqId, 'p1s1', -0.2)
+          runtime.setParam(seqId, 'p1s2', 0.4)
+          runtime.setParam(seqId, 'p1s3', 0.1)
         },
       },
     ],

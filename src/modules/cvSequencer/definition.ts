@@ -8,7 +8,7 @@ const PATTERN_COUNT = 4
 const STEPS_PER_PATTERN = 16
 const TOTAL_STEPS = PATTERN_COUNT * STEPS_PER_PATTERN
 
-interface Seq16State {
+interface CVSequencerState {
   stepA: number
   stepB: number
   stepC: number
@@ -18,27 +18,24 @@ interface Seq16State {
   patternWasHigh: boolean
   activePattern: number
   playPatternParam: number
-  noteParamKeys: string[]
-  velocityParamKeys: string[]
-  noteCache: Float32Array
-  velocityCache: Float32Array
+  valueParamKeys: string[]
+  valueCache: Float32Array
   indicatorStep: number
   [key: string]: unknown
 }
 
-const seq16Inputs: Record<string, PortDefinition> = {
+const cvSequencerInputs: Record<string, PortDefinition> = {
   clock: { type: 'gate', default: 0, label: 'clock' },
   reset: { type: 'trigger', default: 0, label: 'reset' },
   pattern: { type: 'trigger', default: 0, label: 'pattern' },
 }
 
-const seq16Outputs: Record<string, PortDefinition> = {
-  pitch: { type: 'cv', default: 0, label: 'pitch' },
-  velocity: { type: 'cv', default: 0, label: 'vel' },
+const cvSequencerOutputs: Record<string, PortDefinition> = {
+  cv: { type: 'cv', default: 0, label: 'out' },
   gate: { type: 'gate', default: 0, label: 'gate' },
 }
 
-const seq16Params: Record<string, ParamDefinition> = {
+const cvSequencerParams: Record<string, ParamDefinition> = {
   length: {
     type: 'int',
     min: 1,
@@ -64,48 +61,37 @@ const seq16Params: Record<string, ParamDefinition> = {
 
 for (let pattern = 1; pattern <= PATTERN_COUNT; pattern++) {
   for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
-    seq16Params[`p${pattern}n${step}`] = {
-      type: 'int',
-      min: -24,
-      max: 24,
-      default: 0,
-      label: `${pattern}:${step}n`,
-      unit: 'st',
-    }
-    seq16Params[`p${pattern}v${step}`] = {
+    cvSequencerParams[`p${pattern}s${step}`] = {
       type: 'float',
-      min: 0,
-      max: 1,
-      default: 1,
-      label: `${pattern}:${step}v`,
+      min: -2,
+      max: 2,
+      default: 0,
+      label: `${pattern}:${step}`,
     }
   }
 }
 
-export const Seq16Definition: ModuleDefinition<
+export const CVSequencerDefinition: ModuleDefinition<
   Record<string, PortDefinition>,
   Record<string, PortDefinition>,
   Record<string, ParamDefinition>,
-  Seq16State
+  CVSequencerState
 > = {
-  id: 'seq16',
-  name: 'seq16',
+  id: 'cvsequencer',
+  name: 'cv seq',
   category: 'control',
   width: 12,
   height: 5,
 
-  inputs: seq16Inputs,
-  outputs: seq16Outputs,
-  params: seq16Params,
+  inputs: cvSequencerInputs,
+  outputs: cvSequencerOutputs,
+  params: cvSequencerParams,
 
-  initialize(): Seq16State {
-    const noteParamKeys: string[] = []
-    const velocityParamKeys: string[] = []
-
+  initialize(): CVSequencerState {
+    const valueParamKeys: string[] = []
     for (let pattern = 1; pattern <= PATTERN_COUNT; pattern++) {
       for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
-        noteParamKeys.push(`p${pattern}n${step}`)
-        velocityParamKeys.push(`p${pattern}v${step}`)
+        valueParamKeys.push(`p${pattern}s${step}`)
       }
     }
 
@@ -119,10 +105,8 @@ export const Seq16Definition: ModuleDefinition<
       patternWasHigh: false,
       activePattern: 0,
       playPatternParam: 0,
-      noteParamKeys,
-      velocityParamKeys,
-      noteCache: new Float32Array(TOTAL_STEPS),
-      velocityCache: new Float32Array(TOTAL_STEPS),
+      valueParamKeys,
+      valueCache: new Float32Array(TOTAL_STEPS),
       indicatorStep: 0,
     }
   },
@@ -135,8 +119,7 @@ export const Seq16Definition: ModuleDefinition<
     const clockInput = inputs.clock as Float32Array
     const resetInput = inputs.reset as Float32Array
     const patternInput = inputs.pattern as Float32Array
-    const pitchOutput = outputs.pitch as Float32Array
-    const velocityOutput = outputs.velocity as Float32Array
+    const cvOutput = outputs.cv as Float32Array
     const gateOutput = outputs.gate as Float32Array
 
     const numSteps = Math.max(1, Math.min(16, Math.round(params.length ?? 16)))
@@ -149,47 +132,27 @@ export const Seq16Definition: ModuleDefinition<
       Math.min(patternCount, Math.round(params.patternSpan ?? patternCount)),
     )
 
-    let noteParamKeys = state.noteParamKeys as string[] | undefined
-    let velocityParamKeys = state.velocityParamKeys as string[] | undefined
-    let noteCache = state.noteCache as Float32Array | undefined
-    let velocityCache = state.velocityCache as Float32Array | undefined
+    let valueParamKeys = state.valueParamKeys as string[] | undefined
+    let valueCache = state.valueCache as Float32Array | undefined
 
-    if (!noteParamKeys || noteParamKeys.length !== totalSteps) {
-      noteParamKeys = []
+    if (!valueParamKeys || valueParamKeys.length !== totalSteps) {
+      valueParamKeys = []
       for (let pattern = 1; pattern <= patternCount; pattern++) {
         for (let step = 1; step <= stepsPerPattern; step++) {
-          noteParamKeys.push(`p${pattern}n${step}`)
+          valueParamKeys.push(`p${pattern}s${step}`)
         }
       }
-      state.noteParamKeys = noteParamKeys
+      state.valueParamKeys = valueParamKeys
     }
 
-    if (!velocityParamKeys || velocityParamKeys.length !== totalSteps) {
-      velocityParamKeys = []
-      for (let pattern = 1; pattern <= patternCount; pattern++) {
-        for (let step = 1; step <= stepsPerPattern; step++) {
-          velocityParamKeys.push(`p${pattern}v${step}`)
-        }
-      }
-      state.velocityParamKeys = velocityParamKeys
-    }
-
-    if (!noteCache || noteCache.length !== totalSteps) {
-      noteCache = new Float32Array(totalSteps)
-      state.noteCache = noteCache
-    }
-
-    if (!velocityCache || velocityCache.length !== totalSteps) {
-      velocityCache = new Float32Array(totalSteps)
-      state.velocityCache = velocityCache
+    if (!valueCache || valueCache.length !== totalSteps) {
+      valueCache = new Float32Array(totalSteps)
+      state.valueCache = valueCache
     }
 
     for (let i = 0; i < totalSteps; i++) {
-      const noteValue = Math.round(params[noteParamKeys[i]!] ?? 0)
-      noteCache[i] = Math.max(-24, Math.min(24, noteValue))
-
-      const velocityValue = params[velocityParamKeys[i]!] ?? 1
-      velocityCache[i] = Math.max(0, Math.min(1, velocityValue))
+      const value = params[valueParamKeys[i]!] ?? 0
+      valueCache[i] = Math.max(-2, Math.min(2, value))
     }
 
     let stepA = Math.round(state.stepA ?? 0)
@@ -246,10 +209,7 @@ export const Seq16Definition: ModuleDefinition<
         patternWasHigh = patternHigh
         resetWasHigh = true
 
-        const noteSemitones = noteCache[0] ?? 0
-        const velocity = velocityCache[0] ?? 0
-        pitchOutput[i] = noteSemitones / 12
-        velocityOutput[i] = velocity
+        cvOutput[i] = valueCache[0] ?? 0
         gateOutput[i] = 0
         activeStep = 0
         continue
@@ -276,12 +236,10 @@ export const Seq16Definition: ModuleDefinition<
       else if (selectedPattern === 3) selectedStep = stepD
 
       const cacheIndex = selectedPattern * stepsPerPattern + selectedStep
-      const noteSemitones = noteCache[cacheIndex] ?? 0
-      const velocity = velocityCache[cacheIndex] ?? 0
+      const cvValue = valueCache[cacheIndex] ?? 0
 
-      pitchOutput[i] = noteSemitones / 12
-      velocityOutput[i] = velocity
-      gateOutput[i] = clockHigh && velocity > 0.001 ? 1 : 0
+      cvOutput[i] = cvValue
+      gateOutput[i] = clockHigh ? 1 : 0
 
       activePattern = selectedPattern
       if (clockRising) {

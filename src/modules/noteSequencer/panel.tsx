@@ -38,7 +38,7 @@ function velocityParamId(patternIndex: number, stepIndex: number): string {
   return `p${patternIndex + 1}v${stepIndex + 1}`
 }
 
-export function Seq16Panel({ moduleId }: { moduleId: string }) {
+export function NoteSequencerPanel({ moduleId }: { moduleId: string }) {
   const mod = useStore((s) => s.modules[moduleId])
   const setParam = useStore((s) => s.setParam)
   const setModuleDataValue = useStore((s) => s.setModuleDataValue)

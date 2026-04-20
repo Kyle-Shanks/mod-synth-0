@@ -78,8 +78,8 @@ There are **55 user-visible modules** in the command palette. While drilled into
 - **clock** - integer bpm clock (`20-1000`) with swing, reset, gate output, and 4ms trigger output.
 - **clock div** - clock divider with integer division factor (`2-16`), reset, and output activity indicator.
 - **euclid** - euclidean trigger sequencer with `steps`, `pulses`, `offset`, accent output, and output activity indicator.
-- **seq** - 8-step pitch/gate sequencer with per-step pitch and gate length.
-- **seq16** - 4-pattern, 16-step pitch sequencer with draggable semitone steps (`-24..24`), per-step velocity bars, global step length (`1-16`), pattern cycle length (`1-4`), and trigger-advanced pattern playback.
+- **cv seq** - 4-pattern, 16-step cv/gate sequencer with draggable step voltages (`-2..2`), global step length (`1-16`), pattern cycle length (`1-4`), and trigger-advanced pattern playback.
+- **note seq** - 4-pattern, 16-step pitch sequencer with draggable semitone steps (`-24..24`), per-step velocity bars, global step length (`1-16`), pattern cycle length (`1-4`), and trigger-advanced pattern playback.
 - **drum seq** - 4-lane, 4-pattern, 16-step trigger sequencer with 808-style per-step toggles, per-pattern length (`1-16`), cycle span (`1-4`), and four trigger outputs for drum/sample voices.
 - **keyboard** - computer-keyboard note entry (`a w s e d f t g y h u j k`, octave via `z`/`x`) with pitch, gate, and trigger outs.
 - **cv** - constant cv source (`-1` to `+1`).

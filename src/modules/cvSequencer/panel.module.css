@@ -1,0 +1,244 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 6px;
+  font-family: var(--font);
+  font-size: var(--text-xs);
+  user-select: none;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.tabs {
+  flex: 0 1 50%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  border-bottom: 1px solid var(--shade2);
+}
+
+.tabButton,
+.lengthButton,
+.cvCell {
+  font-family: var(--font);
+}
+
+.tabButton {
+  position: relative;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--shade3);
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: 2px 10px 6px;
+  cursor: pointer;
+}
+
+.tabButton[data-active='true'] {
+  color: var(--accent0);
+}
+
+.tabButton[data-enabled='false'] {
+  color: var(--shade2);
+}
+
+.tabButton::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--shade2);
+}
+
+.tabButton[data-active='true']::after {
+  height: 2px;
+  background: var(--accent0);
+}
+
+.tabButton[data-playing='true']::before {
+  content: '';
+  position: absolute;
+  top: 45%;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent0);
+  transform: translateY(-50%);
+}
+
+.lengthControl {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid var(--shade2);
+  border-radius: 4px;
+  padding: 1px;
+  background: var(--shade0);
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lengthButton {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--shade3);
+  font-size: var(--text-xs);
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.lengthButton:hover,
+.lengthButton:active {
+  background-color: var(--shade2);
+}
+
+.lengthValue {
+  min-width: 52px;
+  text-align: center;
+  color: var(--shade3);
+  font-size: var(--text-xs);
+}
+
+.contentGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stepNumbers {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.stepNumber {
+  position: relative;
+  text-align: center;
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: 8px 0 4px;
+  color: var(--shade2);
+}
+
+.stepNumber[data-quarter='true']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--shade2);
+  transform: translateX(-50%);
+}
+
+.stepNumber[data-quarter='true'][data-enabled='true']::before {
+  background-color: var(--shade3);
+}
+
+.stepNumber[data-quarter='true'][data-playing='true']::before {
+  background: var(--accent0);
+}
+
+.stepNumber[data-enabled='true'] {
+  color: var(--shade3);
+}
+
+.stepNumber[data-playing='true'] {
+  color: var(--accent0);
+}
+
+.stepGrid {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cvCell {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--shade3);
+  height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3px;
+  padding: 0 3px 2px;
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: ns-resize;
+}
+
+.cvCell[data-enabled='false'] {
+  cursor: default;
+}
+
+.cvBar {
+  position: relative;
+  flex: 1;
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  background: var(--shade0);
+  overflow: hidden;
+}
+
+.cvMidline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--shade2);
+  transform: translateY(-0.5px);
+  pointer-events: none;
+}
+
+.cvFillPos {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 50%;
+  height: var(--cv-pos-fill, 0%);
+  background: var(--accent0);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.cvFillNeg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--cv-neg-fill, 0%);
+  background: var(--accent1);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.cvValue {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--shade3);
+}

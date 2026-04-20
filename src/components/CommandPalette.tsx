@@ -58,7 +58,7 @@ const COMMON_MODULE_IDS = [
   'adsr',
   'lfo',
   'clock',
-  'sequencer',
+  'cvsequencer',
   'mixer',
   'reverb',
   'delay',
