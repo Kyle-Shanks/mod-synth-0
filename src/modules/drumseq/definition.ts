@@ -5,10 +5,11 @@ import type {
 } from '../../engine/types'
 
 const PATTERN_COUNT = 4
+const TRACK_COUNT = 4
 const STEPS_PER_PATTERN = 16
-const TOTAL_STEPS = PATTERN_COUNT * STEPS_PER_PATTERN
+const TOTAL_STEP_CELLS = PATTERN_COUNT * TRACK_COUNT * STEPS_PER_PATTERN
 
-interface Seq16State {
+interface DrumSeqState {
   stepA: number
   stepB: number
   stepC: number
@@ -18,27 +19,27 @@ interface Seq16State {
   patternWasHigh: boolean
   activePattern: number
   playPatternParam: number
-  noteParamKeys: string[]
-  velocityParamKeys: string[]
-  noteCache: Float32Array
-  velocityCache: Float32Array
+  stepParamKeys: string[]
+  stepCache: Uint8Array
+  triggerTimers: Int32Array
   indicatorStep: number
   [key: string]: unknown
 }
 
-const seq16Inputs: Record<string, PortDefinition> = {
+const drumSeqInputs: Record<string, PortDefinition> = {
   clock: { type: 'gate', default: 0, label: 'clock' },
   reset: { type: 'trigger', default: 0, label: 'reset' },
   pattern: { type: 'trigger', default: 0, label: 'pattern' },
 }
 
-const seq16Outputs: Record<string, PortDefinition> = {
-  pitch: { type: 'cv', default: 0, label: 'pitch' },
-  velocity: { type: 'cv', default: 0, label: 'vel' },
-  gate: { type: 'gate', default: 0, label: 'gate' },
+const drumSeqOutputs: Record<string, PortDefinition> = {
+  track1: { type: 'trigger', default: 0, label: 'trig1' },
+  track2: { type: 'trigger', default: 0, label: 'trig2' },
+  track3: { type: 'trigger', default: 0, label: 'trig3' },
+  track4: { type: 'trigger', default: 0, label: 'trig4' },
 }
 
-const seq16Params: Record<string, ParamDefinition> = {
+const drumSeqParams: Record<string, ParamDefinition> = {
   length: {
     type: 'int',
     min: 1,
@@ -63,49 +64,41 @@ const seq16Params: Record<string, ParamDefinition> = {
 }
 
 for (let pattern = 1; pattern <= PATTERN_COUNT; pattern++) {
-  for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
-    seq16Params[`p${pattern}n${step}`] = {
-      type: 'int',
-      min: -24,
-      max: 24,
-      default: 0,
-      label: `${pattern}:${step}n`,
-      unit: 'st',
-    }
-    seq16Params[`p${pattern}v${step}`] = {
-      type: 'float',
-      min: 0,
-      max: 1,
-      default: 1,
-      label: `${pattern}:${step}v`,
+  for (let track = 1; track <= TRACK_COUNT; track++) {
+    for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
+      drumSeqParams[`p${pattern}t${track}s${step}`] = {
+        type: 'boolean',
+        default: 0,
+        label: `${pattern}:${track}:${step}`,
+      }
     }
   }
 }
 
-export const Seq16Definition: ModuleDefinition<
+export const DrumSeqDefinition: ModuleDefinition<
   Record<string, PortDefinition>,
   Record<string, PortDefinition>,
   Record<string, ParamDefinition>,
-  Seq16State
+  DrumSeqState
 > = {
-  id: 'seq16',
-  name: 'seq16',
+  id: 'drumseq',
+  name: 'drum seq',
   category: 'control',
   width: 12,
   height: 5,
 
-  inputs: seq16Inputs,
-  outputs: seq16Outputs,
-  params: seq16Params,
+  inputs: drumSeqInputs,
+  outputs: drumSeqOutputs,
+  params: drumSeqParams,
 
-  initialize(): Seq16State {
-    const noteParamKeys: string[] = []
-    const velocityParamKeys: string[] = []
+  initialize(): DrumSeqState {
+    const stepParamKeys: string[] = []
 
     for (let pattern = 1; pattern <= PATTERN_COUNT; pattern++) {
-      for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
-        noteParamKeys.push(`p${pattern}n${step}`)
-        velocityParamKeys.push(`p${pattern}v${step}`)
+      for (let track = 1; track <= TRACK_COUNT; track++) {
+        for (let step = 1; step <= STEPS_PER_PATTERN; step++) {
+          stepParamKeys.push(`p${pattern}t${track}s${step}`)
+        }
       }
     }
 
@@ -119,25 +112,27 @@ export const Seq16Definition: ModuleDefinition<
       patternWasHigh: false,
       activePattern: 0,
       playPatternParam: 0,
-      noteParamKeys,
-      velocityParamKeys,
-      noteCache: new Float32Array(TOTAL_STEPS),
-      velocityCache: new Float32Array(TOTAL_STEPS),
+      stepParamKeys,
+      stepCache: new Uint8Array(TOTAL_STEP_CELLS),
+      triggerTimers: new Int32Array(TRACK_COUNT),
       indicatorStep: 0,
     }
   },
 
-  process(inputs, outputs, params, state) {
+  process(inputs, outputs, params, state, context) {
     const patternCount = 4
+    const trackCount = 4
     const stepsPerPattern = 16
-    const totalSteps = patternCount * stepsPerPattern
+    const totalStepCells = patternCount * trackCount * stepsPerPattern
+    const triggerDuration = Math.max(1, Math.round(context.sampleRate * 0.004))
 
     const clockInput = inputs.clock as Float32Array
     const resetInput = inputs.reset as Float32Array
     const patternInput = inputs.pattern as Float32Array
-    const pitchOutput = outputs.pitch as Float32Array
-    const velocityOutput = outputs.velocity as Float32Array
-    const gateOutput = outputs.gate as Float32Array
+    const out1 = outputs.track1 as Float32Array
+    const out2 = outputs.track2 as Float32Array
+    const out3 = outputs.track3 as Float32Array
+    const out4 = outputs.track4 as Float32Array
 
     const numSteps = Math.max(1, Math.min(16, Math.round(params.length ?? 16)))
 
@@ -149,47 +144,35 @@ export const Seq16Definition: ModuleDefinition<
       Math.min(patternCount, Math.round(params.patternSpan ?? patternCount)),
     )
 
-    let noteParamKeys = state.noteParamKeys as string[] | undefined
-    let velocityParamKeys = state.velocityParamKeys as string[] | undefined
-    let noteCache = state.noteCache as Float32Array | undefined
-    let velocityCache = state.velocityCache as Float32Array | undefined
+    let stepParamKeys = state.stepParamKeys as string[] | undefined
+    let stepCache = state.stepCache as Uint8Array | undefined
+    let triggerTimers = state.triggerTimers as Int32Array | undefined
 
-    if (!noteParamKeys || noteParamKeys.length !== totalSteps) {
-      noteParamKeys = []
+    if (!stepParamKeys || stepParamKeys.length !== totalStepCells) {
+      stepParamKeys = []
       for (let pattern = 1; pattern <= patternCount; pattern++) {
-        for (let step = 1; step <= stepsPerPattern; step++) {
-          noteParamKeys.push(`p${pattern}n${step}`)
+        for (let track = 1; track <= trackCount; track++) {
+          for (let step = 1; step <= stepsPerPattern; step++) {
+            stepParamKeys.push(`p${pattern}t${track}s${step}`)
+          }
         }
       }
-      state.noteParamKeys = noteParamKeys
+      state.stepParamKeys = stepParamKeys
     }
 
-    if (!velocityParamKeys || velocityParamKeys.length !== totalSteps) {
-      velocityParamKeys = []
-      for (let pattern = 1; pattern <= patternCount; pattern++) {
-        for (let step = 1; step <= stepsPerPattern; step++) {
-          velocityParamKeys.push(`p${pattern}v${step}`)
-        }
-      }
-      state.velocityParamKeys = velocityParamKeys
+    if (!stepCache || stepCache.length !== totalStepCells) {
+      stepCache = new Uint8Array(totalStepCells)
+      state.stepCache = stepCache
     }
 
-    if (!noteCache || noteCache.length !== totalSteps) {
-      noteCache = new Float32Array(totalSteps)
-      state.noteCache = noteCache
+    if (!triggerTimers || triggerTimers.length !== trackCount) {
+      triggerTimers = new Int32Array(trackCount)
+      state.triggerTimers = triggerTimers
     }
 
-    if (!velocityCache || velocityCache.length !== totalSteps) {
-      velocityCache = new Float32Array(totalSteps)
-      state.velocityCache = velocityCache
-    }
-
-    for (let i = 0; i < totalSteps; i++) {
-      const noteValue = Math.round(params[noteParamKeys[i]!] ?? 0)
-      noteCache[i] = Math.max(-24, Math.min(24, noteValue))
-
-      const velocityValue = params[velocityParamKeys[i]!] ?? 1
-      velocityCache[i] = Math.max(0, Math.min(1, velocityValue))
+    for (let i = 0; i < totalStepCells; i++) {
+      const value = params[stepParamKeys[i]!] ?? 0
+      stepCache[i] = value >= 0.5 ? 1 : 0
     }
 
     let stepA = Math.round(state.stepA ?? 0)
@@ -240,17 +223,18 @@ export const Seq16Definition: ModuleDefinition<
         stepD = 0
         activePattern = 0
 
-        // While reset is held high, suppress sequence/pattern advances and keep
-        // high-state trackers aligned so release does not create false edges.
         clockWasHigh = clockHigh
         patternWasHigh = patternHigh
         resetWasHigh = true
+        triggerTimers[0] = 0
+        triggerTimers[1] = 0
+        triggerTimers[2] = 0
+        triggerTimers[3] = 0
 
-        const noteSemitones = noteCache[0] ?? 0
-        const velocity = velocityCache[0] ?? 0
-        pitchOutput[i] = noteSemitones / 12
-        velocityOutput[i] = velocity
-        gateOutput[i] = 0
+        out1[i] = 0
+        out2[i] = 0
+        out3[i] = 0
+        out4[i] = 0
         activeStep = 0
         continue
       }
@@ -268,20 +252,55 @@ export const Seq16Definition: ModuleDefinition<
         activePattern = (activePattern + 1) % patternSpan
       }
       patternWasHigh = patternHigh
-      const selectedPattern = activePattern
 
+      const selectedPattern = activePattern
       let selectedStep = stepA
       if (selectedPattern === 1) selectedStep = stepB
       else if (selectedPattern === 2) selectedStep = stepC
       else if (selectedPattern === 3) selectedStep = stepD
 
-      const cacheIndex = selectedPattern * stepsPerPattern + selectedStep
-      const noteSemitones = noteCache[cacheIndex] ?? 0
-      const velocity = velocityCache[cacheIndex] ?? 0
+      if (clockRising) {
+        const base =
+          selectedPattern * trackCount * stepsPerPattern + selectedStep
+        const track1On = stepCache[base] ?? 0
+        const track2On = stepCache[base + stepsPerPattern] ?? 0
+        const track3On = stepCache[base + stepsPerPattern * 2] ?? 0
+        const track4On = stepCache[base + stepsPerPattern * 3] ?? 0
 
-      pitchOutput[i] = noteSemitones / 12
-      velocityOutput[i] = velocity
-      gateOutput[i] = clockHigh && velocity > 0.001 ? 1 : 0
+        if (track1On > 0) triggerTimers[0] = triggerDuration
+        if (track2On > 0) triggerTimers[1] = triggerDuration
+        if (track3On > 0) triggerTimers[2] = triggerDuration
+        if (track4On > 0) triggerTimers[3] = triggerDuration
+      }
+
+      const timer1 = triggerTimers[0] ?? 0
+      if (timer1 > 0) {
+        out1[i] = 1
+        triggerTimers[0] = timer1 - 1
+      } else {
+        out1[i] = 0
+      }
+      const timer2 = triggerTimers[1] ?? 0
+      if (timer2 > 0) {
+        out2[i] = 1
+        triggerTimers[1] = timer2 - 1
+      } else {
+        out2[i] = 0
+      }
+      const timer3 = triggerTimers[2] ?? 0
+      if (timer3 > 0) {
+        out3[i] = 1
+        triggerTimers[2] = timer3 - 1
+      } else {
+        out3[i] = 0
+      }
+      const timer4 = triggerTimers[3] ?? 0
+      if (timer4 > 0) {
+        out4[i] = 1
+        triggerTimers[3] = timer4 - 1
+      } else {
+        out4[i] = 0
+      }
 
       activePattern = selectedPattern
       if (clockRising) {

@@ -8,6 +8,7 @@ import { ClockPanel } from './clock/panel'
 import { ClockDivPanel } from './clockdiv/panel'
 import { SequencerPanel } from './sequencer/panel'
 import { Seq16Panel } from './seq16/panel'
+import { DrumSeqPanel } from './drumseq/panel'
 import { EuclideanPanel } from './euclidean/panel'
 import { TunerPanel } from './tuner/panel'
 import { XYScopePanel } from './xyscope/panel'
@@ -42,6 +43,7 @@ const PANEL_REGISTRY: Record<string, ModuleBodyPanelComponent> = {
   euclidean: EuclideanPanel,
   sequencer: SequencerPanel,
   seq16: Seq16Panel,
+  drumseq: DrumSeqPanel,
   tuner: TunerPanel,
   xyscope: XYScopePanel,
   spectrum: SpectrumPanel,
