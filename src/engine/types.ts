@@ -175,6 +175,19 @@ export type EngineCommand =
       moduleId: string
       buffer: SharedArrayBuffer
     }
+  | {
+      type: 'SET_SAMPLER_BUFFER'
+      moduleId: string
+      buffer: ArrayBuffer
+      sampleRate: number
+    }
+  | {
+      type: 'SET_SAMPLER_PLAYHEAD_BUFFER'
+      moduleId: string
+      buffer: SharedArrayBuffer
+    }
+  | { type: 'TRIGGER_SAMPLER'; moduleId: string }
+  | { type: 'STOP_SAMPLER'; moduleId: string }
 
 // events sent from worklet to main thread
 export type EngineEvent =

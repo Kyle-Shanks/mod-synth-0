@@ -238,6 +238,42 @@ class GraphProcessorNode extends AudioWorkletProcessor {
         }
         break
       }
+
+      case 'SET_SAMPLER_BUFFER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state.sampleBuffer = new Float32Array(cmd.buffer)
+          m.state.sampleRate = Number(cmd.sampleRate) || sampleRate
+          m.state.playhead = 0
+          m.state.playing = false
+          m.state.manualPlay = false
+          m.state.triggerWasHigh = false
+        }
+        break
+      }
+
+      case 'SET_SAMPLER_PLAYHEAD_BUFFER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state.playheadBuffer = new Int32Array(cmd.buffer)
+        }
+        break
+      }
+
+      case 'TRIGGER_SAMPLER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) m.state._samplerTrigger = 1
+        break
+      }
+
+      case 'STOP_SAMPLER': {
+        const m = this.modules.get(cmd.moduleId)
+        if (m) {
+          m.state._samplerStop = 1
+          m.state.manualPlay = false
+        }
+        break
+      }
     }
   }
 

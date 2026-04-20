@@ -142,6 +142,26 @@ export class EngineController {
     })
   }
 
+  setSamplerBuffer(
+    moduleId: string,
+    buffer: ArrayBuffer,
+    sampleRate: number,
+  ): void {
+    this.sendRaw({ type: 'SET_SAMPLER_BUFFER', moduleId, buffer, sampleRate })
+  }
+
+  setSamplerPlayheadBuffer(moduleId: string, buffer: SharedArrayBuffer): void {
+    this.sendRaw({ type: 'SET_SAMPLER_PLAYHEAD_BUFFER', moduleId, buffer })
+  }
+
+  triggerSampler(moduleId: string): void {
+    this.sendRaw({ type: 'TRIGGER_SAMPLER', moduleId })
+  }
+
+  stopSampler(moduleId: string): void {
+    this.sendRaw({ type: 'STOP_SAMPLER', moduleId })
+  }
+
   setGate(moduleId: string, portId: string, value: 0 | 1): void {
     if (!this.context) return
     this.send({

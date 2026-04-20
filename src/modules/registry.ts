@@ -52,6 +52,7 @@ import { OctaveDefinition } from './octave/definition'
 import { NoteDefinition } from './note/definition'
 import { ChaosDefinition } from './chaos/definition'
 import { MuteDefinition } from './mute/definition'
+import { SamplerDefinition } from './sampler/definition'
 import { SubpatchInputDefinition } from './subpatch-input/definition'
 import { SubpatchOutputDefinition } from './subpatch-output/definition'
 
@@ -142,6 +143,7 @@ reg(OctaveDefinition)
 reg(NoteDefinition)
 reg(ChaosDefinition)
 reg(MuteDefinition)
+reg(SamplerDefinition)
 
 // subpatch proxy modules (internal: true — hidden at root level in command palette)
 reg(SubpatchInputDefinition)

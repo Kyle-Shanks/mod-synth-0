@@ -144,6 +144,19 @@ type EngineCommand =
       moduleId: string
       buffer: SharedArrayBuffer
     }
+  | {
+      type: 'SET_SAMPLER_BUFFER'
+      moduleId: string
+      buffer: ArrayBuffer
+      sampleRate: number
+    }
+  | {
+      type: 'SET_SAMPLER_PLAYHEAD_BUFFER'
+      moduleId: string
+      buffer: SharedArrayBuffer
+    }
+  | { type: 'TRIGGER_SAMPLER'; moduleId: string }
+  | { type: 'STOP_SAMPLER'; moduleId: string }
 ```
 
 commands are queued on the main thread and applied at the start of each audio buffer. this ensures topology changes take effect at clean buffer boundaries.
@@ -159,7 +172,7 @@ type EngineEvent =
   | { type: 'ERROR'; message: string }
 ```
 
-scope-style display data bypasses `postMessage` entirely: display modules like scope and freq spectrum write directly into `SharedArrayBuffer` circular buffers. the main thread reads them in a `requestAnimationFrame` loop with zero allocation. `SharedArrayBuffer` requires `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` headers, which are configured in `vite.config.ts`.
+scope-style display data bypasses `postMessage` entirely: display modules like scope and freq spectrum write directly into `SharedArrayBuffer` circular buffers. the main thread reads them in a `requestAnimationFrame` loop with zero allocation. sampler playback uploads sample PCM once via `SET_SAMPLER_BUFFER`, then streams playhead state back through a tiny `SharedArrayBuffer` (`SET_SAMPLER_PLAYHEAD_BUFFER`) for smooth ui tracking. `SharedArrayBuffer` requires `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` headers, which are configured in `vite.config.ts`.
 
 ---
 
@@ -727,7 +740,7 @@ these rules apply everywhere in the codebase and must be maintained when adding 
 
 ## 10. current module list
 
-_55 modules currently shipped (53 user-visible + 2 internal proxy modules)._
+_56 modules currently shipped (54 user-visible + 2 internal proxy modules)._
 
 | id                | name           | category | inputs                                            | outputs                         |
 | ----------------- | -------------- | -------- | ------------------------------------------------- | ------------------------------- |
@@ -771,6 +784,7 @@ _55 modules currently shipped (53 user-visible + 2 internal proxy modules)._
 | `clockdiv`        | clock div      | control  | clock (gate), reset (trigger)                     | out (gate)                      |
 | `euclidean`       | euclid         | control  | clock (gate), reset (trigger)                     | out, accent (trigger)           |
 | `resonator`       | resonator      | source   | excite (trigger), pitch (cv), exciteAudio (audio) | out (audio)                     |
+| `sampler`         | sampler        | source   | gate (gate), v/oct (cv)                           | out (audio)                     |
 | `tuner`           | tuner          | display  | in (audio)                                        | —                               |
 | `xyscope`         | xy scope       | display  | x, y (audio)                                      | —                               |
 | `feedbackdelay`   | feedback delay | fx       | in (audio), time (cv)                             | out (audio)                     |
@@ -813,6 +827,12 @@ compressor panel notes:
 
 - compressor visual feedback is a scrolling level history (newest samples at the right edge) with a filled input trace, a bright threshold line, and a gain-reduction overlay aligned to the input level.
 
+sampler module notes:
+
+- sampler audio content is loaded from the panel via file input, decoded on the main thread, serialized into module `data` as base64 float32 PCM, and uploaded to worklet state via `SET_SAMPLER_BUFFER`.
+- sampler playback supports `one-shot` (default), `gate`, and `retrigger` modes with optional reverse direction, plus loopable `start`/`end` regions, `rate` and `v/oct` speed control, and `level` output scaling.
+- sampler panel waveform rendering is pre-baked into min/max peak bins on load to avoid per-frame heavy analysis; playhead position is read atomically from the shared playhead buffer.
+
 ### panel component system
 
 module-specific visual layouts live in `src/modules/<id>/panel.tsx`. `src/modules/panelRegistry.ts` selects the body panel component by module id and falls back to `DefaultModuleBodyPanel` for modules that use the standard control layout.
@@ -841,12 +861,13 @@ await this.context.audioWorklet.addModule('/GraphProcessor.js')
 
 ### display SharedArrayBuffer setup
 
-scope, freq spectrum, tuner, and xy scope each set up their own `SharedArrayBuffer` views inside their module panel components:
+scope, freq spectrum, tuner, xy scope, and sampler each set up their own buffer views inside their module panel components:
 
 - `src/modules/scope/panel.tsx` → `setScopeBuffers`
 - `src/modules/spectrum/panel.tsx` → `setScopeBuffers`
 - `src/modules/tuner/panel.tsx` → `setTunerBuffer`
 - `src/modules/xyscope/panel.tsx` → `setXYScopeBuffers`
+- `src/modules/sampler/panel.tsx` → `setSamplerPlayheadBuffer` (plus one-time `setSamplerBuffer` uploads when a file is loaded)
 
 buffers are injected through zustand store actions, not direct engine calls from `ModulePanel.tsx`. if `SharedArrayBuffer` is unavailable (missing coop/coep headers), the panels gracefully render without live data.
 

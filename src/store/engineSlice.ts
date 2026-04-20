@@ -23,6 +23,17 @@ export interface EngineSlice {
     writeIndexBuffer: SharedArrayBuffer,
   ) => void
   setIndicatorBuffer: (moduleId: string, buffer: SharedArrayBuffer) => void
+  setSamplerBuffer: (
+    moduleId: string,
+    buffer: ArrayBuffer,
+    sampleRate: number,
+  ) => void
+  setSamplerPlayheadBuffer: (
+    moduleId: string,
+    buffer: SharedArrayBuffer,
+  ) => void
+  triggerSampler: (moduleId: string) => void
+  stopSampler: (moduleId: string) => void
 }
 
 export const createEngineSlice: StateCreator<StoreState, [], [], EngineSlice> = (set) => ({
@@ -54,5 +65,21 @@ export const createEngineSlice: StateCreator<StoreState, [], [], EngineSlice> = 
 
   setIndicatorBuffer(moduleId, buffer) {
     engine.setIndicatorBuffer(moduleId, buffer)
+  },
+
+  setSamplerBuffer(moduleId, buffer, sampleRate) {
+    engine.setSamplerBuffer(moduleId, buffer, sampleRate)
+  },
+
+  setSamplerPlayheadBuffer(moduleId, buffer) {
+    engine.setSamplerPlayheadBuffer(moduleId, buffer)
+  },
+
+  triggerSampler(moduleId) {
+    engine.triggerSampler(moduleId)
+  },
+
+  stopSampler(moduleId) {
+    engine.stopSampler(moduleId)
   },
 })

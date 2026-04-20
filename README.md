@@ -26,6 +26,8 @@ Modular synthesis works by connecting individual signal-processing modules toget
 
 This instrument runs entirely in the browser. There is no server. Patches autosave to LocalStorage and can be exported and imported as JSON files.
 
+Sampler audio is embedded in patch data, so loaded samples persist across refresh/import/export (larger samples create larger patch files).
+
 ---
 
 ## Adding Modules
@@ -56,7 +58,7 @@ Type in the search field at any time to search across all modules by name, categ
 
 ## Modules
 
-There are **53 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
+There are **54 user-visible modules** in the command palette. While drilled into a subpatch, you also get 2 internal proxy modules (`in`, `out`) used to expose container ports.
 
 ### Source
 
@@ -68,6 +70,7 @@ There are **53 user-visible modules** in the command palette. While drilled into
 - **fm op** - single fm operator with ratio, index, self-feedback, and phase-modulation input.
 - **pluck** - karplus-strong plucked-string voice with trigger excitation, v/oct pitch, and optional external excitation audio.
 - **resonator** - resonant string/body model excited by trigger or audio, with pitch cv support.
+- **sampler** - sample player with gate + v/oct inputs, playback modes (`one-shot`, `gate`, `retrigger`), reverse playback, loopable start/end region controls, waveform display, and moving playhead.
 
 ### Control
 

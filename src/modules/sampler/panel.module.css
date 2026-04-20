@@ -1,0 +1,117 @@
+.root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.topRow {
+  display: flex;
+  gap: 4px;
+}
+
+.actionButton {
+  flex: 1;
+  border: 1px solid var(--shade2);
+  border-radius: 2px;
+  background: var(--shade0);
+  color: var(--shade3);
+  font-family: var(--font);
+  font-size: var(--text-xs);
+  text-transform: lowercase;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: border-color 80ms, background 80ms, color 80ms;
+}
+
+.actionButton:hover:not(:disabled) {
+  border-color: var(--accent0);
+  color: var(--accent0);
+}
+
+.actionButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 14px;
+}
+
+.metaName {
+  flex: 1;
+  min-width: 0;
+  color: var(--shade3);
+  font-size: var(--text-xs);
+  text-transform: lowercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaDuration {
+  color: var(--accent1);
+  font-size: var(--text-xs);
+  text-transform: lowercase;
+  flex-shrink: 0;
+}
+
+.errorText {
+  color: var(--accent3);
+  font-size: var(--text-xs);
+  text-transform: lowercase;
+  min-height: 12px;
+}
+
+.waveCanvas {
+  border-radius: 2px;
+  display: block;
+}
+
+.controlsRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.modeRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 5px;
+}
+
+.modeSelect {
+  width: 108px;
+}
+
+.toggleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.toggleControl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.toggleLabel {
+  font-size: var(--text-xs);
+  color: var(--shade3);
+  text-transform: lowercase;
+}
