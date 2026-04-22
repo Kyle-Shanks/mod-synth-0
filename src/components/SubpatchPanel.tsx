@@ -26,7 +26,14 @@ interface SubpatchPanelProps {
 
 export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
   const mod = useStore((s) => s.modules[moduleId])
-  const cables = useStore((s) => s.cables)
+  const connectedPortKey = useStore((s) => {
+    const connected = new Set<string>()
+    for (const cable of Object.values(s.cables)) {
+      if (cable.from.moduleId === moduleId) connected.add(cable.from.portId)
+      if (cable.to.moduleId === moduleId) connected.add(cable.to.portId)
+    }
+    return [...connected].sort().join('|')
+  })
   const selectedModuleIds = useStore((s) => s.selectedModuleIds)
   const setSelectedModule = useStore((s) => s.setSelectedModule)
   const setSelectedModules = useStore((s) => s.setSelectedModules)
@@ -191,11 +198,9 @@ export function SubpatchPanel({ moduleId }: SubpatchPanelProps) {
   const heightPx = container.containerHeight * GRID_UNIT
 
   // which ports are connected
-  const connectedPorts = new Set<string>()
-  for (const cable of Object.values(cables)) {
-    if (cable.from.moduleId === moduleId) connectedPorts.add(cable.from.portId)
-    if (cable.to.moduleId === moduleId) connectedPorts.add(cable.to.portId)
-  }
+  const connectedPorts = new Set(
+    connectedPortKey ? connectedPortKey.split('|') : [],
+  )
 
   const inputPorts = definition.exposedInputs
   const outputPorts = definition.exposedOutputs

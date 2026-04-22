@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback } from 'react'
 import type { PortType } from '../engine/types'
 import { useStore } from '../store'
 import { portPositionCache } from '../cables/PortPositionCache'
+import { cableDragCursor } from '../cables/CableDragCursor'
 import { getModule } from '../modules/registry'
 import { isSubpatchContainer, parseSubpatchPortId } from '../store/subpatchSlice'
 import styles from './Port.module.css'
@@ -29,8 +30,6 @@ export function Port({
   const addCable = useStore((s) => s.addCable)
   const removeCable = useStore((s) => s.removeCable)
   const cables = useStore((s) => s.cables)
-  const modules = useStore((s) => s.modules)
-  const definitions = useStore((s) => s.definitions)
   const hoveredPortKey = useStore((s) => s.hoveredPortKey)
   const setHoveredPort = useStore((s) => s.setHoveredPort)
 
@@ -43,6 +42,9 @@ export function Port({
     targetModuleId: string,
     targetPortId: string,
   ): PortType | null {
+    const state = useStore.getState()
+    const modules = state.modules
+    const definitions = state.definitions
     const mod = modules[targetModuleId]
     if (!mod) return null
 
@@ -133,6 +135,7 @@ export function Port({
     const portPos = portPositionCache.get(moduleId, portId)
     const initX = portPos?.x ?? 0
     const initY = portPos?.y ?? 0
+    cableDragCursor.set(initX, initY)
 
     if (direction === 'output') {
       // start dragging from this output
@@ -141,8 +144,6 @@ export function Port({
         fromPortId: portId,
         fromDirection: 'output',
         portType: type,
-        cursorX: initX,
-        cursorY: initY,
       })
     } else {
       // input port: if connected, pick up the cable from the other end
@@ -167,9 +168,8 @@ export function Port({
           fromPortId: existingCable.from.portId,
           fromDirection: 'output',
           portType: srcType,
-          cursorX: srcPos?.x ?? initX,
-          cursorY: srcPos?.y ?? initY,
         })
+        cableDragCursor.set(srcPos?.x ?? initX, srcPos?.y ?? initY)
       } else {
         // start dragging from this input
         setDragState({
@@ -177,8 +177,6 @@ export function Port({
           fromPortId: portId,
           fromDirection: 'input',
           portType: type,
-          cursorX: initX,
-          cursorY: initY,
         })
       }
     }

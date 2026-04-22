@@ -9,6 +9,9 @@ export interface EngineSlice {
   setEngineReady: (ready: boolean) => void
   bumpEngineRevision: () => void
   setMeterValue: (key: string, peak: number) => void
+  setMeterValuesBatch: (
+    entries: Array<{ moduleId: string; portId: string; peak: number }>,
+  ) => void
   setGate: (moduleId: string, portId: string, value: 0 | 1) => void
   setScopeBuffers: (
     moduleId: string,
@@ -46,6 +49,14 @@ export const createEngineSlice: StateCreator<StoreState, [], [], EngineSlice> = 
   setMeterValue: (key, peak) => set((s) => ({
     meterValues: { ...s.meterValues, [key]: peak }
   })),
+  setMeterValuesBatch: (entries) => set((s) => {
+    if (entries.length === 0) return s
+    const next = { ...s.meterValues }
+    for (const entry of entries) {
+      next[`${entry.moduleId}:${entry.portId}`] = entry.peak
+    }
+    return { meterValues: next }
+  }),
 
   setGate(moduleId, portId, value) {
     engine.setGate(moduleId, portId, value)

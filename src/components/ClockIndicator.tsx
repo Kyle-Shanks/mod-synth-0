@@ -1,6 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import styles from './ClockIndicator.module.css'
 
 interface ClockIndicatorProps {
@@ -42,17 +43,13 @@ export function ClockIndicator({ moduleId, label = 'clk' }: ClockIndicatorProps)
   // animation loop: read indicator buffer and update DOM directly
   useEffect(() => {
     if (!indicatorBuffer) return
-    let rafId: number
-    const update = () => {
+    return rafScheduler.subscribe(() => {
       const gate = Atomics.load(indicatorBuffer, 0)
       if (gateDotRef.current) {
         gateDotRef.current.style.background =
           gate > 0 ? 'var(--accent2)' : 'var(--shade2)'
       }
-      rafId = requestAnimationFrame(update)
-    }
-    rafId = requestAnimationFrame(update)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [indicatorBuffer])
 
   return (

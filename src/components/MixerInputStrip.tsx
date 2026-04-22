@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import { classes } from '../utils/classes'
 import styles from './MixerInputStrip.module.css'
 import mixerBaseStyles from '../styles/mixerControlBase.module.css'
@@ -71,9 +72,7 @@ export function MixerInputStrip({
   }, [moduleId, meterLeftId, meterRightId])
 
   useEffect(() => {
-    let rafId: number
-
-    const animate = () => {
+    return rafScheduler.subscribe(() => {
       const target = meterTargetRef.current
       const current = meterDisplayRef.current
 
@@ -97,12 +96,7 @@ export function MixerInputStrip({
         fillR.style.background =
           current.r > 0.9 ? 'var(--accent2)' : 'var(--accent1)'
       }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    rafId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [activeHeight])
 
   const resetToDefault = useCallback(() => {

@@ -2,6 +2,7 @@ import { useRef, useLayoutEffect, useCallback, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from '../store'
 import { portPositionCache } from './PortPositionCache'
+import { cableDragCursor } from './CableDragCursor'
 import { cablePath } from './CableBezier'
 import type { PortType } from '../engine/types'
 import { getModule } from '../modules/registry'
@@ -26,7 +27,6 @@ export function CableLayer() {
   const visualPathRefs = useRef<Record<string, SVGPathElement | null>>({})
   const previewPathRef = useRef<SVGPathElement | null>(null)
   const cables = useStore((s) => s.cables)
-  const modules = useStore((s) => s.modules)
   const definitions = useStore((s) => s.definitions)
   const subpatchContext = useStore((s) => s.subpatchContext)
   const tautness = useStore((s) => s.cableTautness)
@@ -100,6 +100,7 @@ export function CableLayer() {
         dragState.fromModuleId,
         dragState.fromPortId,
       )
+      const cursor = cableDragCursor.get()
       if (fromPos) {
         preview.setAttribute(
           'd',
@@ -107,8 +108,8 @@ export function CableLayer() {
             {
               x1: fromPos.x,
               y1: fromPos.y,
-              x2: dragState.cursorX,
-              y2: dragState.cursorY,
+              x2: cursor.x,
+              y2: cursor.y,
             },
             tautness,
           ),
@@ -123,12 +124,17 @@ export function CableLayer() {
   // subscribe to port position changes for live cable updates during drag
   useLayoutEffect(() => {
     updatePaths()
-    return portPositionCache.subscribe(updatePaths)
+    const unsubPortCache = portPositionCache.subscribe(updatePaths)
+    const unsubDragCursor = cableDragCursor.subscribe(updatePaths)
+    return () => {
+      unsubPortCache()
+      unsubDragCursor()
+    }
   }, [updatePaths])
 
   // resolve cable color from the "from" port type
   function getCableColor(fromModuleId: string, fromPortId: string): string {
-    const mod = modules[fromModuleId]
+    const mod = useStore.getState().modules[fromModuleId]
     if (!mod) return 'var(--shade2)'
 
     // subpatch container: resolve port type from definition's exposedOutputs/exposedInputs

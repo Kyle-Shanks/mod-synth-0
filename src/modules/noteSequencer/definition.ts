@@ -22,6 +22,8 @@ interface NoteSequencerState {
   velocityParamKeys: string[]
   noteCache: Float32Array
   velocityCache: Float32Array
+  noteSnapshot: Float32Array
+  velocitySnapshot: Float32Array
   indicatorStep: number
   [key: string]: unknown
 }
@@ -123,6 +125,8 @@ export const NoteSequencerDefinition: ModuleDefinition<
       velocityParamKeys,
       noteCache: new Float32Array(TOTAL_STEPS),
       velocityCache: new Float32Array(TOTAL_STEPS),
+      noteSnapshot: new Float32Array(TOTAL_STEPS),
+      velocitySnapshot: new Float32Array(TOTAL_STEPS),
       indicatorStep: 0,
     }
   },
@@ -153,6 +157,8 @@ export const NoteSequencerDefinition: ModuleDefinition<
     let velocityParamKeys = state.velocityParamKeys as string[] | undefined
     let noteCache = state.noteCache as Float32Array | undefined
     let velocityCache = state.velocityCache as Float32Array | undefined
+    let noteSnapshot = state.noteSnapshot as Float32Array | undefined
+    let velocitySnapshot = state.velocitySnapshot as Float32Array | undefined
 
     if (!noteParamKeys || noteParamKeys.length !== totalSteps) {
       noteParamKeys = []
@@ -183,13 +189,29 @@ export const NoteSequencerDefinition: ModuleDefinition<
       velocityCache = new Float32Array(totalSteps)
       state.velocityCache = velocityCache
     }
+    if (!noteSnapshot || noteSnapshot.length !== totalSteps) {
+      noteSnapshot = new Float32Array(totalSteps)
+      state.noteSnapshot = noteSnapshot
+    }
+    if (!velocitySnapshot || velocitySnapshot.length !== totalSteps) {
+      velocitySnapshot = new Float32Array(totalSteps)
+      state.velocitySnapshot = velocitySnapshot
+    }
 
     for (let i = 0; i < totalSteps; i++) {
       const noteValue = Math.round(params[noteParamKeys[i]!] ?? 0)
-      noteCache[i] = Math.max(-24, Math.min(24, noteValue))
+      const clampedNote = Math.max(-24, Math.min(24, noteValue))
+      if (clampedNote !== (noteSnapshot[i] ?? 0)) {
+        noteSnapshot[i] = clampedNote
+        noteCache[i] = clampedNote
+      }
 
       const velocityValue = params[velocityParamKeys[i]!] ?? 1
-      velocityCache[i] = Math.max(0, Math.min(1, velocityValue))
+      const clampedVelocity = Math.max(0, Math.min(1, velocityValue))
+      if (Math.abs(clampedVelocity - (velocitySnapshot[i] ?? 0)) > 1e-6) {
+        velocitySnapshot[i] = clampedVelocity
+        velocityCache[i] = clampedVelocity
+      }
     }
 
     let stepA = Math.round(state.stepA ?? 0)

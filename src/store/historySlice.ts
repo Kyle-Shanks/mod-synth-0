@@ -10,10 +10,16 @@ interface HistoryEntry {
   definitions: Record<string, SubpatchDefinition>
 }
 
+interface StagedHistoryEntry extends HistoryEntry {
+  sourceModulesRef: StoreState['modules']
+  sourceCablesRef: StoreState['cables']
+  sourceDefinitionsRef: StoreState['definitions']
+}
+
 export interface HistorySlice {
   past: HistoryEntry[]
   future: HistoryEntry[]
-  stagedEntry: HistoryEntry | null
+  stagedEntry: StagedHistoryEntry | null
   pushHistory: () => void
   stageHistory: () => void
   commitHistory: () => void
@@ -77,6 +83,9 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
         cables: structuredClone(cables),
         patchName: state.patchName,
         definitions: structuredClone(state.definitions),
+        sourceModulesRef: state.modules,
+        sourceCablesRef: state.cables,
+        sourceDefinitionsRef: state.definitions,
       },
     })
   },
@@ -87,16 +96,15 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       set({ stagedEntry: null })
       return
     }
-    const { stagedEntry, patchName } = get()
+    const { stagedEntry, patchName, modules, cables, definitions } = get()
     if (!stagedEntry) return
     set({ stagedEntry: null })
-    const { modules, cables } = rootSnapshot(get())
-    // only push if something actually changed
-    if (
-      JSON.stringify(stagedEntry.modules) === JSON.stringify(modules) &&
-      JSON.stringify(stagedEntry.cables) === JSON.stringify(cables) &&
+    const refsUnchanged =
+      stagedEntry.sourceModulesRef === modules &&
+      stagedEntry.sourceCablesRef === cables &&
+      stagedEntry.sourceDefinitionsRef === definitions &&
       stagedEntry.patchName === patchName
-    ) return
+    if (refsUnchanged) return
     set((s) => ({
       past: [...s.past, stagedEntry].slice(-MAX_HISTORY),
       future: [],

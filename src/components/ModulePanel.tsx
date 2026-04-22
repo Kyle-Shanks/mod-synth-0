@@ -65,7 +65,14 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   const setSelectedModule = useStore((s) => s.setSelectedModule)
   const setSelectedModules = useStore((s) => s.setSelectedModules)
   const selectedModuleIds = useStore((s) => s.selectedModuleIds)
-  const cables = useStore((s) => s.cables)
+  const connectedPortKey = useStore((s) => {
+    const connected = new Set<string>()
+    for (const cable of Object.values(s.cables)) {
+      if (cable.from.moduleId === moduleId) connected.add(cable.from.portId)
+      if (cable.to.moduleId === moduleId) connected.add(cable.to.portId)
+    }
+    return [...connected].sort().join('|')
+  })
   const panelRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<ModuleDragState | null>(null)
   const snapTrackFrameRef = useRef<number | null>(null)
@@ -563,11 +570,9 @@ export function ModulePanel({ moduleId }: ModulePanelProps) {
   })()
 
   // check which ports are connected
-  const connectedPorts = new Set<string>()
-  for (const cable of Object.values(cables)) {
-    if (cable.from.moduleId === moduleId) connectedPorts.add(cable.from.portId)
-    if (cable.to.moduleId === moduleId) connectedPorts.add(cable.to.portId)
-  }
+  const connectedPorts = new Set(
+    connectedPortKey ? connectedPortKey.split('|') : [],
+  )
 
   return (
     <div

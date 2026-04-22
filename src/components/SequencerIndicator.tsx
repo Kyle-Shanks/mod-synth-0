@@ -1,6 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import styles from './SequencerIndicator.module.css'
 
 interface SequencerIndicatorProps {
@@ -44,8 +45,7 @@ export function SequencerIndicator({
   // animation loop: read current step and update DOM directly
   useEffect(() => {
     if (!indicatorBuffer) return
-    let rafId: number
-    const update = () => {
+    return rafScheduler.subscribe(() => {
       const activeStep = Atomics.load(indicatorBuffer, 0)
       for (let i = 0; i < 8; i++) {
         const dot = dotsRef.current[i]
@@ -58,10 +58,7 @@ export function SequencerIndicator({
               : 'var(--shade1)'
         }
       }
-      rafId = requestAnimationFrame(update)
-    }
-    rafId = requestAnimationFrame(update)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [indicatorBuffer, stepCount])
 
   return (

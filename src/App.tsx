@@ -25,6 +25,7 @@ import {
   markFirstOpenWelcomeSeen,
 } from './tutorials/storage'
 import { getTheme } from './theme/themeRegistry'
+import { registerPerformanceHarness } from './perf/harness'
 import './modules/registry' // ensure modules are registered
 import styles from './App.module.css'
 import controlPrimitiveStyles from './styles/controlPrimitives.module.css'
@@ -79,15 +80,23 @@ export default function App() {
     })
   }, [setEngineReady])
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    registerPerformanceHarness()
+  }, [])
+
   // subscribe to meter events from worklet and forward to store
   const setMeterValue = useStore((s) => s.setMeterValue)
+  const setMeterValuesBatch = useStore((s) => s.setMeterValuesBatch)
   useEffect(() => {
     return engine.onEvent((event) => {
-      if (event.type === 'METER') {
+      if (event.type === 'METER_BATCH') {
+        setMeterValuesBatch(event.entries)
+      } else if (event.type === 'METER') {
         setMeterValue(`${event.moduleId}:${event.portId}`, event.peak)
       }
     })
-  }, [setMeterValue])
+  }, [setMeterValue, setMeterValuesBatch])
 
   // autosave subscription
   useEffect(() => {

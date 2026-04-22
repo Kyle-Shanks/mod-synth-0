@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { useTheme } from '../theme/themeContext'
 import type { Theme } from '../theme/tokens'
+import { rafScheduler } from '../utils/rafScheduler'
 import { SizedCanvas } from './SizedCanvas'
 import styles from './CanvasZone.module.css'
 
@@ -39,7 +40,6 @@ export function CanvasZone({
   yBuffer = null,
 }: CanvasZoneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const rafRef = useRef<number>(0)
   const theme = useTheme()
 
   // store latest values in refs so the animation loop always reads fresh data
@@ -52,7 +52,7 @@ export function CanvasZone({
   useEffect(() => { paramsRef.current = moduleParams }, [moduleParams])
 
   useEffect(() => {
-    const loop = () => {
+    return rafScheduler.subscribe(() => {
       const canvas = canvasRef.current
       if (!canvas) return
       const ctx = canvas.getContext('2d')
@@ -72,12 +72,7 @@ export function CanvasZone({
         width,
         height,
       })
-
-      rafRef.current = requestAnimationFrame(loop)
-    }
-
-    rafRef.current = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(rafRef.current)
+    })
   }, [width, height, clearEachFrame, scopeBuffer, writeIndexBuffer, xBuffer, yBuffer])
 
   return (

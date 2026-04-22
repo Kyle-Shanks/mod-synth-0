@@ -1,9 +1,11 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../store'
 import { ModulePanel } from '../components/ModulePanel'
 import { SubpatchBreadcrumb } from '../components/SubpatchBreadcrumb'
 import { CableLayer } from '../cables/CableLayer'
+import { cableDragCursor } from '../cables/CableDragCursor'
 import { Tooltip } from '../components/Tooltip'
 import { GRID_UNIT } from '../theme/tokens'
 import { useZoom } from './ZoomController'
@@ -25,7 +27,6 @@ interface SelectionDrag {
 }
 
 export function Rack() {
-  const modules = useStore((s) => s.modules)
   const dragState = useStore((s) => s.dragState)
   const setDragState = useStore((s) => s.setDragState)
   const setCommandPaletteOpen = useStore((s) => s.setCommandPaletteOpen)
@@ -63,6 +64,7 @@ export function Rack() {
 
   const getIntersectingModuleIds = useCallback(
     (left: number, top: number, right: number, bottom: number) => {
+      const modules = useStore.getState().modules
       const hits: string[] = []
       for (const [moduleId, mod] of Object.entries(modules)) {
         const def = getModule(mod.definitionId)
@@ -81,7 +83,34 @@ export function Rack() {
       }
       return hits
     },
-    [modules],
+    [],
+  )
+
+  const visibleModuleIds = useStore(
+    useShallow((state): string[] => {
+      const insideSubpatch = state.subpatchContext.length > 0
+      const currentDefId = insideSubpatch
+        ? state.subpatchContext[state.subpatchContext.length - 1]?.definitionId
+        : null
+      const currentDef = currentDefId ? state.definitions[currentDefId] : null
+
+      const ids: string[] = []
+      for (const [id, mod] of Object.entries(state.modules)) {
+        if (!mod) continue
+        if (!insideSubpatch) {
+          if (
+            mod.definitionId === 'subpatch-input' ||
+            mod.definitionId === 'subpatch-output'
+          ) {
+            continue
+          }
+          ids.push(id)
+          continue
+        }
+        if (currentDef && id in currentDef.modules) ids.push(id)
+      }
+      return ids
+    }),
   )
 
   // track cursor position always (for command palette spawn position)
@@ -100,13 +129,12 @@ export function Rack() {
       const rack = rackRef.current
       if (!rack) return
       const rect = rack.getBoundingClientRect()
-      setDragState({
-        ...dragState,
-        cursorX: (e.clientX - rect.left) / zoom,
-        cursorY: (e.clientY - rect.top) / zoom,
-      })
+      cableDragCursor.set(
+        (e.clientX - rect.left) / zoom,
+        (e.clientY - rect.top) / zoom,
+      )
     },
-    [dragState, setDragState, zoom],
+    [dragState, zoom],
   )
 
   // cancel drag on mouseup over empty space
@@ -366,33 +394,6 @@ export function Rack() {
   const selectionHeight = selectionDrag
     ? Math.abs(selectionDrag.currentY - selectionDrag.startY)
     : 0
-
-  // filter which module IDs to render:
-  // - at root: hide proxy modules (they only appear inside subpatches)
-  // - inside subpatch: show all modules (including proxies of the current definition)
-  const visibleModuleIds = Object.keys(modules).filter((id) => {
-    const mod = modules[id]
-    if (!mod) return false
-    if (!isInsideSubpatch) {
-      // hide proxy modules that got orphaned or were somehow added to root
-      if (
-        mod.definitionId === 'subpatch-input' ||
-        mod.definitionId === 'subpatch-output'
-      )
-        return false
-      // hide container modules that belong to a different subpatch context (shouldn't happen, but guard it)
-    } else {
-      // inside a subpatch: hide root-level containers and non-internal modules
-      // only show modules from the current definition (the injected ones + their IDs match the definition)
-      const currentDef = subpatchContext[subpatchContext.length - 1]
-      if (!currentDef) return false
-      const def = useStore.getState().definitions[currentDef.definitionId]
-      if (!def) return false
-      // only show modules that are part of this definition
-      return id in def.modules
-    }
-    return true
-  })
 
   const scaledViewportStyle = {
     '--viewport-width': `${rackWidth * zoom}px`,

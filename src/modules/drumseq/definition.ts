@@ -21,6 +21,7 @@ interface DrumSequencerState {
   playPatternParam: number
   stepParamKeys: string[]
   stepCache: Uint8Array
+  stepSnapshot: Uint8Array
   triggerTimers: Int32Array
   indicatorStep: number
   [key: string]: unknown
@@ -114,6 +115,7 @@ export const DrumSequencerDefinition: ModuleDefinition<
       playPatternParam: 0,
       stepParamKeys,
       stepCache: new Uint8Array(TOTAL_STEP_CELLS),
+      stepSnapshot: new Uint8Array(TOTAL_STEP_CELLS),
       triggerTimers: new Int32Array(TRACK_COUNT),
       indicatorStep: 0,
     }
@@ -146,6 +148,7 @@ export const DrumSequencerDefinition: ModuleDefinition<
 
     let stepParamKeys = state.stepParamKeys as string[] | undefined
     let stepCache = state.stepCache as Uint8Array | undefined
+    let stepSnapshot = state.stepSnapshot as Uint8Array | undefined
     let triggerTimers = state.triggerTimers as Int32Array | undefined
 
     if (!stepParamKeys || stepParamKeys.length !== totalStepCells) {
@@ -164,6 +167,10 @@ export const DrumSequencerDefinition: ModuleDefinition<
       stepCache = new Uint8Array(totalStepCells)
       state.stepCache = stepCache
     }
+    if (!stepSnapshot || stepSnapshot.length !== totalStepCells) {
+      stepSnapshot = new Uint8Array(totalStepCells)
+      state.stepSnapshot = stepSnapshot
+    }
 
     if (!triggerTimers || triggerTimers.length !== trackCount) {
       triggerTimers = new Int32Array(trackCount)
@@ -172,7 +179,11 @@ export const DrumSequencerDefinition: ModuleDefinition<
 
     for (let i = 0; i < totalStepCells; i++) {
       const value = params[stepParamKeys[i]!] ?? 0
-      stepCache[i] = value >= 0.5 ? 1 : 0
+      const next = value >= 0.5 ? 1 : 0
+      if (next !== (stepSnapshot[i] ?? 0)) {
+        stepSnapshot[i] = next
+        stepCache[i] = next
+      }
     }
 
     let stepA = Math.round(state.stepA ?? 0)

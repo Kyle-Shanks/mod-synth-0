@@ -20,6 +20,7 @@ interface CVSequencerState {
   playPatternParam: number
   valueParamKeys: string[]
   valueCache: Float32Array
+  valueSnapshot: Float32Array
   indicatorStep: number
   [key: string]: unknown
 }
@@ -107,6 +108,7 @@ export const CVSequencerDefinition: ModuleDefinition<
       playPatternParam: 0,
       valueParamKeys,
       valueCache: new Float32Array(TOTAL_STEPS),
+      valueSnapshot: new Float32Array(TOTAL_STEPS),
       indicatorStep: 0,
     }
   },
@@ -134,6 +136,7 @@ export const CVSequencerDefinition: ModuleDefinition<
 
     let valueParamKeys = state.valueParamKeys as string[] | undefined
     let valueCache = state.valueCache as Float32Array | undefined
+    let valueSnapshot = state.valueSnapshot as Float32Array | undefined
 
     if (!valueParamKeys || valueParamKeys.length !== totalSteps) {
       valueParamKeys = []
@@ -149,10 +152,18 @@ export const CVSequencerDefinition: ModuleDefinition<
       valueCache = new Float32Array(totalSteps)
       state.valueCache = valueCache
     }
+    if (!valueSnapshot || valueSnapshot.length !== totalSteps) {
+      valueSnapshot = new Float32Array(totalSteps)
+      state.valueSnapshot = valueSnapshot
+    }
 
     for (let i = 0; i < totalSteps; i++) {
       const value = params[valueParamKeys[i]!] ?? 0
-      valueCache[i] = Math.max(-2, Math.min(2, value))
+      const clamped = Math.max(-2, Math.min(2, value))
+      if (Math.abs(clamped - (valueSnapshot[i] ?? 0)) > 1e-6) {
+        valueSnapshot[i] = clamped
+        valueCache[i] = clamped
+      }
     }
 
     let stepA = Math.round(state.stepA ?? 0)

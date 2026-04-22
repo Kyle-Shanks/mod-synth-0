@@ -18,6 +18,21 @@ Open `http://localhost:5173`. Click **Start** to initialize the audio context (r
 - A browser with `AudioWorklet` support (Chrome, Edge, Firefox, Safari 14.1+)
 - `SharedArrayBuffer` is required for display analyzer modules (`scope`, `freq spectrum`, `tuner`, and `xy scope`). The dev server is configured with the necessary `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
 
+### Performance Harness (Dev)
+
+A built-in stress harness is exposed in development builds to baseline large-patch behavior and compare optimizations.
+
+1. Start dev server with `npm run dev`, open the app, and click **Start**.
+2. Open browser devtools console.
+3. Run:
+
+```js
+await window.__modsynthPerf?.run()
+```
+
+The harness creates a dense patch, runs scripted parameter sweeps + repatching, and returns metrics for frame timing, meter event volume, store update pressure, and worklet error counts.
+It clears the currently loaded patch as part of setup, so run it only when you are okay replacing the current session state.
+
 ---
 
 ## What It Is

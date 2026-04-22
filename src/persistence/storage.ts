@@ -122,6 +122,21 @@ export function restoreSavedPatch(): boolean {
  */
 export function setupAutosave(): () => void {
   let timer: ReturnType<typeof setTimeout> | null = null
+  let idleTimer: number | null = null
+
+  const scheduleSave = () => {
+    if (typeof window.requestIdleCallback === 'function') {
+      idleTimer = window.requestIdleCallback(
+        () => {
+          savePatchToStorage()
+          idleTimer = null
+        },
+        { timeout: 250 },
+      )
+      return
+    }
+    savePatchToStorage()
+  }
 
   const unsubscribe = useStore.subscribe(
     (state, prevState) => {
@@ -138,8 +153,12 @@ export function setupAutosave(): () => void {
       if (!changed) return
 
       if (timer) clearTimeout(timer)
+      if (idleTimer !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleTimer)
+        idleTimer = null
+      }
       timer = setTimeout(() => {
-        savePatchToStorage()
+        scheduleSave()
         timer = null
       }, DEBOUNCE_MS)
     },
@@ -147,6 +166,10 @@ export function setupAutosave(): () => void {
 
   return () => {
     if (timer) clearTimeout(timer)
+    if (idleTimer !== null && typeof window.cancelIdleCallback === 'function') {
+      window.cancelIdleCallback(idleTimer)
+      idleTimer = null
+    }
     unsubscribe()
   }
 }

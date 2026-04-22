@@ -385,11 +385,25 @@ class GraphProcessorNode extends AudioWorkletProcessor {
         const isConnected = !!(connected && connected.length > 0)
         m.connectedInputs[portId] = isConnected
         if (isConnected) {
-          for (const cable of connected) {
-            const srcBuf = this.feedbackBuffers.has(cable.id)
+          if (connected.length === 1) {
+            const cable = connected[0]
+            const srcBuf = cable && this.feedbackBuffers.has(cable.id)
               ? this.feedbackBuffers.get(cable.id)
-              : this.tickBuffers.get(`${cable.from.moduleId}:${cable.from.portId}`)
+              : cable
+                ? this.tickBuffers.get(`${cable.from.moduleId}:${cable.from.portId}`)
+                : null
             if (srcBuf) {
+              buf.set(srcBuf)
+            } else {
+              buf.fill(0)
+            }
+          } else {
+            buf.fill(0)
+            for (const cable of connected) {
+              const srcBuf = this.feedbackBuffers.has(cable.id)
+                ? this.feedbackBuffers.get(cable.id)
+                : this.tickBuffers.get(`${cable.from.moduleId}:${cable.from.portId}`)
+              if (!srcBuf) continue
               for (let i = 0; i < BUFFER_SIZE; i++) buf[i] += srcBuf[i]
             }
           }
@@ -448,24 +462,28 @@ class GraphProcessorNode extends AudioWorkletProcessor {
     // release all tick buffers back to pool
     for (const buf of this.acquiredBuffers) this.releaseBuffer(buf)
 
-    // send throttled METER events
+    // send throttled METER events in a single batch payload
     this.meterFrameCounter++
     if (this.meterFrameCounter >= this.METER_INTERVAL) {
       this.meterFrameCounter = 0
+      const entries = []
       for (const [moduleId, m] of this.modules) {
         // output module peak levels
         if (m.definitionId === 'output') {
           const peakL = m.state.peakL ?? 0
           const peakR = m.state.peakR ?? 0
-          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakL', peak: peakL })
-          this.port.postMessage({ type: 'METER', moduleId, portId: 'peakR', peak: peakR })
+          entries.push({ moduleId, portId: 'peakL', peak: peakL })
+          entries.push({ moduleId, portId: 'peakR', peak: peakR })
         }
         // generic per-module meters: any module can write _meters object to state
         if (m.state._meters) {
           for (const [portId, value] of Object.entries(m.state._meters)) {
-            this.port.postMessage({ type: 'METER', moduleId, portId, peak: value })
+            entries.push({ moduleId, portId, peak: value })
           }
         }
+      }
+      if (entries.length > 0) {
+        this.port.postMessage({ type: 'METER_BATCH', entries })
       }
     }
 

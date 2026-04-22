@@ -64,9 +64,13 @@ function expandLabel(portId: string, rawLabel: string): string {
 
 export function Tooltip() {
   const hoveredPortKey = useStore((s) => s.hoveredPortKey)
-  const modules = useStore((s) => s.modules)
   const cables = useStore((s) => s.cables)
   const tooltipsEnabled = useStore((s) => s.tooltipsEnabled)
+  const hoveredModule = useStore((s) => {
+    if (!s.hoveredPortKey) return null
+    const moduleId = s.hoveredPortKey.split(':')[0]
+    return moduleId ? s.modules[moduleId] : null
+  })
   const [activeKey, setActiveKey] = useState<string | null>(null)
 
   useEffect(() => {
@@ -85,10 +89,12 @@ export function Tooltip() {
   const portId = parts[1]
   if (!moduleId || !portId) return null
 
-  const mod = modules[moduleId]
-  if (!mod) return null
+  const state = useStore.getState()
+  const modules = state.modules
+  const definitions = state.definitions
 
-  const definitions = useStore.getState().definitions
+  const mod = hoveredModule
+  if (!mod) return null
 
   // Resolve port label, type and direction — handles both regular modules and subpatch containers
   let portLabel: string

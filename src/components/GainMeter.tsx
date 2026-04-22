@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import styles from './GainMeter.module.css'
 
 const BAR_HEIGHT = 52
@@ -57,9 +58,7 @@ export function GainMeter({ moduleId }: GainMeterProps) {
 
   // rAF loop: smooth display values toward targets, update DOM directly
   useEffect(() => {
-    let rafId: number
-
-    const animate = () => {
+    return rafScheduler.subscribe(() => {
       const { l: tL, r: tR } = targetRef.current
       let { l: cL, r: cR } = displayRef.current
 
@@ -82,12 +81,7 @@ export function GainMeter({ moduleId }: GainMeterProps) {
         fillR.style.height = `${h}px`
         fillR.style.background = cR > 0.9 ? 'var(--accent2)' : 'var(--accent1)'
       }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    rafId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [])
 
   return (

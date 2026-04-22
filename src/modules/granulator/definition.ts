@@ -16,6 +16,7 @@ interface GranulatorState {
   heldSample: number
   holdCounter: number
   lastWet: number
+  activeGrainCount: number
   [key: string]: unknown
 }
 
@@ -168,6 +169,7 @@ export const GranulatorDefinition: ModuleDefinition<
       heldSample: 0,
       holdCounter: 0,
       lastWet: 0,
+      activeGrainCount: 0,
     }
   },
 
@@ -193,6 +195,10 @@ export const GranulatorDefinition: ModuleDefinition<
     let heldSample = state.heldSample as number
     let holdCounter = state.holdCounter as number
     let lastWet = state.lastWet as number
+    let activeGrainCount = Math.max(
+      0,
+      Math.round(state.activeGrainCount as number) || 0,
+    )
 
     const mode = Math.round(params.mode)
     const modeDensityScale = mode === 1 ? 0.75 : mode === 2 ? 1.3 : 1
@@ -240,11 +246,7 @@ export const GranulatorDefinition: ModuleDefinition<
         const slot = nextGrain
         nextGrain = (nextGrain + 1) % grainCount
 
-        let activeBeforeSpawn = 0
-        for (let g = 0; g < grainCount; g++) {
-          if ((grainActive[g] ?? 0) === 1) activeBeforeSpawn++
-        }
-        if (activeBeforeSpawn >= maxActiveGrains) {
+        if (activeGrainCount >= maxActiveGrains) {
           spawnCounter += intervalSamples * 0.5
           continue
         }
@@ -280,6 +282,7 @@ export const GranulatorDefinition: ModuleDefinition<
         const reverse = Math.random() < reverseChance ? -1 : 1
         const gain = 0.35 + Math.random() * 0.85
 
+        const slotWasActive = (grainActive[slot] ?? 0) === 1
         grainActive[slot] = 1
         grainAge[slot] = 0
         grainDuration[slot] = duration
@@ -287,6 +290,7 @@ export const GranulatorDefinition: ModuleDefinition<
         grainStep[slot] = quantizedRatio
         grainDirection[slot] = reverse
         grainGain[slot] = gain
+        if (!slotWasActive) activeGrainCount++
 
         const jitterInterval = intervalSamples * (1 + (Math.random() * 2 - 1) * jitter * 0.85)
         spawnCounter += Math.max(1, jitterInterval)
@@ -302,7 +306,10 @@ export const GranulatorDefinition: ModuleDefinition<
         const duration = grainDuration[g] ?? 1
 
         if (age >= duration) {
-          grainActive[g] = 0
+          if ((grainActive[g] ?? 0) === 1) {
+            grainActive[g] = 0
+            if (activeGrainCount > 0) activeGrainCount--
+          }
           continue
         }
 
@@ -331,7 +338,10 @@ export const GranulatorDefinition: ModuleDefinition<
 
         const nextAge = age + 1
         grainAge[g] = nextAge
-        if (nextAge >= duration) grainActive[g] = 0
+        if (nextAge >= duration && (grainActive[g] ?? 0) === 1) {
+          grainActive[g] = 0
+          if (activeGrainCount > 0) activeGrainCount--
+        }
       }
 
       const wetNorm = activeCount > 0 ? wet / Math.sqrt(activeCount) : 0
@@ -360,5 +370,6 @@ export const GranulatorDefinition: ModuleDefinition<
     state.heldSample = heldSample
     state.holdCounter = holdCounter
     state.lastWet = lastWet
+    state.activeGrainCount = activeGrainCount
   },
 }

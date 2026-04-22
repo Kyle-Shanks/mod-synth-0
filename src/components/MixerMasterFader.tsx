@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ParamDefinition } from '../engine/types'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import { classes } from '../utils/classes'
 import styles from './MixerMasterFader.module.css'
 import mixerBaseStyles from '../styles/mixerControlBase.module.css'
@@ -62,9 +63,7 @@ export function MixerMasterFader({
   }, [moduleId])
 
   useEffect(() => {
-    let rafId: number
-
-    const animate = () => {
+    return rafScheduler.subscribe(() => {
       const target = meterTargetRef.current
       const current = meterDisplayRef.current
 
@@ -87,12 +86,7 @@ export function MixerMasterFader({
         fillR.style.background =
           current.r > 0.9 ? 'var(--accent2)' : 'var(--accent1)'
       }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    rafId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [])
 
   const resetToDefault = useCallback(() => {

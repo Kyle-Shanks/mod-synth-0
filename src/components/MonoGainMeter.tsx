@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { internalWorkletId } from '../store/subpatchSlice'
+import { rafScheduler } from '../utils/rafScheduler'
 import styles from './MonoGainMeter.module.css'
 
 const BAR_HEIGHT = 52
@@ -32,9 +33,7 @@ export function MonoGainMeter({
   }, [moduleId, portId])
 
   useEffect(() => {
-    let rafId: number
-
-    const animate = () => {
+    return rafScheduler.subscribe(() => {
       const target = targetRef.current
       let current = displayRef.current
       current += (target - current) * (target > current ? ATTACK : RELEASE)
@@ -47,12 +46,7 @@ export function MonoGainMeter({
         fill.style.background =
           current > 0.9 ? 'var(--accent2)' : 'var(--accent1)'
       }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    rafId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(rafId)
+    })
   }, [])
 
   return (

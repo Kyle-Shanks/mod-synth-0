@@ -51,6 +51,79 @@ export interface PatchSlice {
 }
 
 let moduleCounter = 0
+const rootAdjacency = new Map<string, Set<string>>()
+
+function ensureAdjNode(adjacency: Map<string, Set<string>>, moduleId: string): Set<string> {
+  let outgoing = adjacency.get(moduleId)
+  if (!outgoing) {
+    outgoing = new Set<string>()
+    adjacency.set(moduleId, outgoing)
+  }
+  return outgoing
+}
+
+function addAdjEdge(
+  adjacency: Map<string, Set<string>>,
+  fromModuleId: string,
+  toModuleId: string,
+): void {
+  ensureAdjNode(adjacency, fromModuleId).add(toModuleId)
+  ensureAdjNode(adjacency, toModuleId)
+}
+
+function removeAdjEdge(
+  adjacency: Map<string, Set<string>>,
+  fromModuleId: string,
+  toModuleId: string,
+): void {
+  adjacency.get(fromModuleId)?.delete(toModuleId)
+}
+
+function removeAdjNode(adjacency: Map<string, Set<string>>, moduleId: string): void {
+  adjacency.delete(moduleId)
+  for (const outgoing of adjacency.values()) {
+    outgoing.delete(moduleId)
+  }
+}
+
+function hasParallelCableEdge(
+  cables: Record<string, SerializedCable>,
+  cableIdToSkip: string,
+  fromModuleId: string,
+  toModuleId: string,
+): boolean {
+  for (const [cableId, cable] of Object.entries(cables)) {
+    if (cableId === cableIdToSkip) continue
+    if (
+      cable.from.moduleId === fromModuleId &&
+      cable.to.moduleId === toModuleId
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
+function cloneAdjacency(adjacency: Map<string, Set<string>>): Map<string, Set<string>> {
+  const copy = new Map<string, Set<string>>()
+  for (const [from, outgoing] of adjacency) {
+    copy.set(from, new Set(outgoing))
+  }
+  return copy
+}
+
+function rebuildRootAdjacency(
+  modules: Record<string, ModuleInstance>,
+  cables: Record<string, SerializedCable>,
+): void {
+  rootAdjacency.clear()
+  for (const moduleId of Object.keys(modules)) {
+    ensureAdjNode(rootAdjacency, moduleId)
+  }
+  for (const cable of Object.values(cables)) {
+    addAdjEdge(rootAdjacency, cable.from.moduleId, cable.to.moduleId)
+  }
+}
 
 function createCableId(cables: Record<string, SerializedCable>): string {
   let id = ''
@@ -132,6 +205,28 @@ function detectsCycle(cables: Record<string, SerializedCable>, newCable: Seriali
   return false
 }
 
+function detectsCycleWithAdj(
+  adjacency: Map<string, Set<string>>,
+  newCable: SerializedCable,
+): boolean {
+  if (newCable.from.moduleId === newCable.to.moduleId) return true
+  const visited = new Set<string>()
+  const queue = [newCable.to.moduleId]
+  while (queue.length > 0) {
+    const current = queue.pop()
+    if (!current) continue
+    if (current === newCable.from.moduleId) return true
+    if (visited.has(current)) continue
+    visited.add(current)
+    const outgoing = adjacency.get(current)
+    if (!outgoing) continue
+    for (const next of outgoing) {
+      if (!visited.has(next)) queue.push(next)
+    }
+  }
+  return false
+}
+
 // translate a cable's endpoints: if either end is a subpatch container port,
 // map it to the corresponding proxy module port for the worklet
 function resolveWorkletCable(cable: SerializedCable, state: StoreState): SerializedCable {
@@ -196,6 +291,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     const freePos = findFreePosition(rootModules, position, def.width, def.height)
 
     engine.addModule({ id, definitionId, params, state, position: freePos }, def)
+    ensureAdjNode(rootAdjacency, id)
 
     set((s) => ({
       modules: { ...s.modules, [id]: { definitionId, position: freePos, params } }
@@ -253,7 +349,12 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     for (const [cableId, cable] of Object.entries(get().cables)) {
       if (removeSet.has(cable.from.moduleId) || removeSet.has(cable.to.moduleId)) {
         engine.removeCable(cableId)
+        removeAdjEdge(rootAdjacency, cable.from.moduleId, cable.to.moduleId)
       }
+    }
+
+    for (const moduleId of existingIds) {
+      removeAdjNode(rootAdjacency, moduleId)
     }
 
     set((s) => {
@@ -286,10 +387,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     }
 
     get().pushHistory()
-    const allCables = { ...get().cables, [cable.id]: cable }
-    const isFeedback = detectsCycle(allCables, cable)
+    const isFeedback = detectsCycleWithAdj(rootAdjacency, cable)
     const workletCable = resolveWorkletCable(cable, get())
     engine.addCable(workletCable, isFeedback)
+    addAdjEdge(rootAdjacency, cable.from.moduleId, cable.to.moduleId)
     set((s) => {
       const newFeedback = new Set(s.feedbackCableIds)
       if (isFeedback) newFeedback.add(cable.id)
@@ -313,7 +414,19 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     }
 
     get().pushHistory()
+    const cable = get().cables[cableId]
     engine.removeCable(cableId)
+    if (cable) {
+      const hasParallel = hasParallelCableEdge(
+        get().cables,
+        cableId,
+        cable.from.moduleId,
+        cable.to.moduleId,
+      )
+      if (!hasParallel) {
+        removeAdjEdge(rootAdjacency, cable.from.moduleId, cable.to.moduleId)
+      }
+    }
     set((s) => {
       const cables = { ...s.cables }
       const feedbackCableIds = new Set(s.feedbackCableIds)
@@ -496,6 +609,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     )
     const nextCables: Record<string, SerializedCable> = { ...get().cables }
     const nextFeedback = new Set(get().feedbackCableIds)
+    const nextAdjacency = cloneAdjacency(rootAdjacency)
     const idMap = new Map<string, string>()
     const pastedModuleIds: string[] = []
     const pasteOffset = get().moduleClipboardPasteCount + 1
@@ -573,12 +687,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
         to: { moduleId: toModuleId, portId: cable.to.portId },
       }
 
-      const isFeedback = detectsCycle(
-        { ...nextCables, [pastedCable.id]: pastedCable },
-        pastedCable,
-      )
+      const isFeedback = detectsCycleWithAdj(nextAdjacency, pastedCable)
       engine.addCable(pastedCable, isFeedback)
       nextCables[pastedCable.id] = pastedCable
+      addAdjEdge(nextAdjacency, pastedCable.from.moduleId, pastedCable.to.moduleId)
       if (isFeedback) nextFeedback.add(pastedCable.id)
     }
 
@@ -590,6 +702,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       selectedModuleIds: pastedModuleIds,
       moduleClipboardPasteCount: pasteOffset,
     })
+    rebuildRootAdjacency(nextModules, nextCables)
 
     return pastedModuleIds
   },
@@ -732,9 +845,12 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
 
     // detect feedback cables and add to engine (with container port translation)
     const stateForCables = get()
-    const recalcCablesSoFar: Record<string, SerializedCable> = {}
+    const recalcAdjacency = new Map<string, Set<string>>()
+    for (const moduleId of Object.keys(modules)) {
+      ensureAdjNode(recalcAdjacency, moduleId)
+    }
     for (const [cableId, cable] of Object.entries(cables)) {
-      const isFeedback = detectsCycle({ ...recalcCablesSoFar, [cableId]: cable }, cable)
+      const isFeedback = detectsCycleWithAdj(recalcAdjacency, cable)
       if (isFeedback) feedbackIds.add(cableId)
       // only add cable if both endpoints have valid backing
       const fromMod = modules[cable.from.moduleId]
@@ -745,9 +861,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
         const workletCable = resolveWorkletCable(cable, stateForCables)
         engine.addCable(workletCable, isFeedback)
       }
-      recalcCablesSoFar[cableId] = cable
+      addAdjEdge(recalcAdjacency, cable.from.moduleId, cable.to.moduleId)
     }
     set({ feedbackCableIds: feedbackIds })
+    rebuildRootAdjacency(modules, regularCables)
 
     // expand container instances into worklet
     for (const [instanceId, mod] of Object.entries(modules)) {
@@ -775,6 +892,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     }
     get().clearHistory()
     moduleCounter = 0
+    rootAdjacency.clear()
     set({
       patchName: 'untitled patch',
       modules: {},
@@ -805,6 +923,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     }
 
     set((s) => ({ modules: { ...s.modules, [id]: container } }))
+    ensureAdjNode(rootAdjacency, id)
 
     // expand internal modules into worklet
     _expandInstance(id, container, def, get())
@@ -916,7 +1035,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     get().refreshExposedPorts(defId)
 
     // add the container at centroid
-    return get().addSubpatchContainer(defId, centroid)
+    const containerId = get().addSubpatchContainer(defId, centroid)
+    const nextState = get()
+    rebuildRootAdjacency(nextState.modules, nextState.cables)
+    return containerId
   },
 
   ungroupSubpatch(instanceId) {
@@ -1052,6 +1174,7 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       delete modules[instanceId]
       return { modules, cables: nextCables, feedbackCableIds: nextFeedback }
     })
+    rebuildRootAdjacency(get().modules, get().cables)
 
     // clean up the definition
     get().deleteDefinition(defId)

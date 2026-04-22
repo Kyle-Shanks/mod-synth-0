@@ -192,5 +192,9 @@ export type EngineCommand =
 // events sent from worklet to main thread
 export type EngineEvent =
   | { type: 'METER'; moduleId: string; portId: string; peak: number }
+  | {
+      type: 'METER_BATCH'
+      entries: Array<{ moduleId: string; portId: string; peak: number }>
+    }
   | { type: 'READY' }
   | { type: 'ERROR'; message: string }

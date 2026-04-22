@@ -168,9 +168,15 @@ gate commands carry an `AudioContext.currentTime` timestamp, allowing the workle
 ```typescript
 type EngineEvent =
   | { type: 'METER'; moduleId: string; portId: string; peak: number }
+  | {
+      type: 'METER_BATCH'
+      entries: Array<{ moduleId: string; portId: string; peak: number }>
+    }
   | { type: 'READY' }
   | { type: 'ERROR'; message: string }
 ```
+
+the worklet emits one `METER_BATCH` event per meter interval to reduce `postMessage` overhead. legacy single-meter `METER` events are still accepted on the main thread during rollout compatibility windows.
 
 scope-style display data bypasses `postMessage` entirely: display modules like scope and freq spectrum write directly into `SharedArrayBuffer` circular buffers. the main thread reads them in a `requestAnimationFrame` loop with zero allocation. sampler playback uploads sample PCM once via `SET_SAMPLER_BUFFER`, then streams playhead state back through a tiny `SharedArrayBuffer` (`SET_SAMPLER_PLAYHEAD_BUFFER`) for smooth ui tracking. `SharedArrayBuffer` requires `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` headers, which are configured in `vite.config.ts`.
 
@@ -512,7 +518,7 @@ engineReady: boolean
 meterValues: Record<string, number> // 'moduleId:portId' → peak value
 ```
 
-`meterValues` is written by `App.tsx` which subscribes to `METER` events from the worklet via `engine.onEvent()`.
+`meterValues` is written by `App.tsx` which subscribes to `METER_BATCH` events from the worklet via `engine.onEvent()` (with compatibility fallback for legacy `METER` events).
 
 ### tutorialSlice
 

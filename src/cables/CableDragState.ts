@@ -5,6 +5,4 @@ export interface CableDragState {
   fromPortId: string
   fromDirection: 'input' | 'output'
   portType: PortType
-  cursorX: number
-  cursorY: number
 }
