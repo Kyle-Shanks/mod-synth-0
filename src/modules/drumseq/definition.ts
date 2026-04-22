@@ -215,6 +215,7 @@ export const DrumSequencerDefinition: ModuleDefinition<
       const clockHigh = (clockInput[i] ?? 0) > 0.5
       const patternHigh = (patternInput[i] ?? 0) > 0.5
       const clockRising = clockHigh && !clockWasHigh
+      const resetRising = resetHigh && !resetWasHigh
 
       if (resetHigh) {
         stepA = 0
@@ -223,19 +224,57 @@ export const DrumSequencerDefinition: ModuleDefinition<
         stepD = 0
         activePattern = 0
 
+        if (resetRising) {
+          triggerTimers[0] = 0
+          triggerTimers[1] = 0
+          triggerTimers[2] = 0
+          triggerTimers[3] = 0
+
+          const base = 0
+          const track1On = stepCache[base] ?? 0
+          const track2On = stepCache[base + stepsPerPattern] ?? 0
+          const track3On = stepCache[base + stepsPerPattern * 2] ?? 0
+          const track4On = stepCache[base + stepsPerPattern * 3] ?? 0
+
+          if (track1On > 0) triggerTimers[0] = triggerDuration
+          if (track2On > 0) triggerTimers[1] = triggerDuration
+          if (track3On > 0) triggerTimers[2] = triggerDuration
+          if (track4On > 0) triggerTimers[3] = triggerDuration
+        }
+
         clockWasHigh = clockHigh
         patternWasHigh = patternHigh
         resetWasHigh = true
-        triggerTimers[0] = 0
-        triggerTimers[1] = 0
-        triggerTimers[2] = 0
-        triggerTimers[3] = 0
-
-        out1[i] = 0
-        out2[i] = 0
-        out3[i] = 0
-        out4[i] = 0
         activeStep = 0
+
+        const timer1 = triggerTimers[0] ?? 0
+        if (timer1 > 0) {
+          out1[i] = 1
+          triggerTimers[0] = timer1 - 1
+        } else {
+          out1[i] = 0
+        }
+        const timer2 = triggerTimers[1] ?? 0
+        if (timer2 > 0) {
+          out2[i] = 1
+          triggerTimers[1] = timer2 - 1
+        } else {
+          out2[i] = 0
+        }
+        const timer3 = triggerTimers[2] ?? 0
+        if (timer3 > 0) {
+          out3[i] = 1
+          triggerTimers[2] = timer3 - 1
+        } else {
+          out3[i] = 0
+        }
+        const timer4 = triggerTimers[3] ?? 0
+        if (timer4 > 0) {
+          out4[i] = 1
+          triggerTimers[3] = timer4 - 1
+        } else {
+          out4[i] = 0
+        }
         continue
       }
       resetWasHigh = false

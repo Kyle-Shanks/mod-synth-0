@@ -815,6 +815,7 @@ timing module parameter notes:
 - `notesequencer.patternSpan` limits how many patterns are cycled before wrapping back to pattern 1 (`1–4`).
 - `drumsequencer.pattern` is a trigger input that advances the active output pattern in order and wraps based on `drumsequencer.patternSpan`.
 - `drumsequencer.patternSpan` limits how many patterns are cycled before wrapping back to pattern 1 (`1–4`).
+- `drumsequencer.reset` snaps to pattern 1, step 1, and emits step-1 triggers on reset edge so downbeats are not skipped.
 
 granulator parameter notes:
 
