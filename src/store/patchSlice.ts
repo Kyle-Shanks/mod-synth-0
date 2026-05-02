@@ -508,6 +508,18 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     const clipboardModules = uniqueIds.flatMap((id) => {
       const mod = get().modules[id]
       if (!mod) return []
+      if (isSubpatchContainer(mod)) {
+        return {
+          sourceId: id,
+          definitionId: '__subpatch__',
+          position: { ...mod.position },
+          params: {},
+          subpatchDefinitionId: mod.subpatchDefinitionId,
+          macroValues: { ...mod.macroValues },
+          containerWidth: mod.containerWidth,
+          containerHeight: mod.containerHeight,
+        }
+      }
       return {
         sourceId: id,
         definitionId: mod.definitionId,
@@ -540,14 +552,14 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
   pasteModulesFromClipboard(targetPosition) {
     const clipboard = get().moduleClipboard
     if (!clipboard || clipboard.modules.length === 0) return []
-    const pasteableItems = clipboard.modules.filter((item) =>
-      !!getModule(item.definitionId),
-    )
-    if (pasteableItems.length === 0) return []
 
     // ── subpatch branch ───────────────────────────────────────────────────────
     const ctx = get().subpatchContext
     if (ctx.length > 0) {
+      const pasteableItems = clipboard.modules.filter(
+        (item) => item.definitionId !== '__subpatch__' && !!getModule(item.definitionId),
+      )
+      if (pasteableItems.length === 0) return []
       const defId = ctx[ctx.length - 1]!.definitionId
       const pasteOffset = get().moduleClipboardPasteCount + 1
       const minX = targetPosition ? Math.min(...pasteableItems.map((i) => i.position.x)) : 0
@@ -592,6 +604,14 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     }
     // ── end subpatch branch ───────────────────────────────────────────────────
 
+    const pasteableItems = clipboard.modules.filter((item) => {
+      if (item.definitionId === '__subpatch__') {
+        return !!item.subpatchDefinitionId && !!get().definitions[item.subpatchDefinitionId]
+      }
+      return !!getModule(item.definitionId)
+    })
+    if (pasteableItems.length === 0) return []
+
     let minClipboardX = 0
     let minClipboardY = 0
     if (targetPosition) {
@@ -612,15 +632,16 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
     const nextAdjacency = cloneAdjacency(rootAdjacency)
     const idMap = new Map<string, string>()
     const pastedModuleIds: string[] = []
+    const pastedContainers: Array<{
+      instanceId: string
+      container: SubpatchContainerInstance
+      definition: SubpatchDefinition
+    }> = []
     const pasteOffset = get().moduleClipboardPasteCount + 1
     const repeatedPasteOffset = targetPosition ? 0 : pasteOffset - 1
     get().pushHistory()
 
-    for (const item of clipboard.modules) {
-      const def = getModule(item.definitionId)
-      if (!def) continue
-
-      const newId = `${item.definitionId}-${++moduleCounter}`
+    for (const item of pasteableItems) {
       const requestedPos = targetPosition
         ? {
             x: Math.max(
@@ -636,12 +657,34 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
             x: item.position.x + pasteOffset,
             y: item.position.y + pasteOffset,
           }
-      const freePos = findFreePosition(
-        nextModules,
-        requestedPos,
-        def.width,
-        def.height,
-      )
+
+      if (item.definitionId === '__subpatch__') {
+        if (!item.subpatchDefinitionId) continue
+        const definition = get().definitions[item.subpatchDefinitionId]
+        if (!definition) continue
+        const { width, height } = computeContainerSize(definition)
+        const freePos = findFreePosition(nextModules, requestedPos, width, height)
+        const newId = `subpatch-container-${++moduleCounter}`
+        const container: SubpatchContainerInstance = {
+          definitionId: '__subpatch__',
+          subpatchDefinitionId: definition.id,
+          position: freePos,
+          params: {},
+          macroValues: item.macroValues ? { ...item.macroValues } : {},
+          containerWidth: width,
+          containerHeight: height,
+        }
+        nextModules[newId] = container
+        pastedContainers.push({ instanceId: newId, container, definition })
+        idMap.set(item.sourceId, newId)
+        pastedModuleIds.push(newId)
+        continue
+      }
+
+      const def = getModule(item.definitionId)
+      if (!def) continue
+      const newId = `${item.definitionId}-${++moduleCounter}`
+      const freePos = findFreePosition(nextModules, requestedPos, def.width, def.height)
       const params = { ...item.params }
       const data = item.data ? { ...item.data } : undefined
       const state = def.initialize({ sampleRate: engine.sampleRate, bufferSize: 128 })
@@ -674,6 +717,10 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       pastedModuleIds.push(newId)
     }
 
+    for (const { instanceId, container, definition } of pastedContainers) {
+      _expandInstance(instanceId, container, definition, get())
+    }
+
     if (pastedModuleIds.length === 0) return []
 
     for (const cable of clipboard.cables) {
@@ -688,7 +735,12 @@ export const createPatchSlice: StateCreator<StoreState, [], [], PatchSlice> = (s
       }
 
       const isFeedback = detectsCycleWithAdj(nextAdjacency, pastedCable)
-      engine.addCable(pastedCable, isFeedback)
+      const stateForWorkletCable = {
+        ...get(),
+        modules: nextModules,
+      } as StoreState
+      const workletCable = resolveWorkletCable(pastedCable, stateForWorkletCable)
+      engine.addCable(workletCable, isFeedback)
       nextCables[pastedCable.id] = pastedCable
       addAdjEdge(nextAdjacency, pastedCable.from.moduleId, pastedCable.to.moduleId)
       if (isFeedback) nextFeedback.add(pastedCable.id)

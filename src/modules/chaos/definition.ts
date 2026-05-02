@@ -26,8 +26,8 @@ export const ChaosDefinition: ModuleDefinition<
   id: 'chaos',
   name: 'chaos',
   category: 'source',
-  width: 4,
-  height: 4,
+  width: 5,
+  height: 3,
 
   inputs: {},
   outputs: {

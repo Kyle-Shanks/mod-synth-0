@@ -11,6 +11,10 @@ export interface ModuleClipboardData {
     position: { x: number; y: number }
     params: Record<string, number>
     data?: ModuleInstance['data']
+    subpatchDefinitionId?: string
+    macroValues?: Record<string, number>
+    containerWidth?: number
+    containerHeight?: number
   }>
   cables: Array<{
     from: SerializedCable['from']
